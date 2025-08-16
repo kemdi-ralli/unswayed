@@ -1,0 +1,54 @@
+.container {
+  width: 100%;
+  background-color: #00305b;
+  padding: 20px;
+  height: 100vh;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+.container::-webkit-scrollbar {
+  display: none;
+}
+
+.dropDownBox {
+  background-color: #00305b !important;
+  box-shadow: none !important;
+  color: #fff !important;
+  margin-bottom: 10px !important;
+}
+
+.dropDownTitle {
+  flex: 1;
+  font-weight: bold;
+  color: #fff;
+}
+
+.dropDownTitle:hover {
+  color: #fe4d82;
+}
+
+.dropDownIcon {
+  color: #fff;
+}
+
+.dropDownIcon:hover {
+  color: #fe4d82;
+}
+
+.sidebarLogo {
+  margin-left: 20px;
+  margin-bottom: 20px;
+  width: 130px !important;
+  height: 130px !important;
+}
+
+@media (max-width: 786px) {
+  .sidebarLogo {
+    width: 90px !important;
+    height: 90px !important;
+  }
+  .imageSection {
+    display: none;
+  }
+}

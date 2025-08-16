@@ -1,0 +1,19 @@
+.emptyResumeContainer {
+  box-shadow: 0px 1px 5px #00000040;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  cursor: pointer;
+}
+.resumeContainer {
+  box-shadow: 0px 1px 5px #00000040;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+}
