@@ -65,7 +65,7 @@ const CreateJobsForm = ({
     requirements: "",
     salary_currency: "",
     company_about: "",
-    company_benefits: "",
+    company_benefits: [],
     description: "",
     type: "internal",
   });
@@ -75,6 +75,7 @@ const CreateJobsForm = ({
   const [jobLocations, setJobLocations] = useState([]);
   const [jobShifts, setJobShifts] = useState([]);
   const [jobShiftsTimming, setJobShiftsTimming] = useState([]);
+  const [jobBenefits, setJobBenefits] = useState([])
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -181,6 +182,27 @@ const CreateJobsForm = ({
       setErrors(error?.response?.data?.message || "Failed to load countries");
     }
   };
+  const benefitList = [
+  "Competitive salary and benefits package",
+  "Flexible work arrangements",
+  "Opportunities for professional growth and continuous learning",
+  "A collaborative, innovative, and supportive work environment",
+  "Health Insurance (Medical, Dental, Vision)",
+  "Retirement Plans (401k, Pension, Employer Match)",
+  "Remote Work / Hybrid Options",
+  "Professional Development & Training",
+  "Performance Bonuses / Profit Sharing",
+  "Employee Wellness Programs (Gym, Therapy, Yoga, etc.)",
+  "Free Food and Coffee at Cafeteria",
+  "Parental Leave (Maternity, Paternity, Adoption)",
+  "Life & Disability Insurance",
+  "Commuter Benefits / Transportation Allowance",
+  "Stock Options / Equity",
+].map((benefit, index) => ({
+  id: index + 1,
+  name: benefit,
+}));
+
 
   useEffect(() => {
     getJobCategories();
@@ -189,6 +211,7 @@ const CreateJobsForm = ({
     getJobShifts();
     getJobShiftTimming();
     getCountries();
+    setJobBenefits(benefitList || []);
   }, []);
 
   useEffect(() => {
@@ -688,6 +711,23 @@ const CreateJobsForm = ({
                 required={item.required}
                 selectedValue={form?.cities || ""}
                 onChange={(value) => handleChange("cities", value)}
+              />
+              {formikErrors[item.name] && (
+                <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+                  {formikErrors[item.name]}
+                </Typography>
+              )}
+            </Box>
+          )}
+          {item.type === "dropdown" && item.name === "company_benefits" && (
+            <Box>
+              <RalliDropdown
+                names={jobBenefits}
+                multiple={true}
+                label={item.title}
+                required={item.required}
+                selectedValue={form?.company_benefits || ""}
+                onChange={(value) => handleChange("company_benefits", value)}
               />
               {formikErrors[item.name] && (
                 <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>

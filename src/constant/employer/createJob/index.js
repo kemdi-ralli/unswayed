@@ -123,7 +123,7 @@ export const CREATE_JOB_FORM = {
       title: "Benefits",
       name: "company_benefits",
       placeHolder: "Benefits",
-      type: "textarea",
+      type: "dropdown",
       required: false,
     },
     {
