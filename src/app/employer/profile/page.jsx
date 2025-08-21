@@ -8,7 +8,7 @@ import EmployerProfile from "@/components/employer/profile/EmployerProfile";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { EMPLOYER_GET_PROFILE } from "@/services/apiService/apiEndPoints";
 
-async function fetchProfile() {
+export async function fetchProfile() {
   try {
     const response = await apiInstance.get(EMPLOYER_GET_PROFILE);
     return response?.data?.data?.user || {};

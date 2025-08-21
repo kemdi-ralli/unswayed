@@ -28,6 +28,7 @@ import {
   JOB_SHIFTS_TIMMING,
   JOB_TYPES,
   STATES,
+  USER_PROFILE,
 } from "@/services/apiService/apiEndPoints";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import dayjs from "dayjs";
@@ -36,6 +37,8 @@ import { Toast } from "@/components/Toast/Toast";
 import { createJobValidationSchema } from "@/schemas/createJobSchema";
 import { enhanceText } from "@/helper/aiEnhanceHelper";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
+import { getCountries } from "@/helper/MasterGetApiHelper";
+import { useSelector } from "react-redux";
 
 const CreateJobsForm = ({
   data,
@@ -106,6 +109,32 @@ const CreateJobsForm = ({
       );
     }
   };
+
+  const { userData } = useSelector((state) => state.auth);
+  const [userCountry, setUserCountry] = useState("")
+  useEffect(()=>{
+    const defaultUserId = userData?.user?.id;
+    const getCountry = async (id) => {
+      const response = await apiInstance.get(`${COUNTRIES}/${id}`);
+      return response?.data?.data?.name || null;
+    }
+
+    const getUserCountry = async (id) => {
+    try {
+      const response = await apiInstance.get(`${USER_PROFILE}/${id}`);
+      const targetCountry = response?.data?.data?.country_id || null;
+
+      const country = await getCountry(targetCountry);
+      setUserCountry(country);
+    } catch (error) {
+      console.error("Error fetching country:", error);
+      return null;
+    }
+  }
+  getUserCountry(defaultUserId);
+  },[userData])
+  
+  
 
   const getJobTypes = async () => {
     try {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Box, Switch, Typography } from '@mui/material';
 import { Lock, LockOpen } from '@mui/icons-material';
 
-export default function PrivacyToggle() {
+export default function FollowingListToggle() {
   const [privacyOn, setPrivacyOn] = useState(true);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function PrivacyToggle() {
         sx={{ ml: 1 }}
       />
       <Typography sx={{ ml: 1 }}>
-        {privacyOn ? 'Enabled' : 'Disabled'}
+        {privacyOn ? ' Enabled' : 'Disabled'}
       </Typography>
     </Box>
   );

@@ -235,7 +235,7 @@ const ProfileView = ({
               Message
             </Button>
           </Box>
-        ) : (
+        ) : ( 
           <Button
             sx={{
               fontSize: { xs: "20px", sm: "20px", md: "22px" },
