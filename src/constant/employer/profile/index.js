@@ -267,6 +267,13 @@ export const EMPLOYER_PROFILE_SETTINGS = [
     link: "/employer/settings/manage-privacy",
   },
   {
+    title: "Privacy Settings",
+    placeHolder: "Hide and Show your contact details anf following list display",
+    name: "privacy",
+    buttonLable: "Manage Privacy",
+    link: "/employer/settings/privacy",
+  },
+  {
     title: "De-Activate Account",
     placeHolder: "Are You Sure You Want To Deactivate Your Account?",
     name: "deactivate",

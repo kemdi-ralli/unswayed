@@ -65,7 +65,7 @@ const TremsOfUse = ({
                 lineHeight: { xs: "14px", sm: "18px", md: "20px" },
 
                 fontWeight: "bold",
-                color: "#FE4D82",
+                color: "#189e33ff",
                 cursor: "pointer",
               }}
               onClick={handleOpenTermsModal}
@@ -82,7 +82,7 @@ const TremsOfUse = ({
                 lineHeight: { xs: "14px", sm: "18px", md: "20px" },
 
                 fontWeight: "bold",
-                color: "#FE4D82",
+                color: "#189e33ff",
                 cursor: "pointer",
               }}
               onClick={handleOpenTermsModal}

@@ -233,7 +233,7 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
                   sx={{
                     width: { sm: "140.7px" },
                     height: "43px",
-                    backgroundColor: "#FE4D82",
+                    backgroundColor: "#189e33ff",
                     color: "#fff",
                     fontSize: "16px",
                     lineHeight: "20px",

@@ -123,7 +123,7 @@ const EditProfile = ({
               top: 10,
               width: { xs: "30px", md: "40px" },
               height: { xs: "30px", md: "40px" },
-              backgroundColor: "#FE4D82",
+              backgroundColor: "#189e33ff",
               borderRadius: "50%",
               display: "flex",
               justifyContent: "center",

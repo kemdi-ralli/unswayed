@@ -155,7 +155,7 @@ const AddAdditionalDoc = ({
             sx={{
               width: "200.29px",
               height: { xs: "40px", sm: "50px", md: "60.93px" },
-              backgroundColor: "#FE4D82",
+              backgroundColor: "#189e33ff",
               boxShadow: "0px 1px 5px #00000040",
               borderRadius: "6px",
               color: "#FFFFFF",
@@ -268,7 +268,7 @@ const AddAdditionalDoc = ({
                   alignContent: "center",
                 }}
               >
-                <CircleIcon sx={{ color: "#FE4D82" }} />
+                <CircleIcon sx={{ color: "#189e33ff" }} />
                 <Typography
                   sx={{
                     fontSize: {

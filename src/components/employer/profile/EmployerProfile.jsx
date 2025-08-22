@@ -95,9 +95,9 @@ const EmployerProfile = ({
         <Box sx={styles.buttonContainer}>
           <Button
             sx={{
-              backgroundColor: data?.isFollowed ? "#fff" : "#FE4D82",
-              color: data?.isFollowed ? "#FE4D82" : "#fff",
-              borderColor: data?.isFollowed ? "#FE4D82" : null,
+              backgroundColor: data?.isFollowed ? "#fff" : "#189e33ff",
+              color: data?.isFollowed ? "#189e33ff" : "#fff",
+              borderColor: data?.isFollowed ? "#189e33ff" : null,
               width: { xs: "70%", sm: "130px", md: "200px" },
               height: "60px",
               borderRadius: "10px",
@@ -355,7 +355,7 @@ const styles = {
     width: { xs: "100%", sm: "300px", md: "390px" },
     height: "60px",
     borderRadius: "10px",
-    backgroundColor: "#FE4D82",
+    backgroundColor: "#189e33ff",
     color: "#fff",
   },
   heading: {

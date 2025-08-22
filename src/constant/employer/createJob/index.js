@@ -102,14 +102,14 @@ export const CREATE_JOB_FORM = {
       title: "Salary Period",
       name: "salary_period",
       placeHolder: "Per Annum",
-      type: "text",
+      type: "dropdown",
       required: false,
     },
     {
       title: "Salary Currency",
       name: "salary_currency",
       placeHolder: "USD",
-      type: "text",
+      type: "dropdown",
       required: false,
     },
     {

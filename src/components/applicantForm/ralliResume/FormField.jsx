@@ -62,7 +62,7 @@ const FormField = ({
                   handleChange(index, "is_continue", e.target.checked)
                 }
                 sx={{
-                  color: "#FE4D82",
+                  color: "#189e33ff",
                 }}
               />
             }

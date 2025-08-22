@@ -215,7 +215,7 @@ const MessageItems = ({ setChatUser = () => { }, chatId = null }) => {
                     fontSize: { xs: "8px", sm: "8px", lg: "11px" },
                     lineHeight: { xs: "12px", md: "15px" },
                     fontWeight: 300,
-                    color: SelectedUser === item.id ? "#FFFFFFFF" : "#FE4D82",
+                    color: SelectedUser === item.id ? "#FFFFFFFF" : "#189e33ff",
                     textDecoration: "underline",
                   }}
                 >

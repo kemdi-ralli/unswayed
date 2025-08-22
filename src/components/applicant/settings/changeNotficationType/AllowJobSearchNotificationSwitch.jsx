@@ -96,7 +96,7 @@ const AllowJobSearchNotificationSwitch = () => {
             onToggle(isEnabled);
           }}
           sx={{
-            color: "#FE4D82",
+            color: "#189e33ff",
           }}
         />
       </Box>

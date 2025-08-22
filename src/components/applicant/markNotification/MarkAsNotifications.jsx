@@ -117,7 +117,7 @@ const MarkAsNotifications = ({ data }) => {
               {!item.is_read && 
                 <Typography
                   sx={{
-                    color: "#FE4D82",
+                    color: "#189e33ff",
                     fontSize: { xs: "9px", sm: "10px", md: "14px", lg: "16px" },
                     lineHeight: { xs: "14px", md: "18px" },
                     fontWeight: 700,

@@ -172,7 +172,7 @@ const styles = {
   },
   link: {
     textDecorationLine: "underline",
-    color: "#FE4D82",
+    color: "#189e33ff",
     fontSize: {
       xs: "10px",
       sm: "12px",

@@ -24,7 +24,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
           boxShadow: "0px 1px 5px #00000040",
           cursor: "pointer",
           "&:hover": {
-            border: "2px solid #FE4D82",
+            border: "2px solid #189e33ff",
           },
         }}
         onClick={() => handleCard(item?.id)}
@@ -194,7 +194,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
                 sx={{
                   color: "#111111",
                   fontSize: { md: "16px", sm: "14px", xs: "11px" },
-                  fontWeight: 270,
+                  fontWeight: 400,
                   lineHeight: { md: "20px", sm: "14px", xs: "12px" },
                   py: "3px",
                   pl: "2px",
@@ -208,7 +208,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
         )}
         <Typography
           sx={{
-            color: "#FE4D82",
+            color: "#189e33ff",
             fontSize: { md: "16px", sm: "14px", xs: "11px" },
             fontWeight: 400,
             lineHeight: { md: "20px", sm: "14px", xs: "12px" },
@@ -220,7 +220,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
         </Typography>
         <Typography
           sx={{
-            color: "#FE4D82",
+            color: "#189e33ff",
             fontSize: { md: "16px", sm: "14px", xs: "11px" },
             fontWeight: 400,
             lineHeight: { md: "20px", sm: "14px", xs: "12px" },

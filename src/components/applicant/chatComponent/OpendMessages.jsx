@@ -425,10 +425,10 @@ const styles = {
     pr: 2,
   },
   optionsButton: {
-    color: "#FE4D82",
+    color: "#189e33ff",
     "&:hover": {
       backgroundColor: "inherit",
-      color: "#FE4D82",
+      color: "#189e33ff",
     },
   },
   icon: {

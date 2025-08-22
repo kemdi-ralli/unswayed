@@ -9,13 +9,18 @@ const ApplicantJobDetails = ({
   OnApply = () => {},
   OnSave = () => {},
 }) => {
+  const today = new Date().toISOString().split("T")[0]; 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         {isLoading ? (
           Array.from(new Array(6)).map((_, index) => (
             <Grid key={index} item xs={12} md={6}>
-              <Skeleton variant="rectangular" height={150} sx={{ borderRadius: 2 }} />
+              <Skeleton
+                variant="rectangular"
+                height={150}
+                sx={{ borderRadius: 2 }}
+              />
               <Skeleton variant="text" sx={{ mt: 1, width: "60%" }} />
               <Skeleton variant="text" sx={{ width: "40%" }} />
               <Skeleton variant="text" sx={{ width: "80%" }} />
@@ -23,21 +28,27 @@ const ApplicantJobDetails = ({
           ))
         ) : data.length === 0 ? (
           <Grid item xs={12}>
-            <Typography variant="h6" sx={{ textAlign: "center", mt: 3, color: "gray" }}>
+            <Typography
+              variant="h6"
+              sx={{ textAlign: "center", mt: 3, color: "gray" }}
+            >
               No Jobs Found
             </Typography>
           </Grid>
         ) : (
-          data.map((job, index) => (
-            <Grid key={index} item xs={12} md={6}>
-              <JobsCard
-                item={job}
-                handleCard={() => onPressCard(job?.id)}
-                handleEasyApply={OnApply}
-                handleJobSaved={OnSave}
-              />
-            </Grid>
-          ))
+          data.map(
+            (job, index) =>
+              !job.is_applied && job.deadline >= today && (
+                <Grid key={index} item xs={12} md={6}>
+                  <JobsCard
+                    item={job}
+                    handleCard={() => onPressCard(job?.id)}
+                    handleEasyApply={OnApply}
+                    handleJobSaved={OnSave}
+                  />
+                </Grid>
+              )
+          )
         )}
       </Grid>
     </Box>

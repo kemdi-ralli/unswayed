@@ -163,7 +163,7 @@ const ApplyNowCard = ({ data, isLoadingDetails, handleApplyNow }) => {
                 sx={{
                   width: "200.29px",
                   height: { xs: "40px", sm: "50px", md: "60.93px" },
-                  backgroundColor: "#FE4D82",
+                  backgroundColor: "#189e33ff",
                   boxShadow: "0px 1px 5px #00000040",
                   borderRadius: "6px",
                   color: "#FFFFFF",

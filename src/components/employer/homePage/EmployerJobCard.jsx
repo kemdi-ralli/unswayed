@@ -24,7 +24,7 @@ const EmployerJobCard = ({
         cursor: "pointer",
         height: { xs: "220px", md: "230px", lg: "230px" },
         "&:hover": {
-          border: "2px solid #FE4D82",
+          border: "2px solid #189e33ff",
         },
       }}
     >
@@ -145,7 +145,7 @@ const EmployerJobCard = ({
 
       <Typography
         sx={{
-          color: "#FE4D82",
+          color: "#189e33ff",
           fontSize: "14px",
           fontWeight: 400,
           lineHeight: "20px",

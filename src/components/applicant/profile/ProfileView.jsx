@@ -213,10 +213,10 @@ const ProfileView = ({
                 width: { xs: "70%", sm: "130px", md: "200px" },
                 height: "60px",
                 borderRadius: "10px",
-                backgroundColor: Profile?.isFollowed ? "#fff" : "#FE4D82",
-                color: Profile?.isFollowed ? "#FE4D82" : "#fff",
+                backgroundColor: Profile?.isFollowed ? "#fff" : "#189e33ff",
+                color: Profile?.isFollowed ? "#189e33ff" : "#fff",
                 border: "2px solid",
-                borderColor: Profile?.isFollowed ? "#FE4D82" : null,
+                borderColor: Profile?.isFollowed ? "#189e33ff" : null,
               }}
               onClick={() => onPressFollow(Profile.id)}
             >
@@ -241,7 +241,7 @@ const ProfileView = ({
               fontSize: { xs: "20px", sm: "20px", md: "22px" },
               fontWeight: 600,
               lineHeight: { xs: "25px", sm: "30px", md: "24px", lg: "18px" },
-              color: "#FE4D82",
+              color: "#189e33ff",
               textDecoration: "underline",
               "&:hover": {
                 textDecoration: "underline",

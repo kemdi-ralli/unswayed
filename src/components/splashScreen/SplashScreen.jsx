@@ -44,7 +44,7 @@ const SplashScreen = () => {
                     color: "#FFF",
                     cursor: "pointer",
                     "&:hover": {
-                      color: "#FE4D82",
+                      color: "#189e33ff",
                     },
                   }}
                 >{`• ${item.label}`}</Typography>

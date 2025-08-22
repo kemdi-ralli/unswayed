@@ -37,7 +37,7 @@ const Blogs = ({ data }) => {
           sx={{
             width: "60px",
             height: "2px",
-            backgroundColor: "#FE4D82",
+            backgroundColor: "#189e33ff",
             margin: "12px auto 0",
           }}
         />

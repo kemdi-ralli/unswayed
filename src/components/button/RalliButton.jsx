@@ -39,10 +39,10 @@ const RalliButton = ({
           if (!loading && onClick) onClick();
         }}
         sx={{
-          backgroundColor: bg || "#FE4D82",
+          backgroundColor: bg || "#189e33ff",
           color: "#FFFFFF",
           "&:hover": {
-            backgroundColor: bg || "#FE4D89",
+            backgroundColor: bg || "#106d23ff",
           },
           borderRadius: "8px",
           textTransform: "none",

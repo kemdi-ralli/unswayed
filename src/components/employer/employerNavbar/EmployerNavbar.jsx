@@ -32,7 +32,7 @@ import { Avatar, Badge } from "@mui/material";
 import { setType } from "@/redux/slices/NotificationSlice";
 import { echo } from "@/helper/webSockets";
 
-const iconStyle = { color: "#FE4D82", fontSize: "16px" };
+const iconStyle = { color: "#189e33ff", fontSize: "16px" };
 
 const profileMenuItems = [
   { heading: "Home", icon: <HomeIcon /> },
@@ -403,7 +403,7 @@ function EmployerNavbar({ data }) {
                         sx={{
                           width: "60px",
                           height: "2px",
-                          backgroundColor: "#FE4D82",
+                          backgroundColor: "#189e33ff",
                         }}
                       />
                     )}

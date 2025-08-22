@@ -15,7 +15,7 @@ export const privacyPolicyContent = {
       {
         title: "Interpretation and Definitions",
         variant: "h3",
-        color: "#FE4D82",
+        color: "#189e33ff",
       },
       {
         title: "Interpretation",

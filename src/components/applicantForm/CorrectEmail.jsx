@@ -85,14 +85,14 @@ const CorrectEmail = ({
         sx={{
           width: "100%",
           padding: "12px",
-          backgroundColor: "#FE4D82",
+          backgroundColor: "#189e33ff",
           color: "#FFFFFF",
           fontSize: "16px",
           fontWeight: 600,
           textTransform: "none",
           borderRadius: "10px",
           ":hover": {
-            backgroundColor: "#FE4D90",
+            backgroundColor: "#126b24ff",
           },
         }}
         disabled={loading}

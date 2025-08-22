@@ -188,7 +188,7 @@ const AppliedJobs = ({ data }) => {
           <Button
             sx={{
               width: "100%",
-              backgroundColor: "#FE4D82",
+              backgroundColor: "#189e33ff",
               color: "#FFF",
               borderRadius: "6px",
             }}

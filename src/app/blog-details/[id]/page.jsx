@@ -92,7 +92,7 @@ const BlogDetails = ({ params }) => {
           fontSize: { xs: "14px", sm: "16px", md: "19px", lg: "24px" },
           lineHeight: { xs: "22px", md: "18px" },
           fontWeight: 600,
-          color: "#FE4D82",
+          color: "#189e33ff",
         }}
       >
         {dayjs(blog?.created_at).format("MMMM D, YYYY, h:mm A")}

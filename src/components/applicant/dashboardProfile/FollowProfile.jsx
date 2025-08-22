@@ -79,12 +79,12 @@ const FollowProfile = ({
                       lineHeight: "17px",
                       fontWeight: 300,
                       textAlign: "center",
-                      color: likedProfiles[index] ? "white" : "#FE4D82",
-                      backgroundColor: likedProfiles[index] ? "#FE4D82" : "transparent",
-                      border: likedProfiles[index] ? "none" : "1px solid #FE4D82",
+                      color: likedProfiles[index] ? "white" : "#189e33ff",
+                      backgroundColor: likedProfiles[index] ? "#189e33ff" : "transparent",
+                      border: likedProfiles[index] ? "none" : "1px solid #189e33ff",
                       py: 1,
                       ":hover": {
-                        backgroundColor: likedProfiles[index] ? "#FE4D82" : "rgba(254, 77, 130, 0.1)",
+                        backgroundColor: likedProfiles[index] ? "#189e33ff" : "rgba(254, 77, 130, 0.1)",
                       },
                     }}
                     startIcon={likedProfiles[index] ? null : <AddIcon />}

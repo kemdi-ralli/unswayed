@@ -86,7 +86,7 @@ const StartApplication = ({ data, getAppliedData, isLoadingDetails }) => {
                                 fontSize: { xs: '14px', sm: '20px', md: '30px' },
                                 fontWeight: 700,
                                 lineHeight: '20px',
-                                color: "#FE4D82",
+                                color: "#189e33ff",
                                 pl: '5px',
                                 pr: '12px',
                                 textAlign: 'center',

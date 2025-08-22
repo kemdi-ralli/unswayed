@@ -50,7 +50,7 @@ const ManagePrivacySwitch = ({ label, icon, checked, onToggle }) => {
             checked={checked}
             onChange={(event) => onToggle && onToggle(event.target.checked)}
             sx={{
-              color: "#FE4D82",
+              color: "#189e33ff",
             }}
           />
         </Box>

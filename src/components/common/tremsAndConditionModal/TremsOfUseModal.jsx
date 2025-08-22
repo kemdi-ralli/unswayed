@@ -20,14 +20,14 @@ const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
     fontSize: "18px",
   },
   fontWeight: "bold",
-  color: "#FE4D82",
+  color: "#189e33ff",
   paddingBottom: theme.spacing(1),
 }));
 
 const StyledSectionHeading = styled(Typography)(({ theme }) => ({
   fontSize: {xs:"12px", sm:"14px",md:"16px"},
   fontWeight: "bold",
-  color: "#FE4D82",
+  color: "#189e33ff",
   marginTop: theme.spacing(2),
   [theme.breakpoints.up("xs")]: {
     fontSize: "12px",

@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, Modal } from "@mui/material";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { applicantOfferResponse } from "@/helper/ApplicationActionHelper";
 
 const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData = {} }) => {
-
   const [item, setItem] = useState({});
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [declineLoading, setDeclineLoading] = useState(false);
 
-  const onResponse = async (type = '') => {
-    if (userType !== 'employer' && (historyData?.type === 'offer_letter_sent' || historyData?.type === 'counter_offer_letter_sent') && item?.status === 'pending') {
+  // NEW STATES
+  const [declineModalOpen, setDeclineModalOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+
+  const onResponse = async (type = '', reason = '') => {
+    if (
+      userType !== 'employer' &&
+      (historyData?.type === 'offer_letter_sent' || historyData?.type === 'counter_offer_letter_sent') &&
+      item?.status === 'pending'
+    ) {
       type === 'accept' ? setAcceptLoading(true) : setDeclineLoading(true);
       try {
         const formData = new FormData();
         formData.append("type", type);
+        if (type === 'decline') {
+          formData.append("reason", reason); // ✅ add reason when declining
+        }
         const response = await applicantOfferResponse(item?.id, formData);
         if (response?.data?.status === 'success') {
           window.location.href = window.location.href;
@@ -30,7 +40,9 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
 
   const getOfferDetails = async () => {
     try {
-      const response = await apiInstance.get(`application/${historyData?.history_data?.offer_id}/offer-detail`);
+      const response = await apiInstance.get(
+        `application/${historyData?.history_data?.offer_id}/offer-detail`
+      );
       const offer = response?.data?.data?.interview;
       if (offer) {
         setItem(offer);
@@ -39,7 +51,7 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
       Toast("error", error?.response?.data?.message);
       return error?.response;
     }
-  }
+  };
 
   useEffect(() => {
     getOfferDetails();
@@ -67,7 +79,9 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
             textDecoration: "underline",
           }}
         >
-          {userType === 'employer' ? `UCN : ${item?.ucn}` : `REQ : ${requisitionNumber}`}
+          {userType === "employer"
+            ? `UCN : ${item?.ucn}`
+            : `REQ : ${requisitionNumber}`}
         </Typography>
       </Box>
       <Typography
@@ -86,7 +100,6 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
           fontWeight: "bold",
           fontSize: "20px",
           color: "#00305B",
-          // py: 2,
         }}
       >
         Salary: {item?.salary ?? ""}
@@ -100,33 +113,75 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
         </Typography>
         <Button
           sx={{
-            // minWidth: "112px",
             border: "1px solid #ffff",
             fontSize: "14px",
             color: "#ffff",
-            backgroundColor: item?.status === 'accept' ? 'green' : 'red',
+            backgroundColor: item?.status === "accept" ? "green" : "red",
           }}
         >
           STATUS: {item?.status?.toUpperCase() || ""}
         </Button>
       </Box>
-      {(userType !== 'employer' && item?.status === 'pending') && (
+
+      {(userType !== "employer" && item?.status === "pending") && (
         <>
           <Box sx={{ py: 2 }}>
             <RalliButton
               label="Accept"
               bg="#00305B"
-              onClick={() => onResponse('accept')}
+              onClick={() => onResponse("accept")}
               loading={acceptLoading}
             />
           </Box>
+
+          {/* Decline triggers modal instead of action */}
           <RalliButton
             label="Decline"
-            onClick={() => onResponse('decline')}
+            onClick={() => setDeclineModalOpen(true)}
             loading={declineLoading}
           />
         </>
       )}
+
+      {/* Decline Reason Modal */}
+      <Modal open={declineModalOpen} onClose={() => setDeclineModalOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            borderRadius: 2,
+            p: 4,
+            width: 400,
+          }}
+        >
+          <Typography sx={{ fontSize: "18px", fontWeight: 600, mb: 2 }}>
+            Reason for Decline
+          </Typography>
+          <TextField
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="Type your reason..."
+            value={declineReason}
+            onChange={(e) => setDeclineReason(e.target.value)}
+          />
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2, gap: 2 }}>
+            <Button onClick={() => setDeclineModalOpen(false)}>Cancel</Button>
+            <RalliButton
+              label="Continue"
+              loading={declineLoading}
+              onClick={() => {
+                setDeclineModalOpen(false);
+                onResponse("decline", declineReason);
+              }}
+            />
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 };

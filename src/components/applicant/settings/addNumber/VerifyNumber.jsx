@@ -88,7 +88,7 @@ const VerifyNumber = ({ type }) => {
         sx={{
           width: "100%",
           padding: "12px",
-          backgroundColor: "#FE4D82",
+          backgroundColor: "#189e33ff",
           color: "#FFFFFF",
           fontSize: "16px",
           fontWeight: 600,
@@ -96,7 +96,7 @@ const VerifyNumber = ({ type }) => {
           borderRadius: "10px",
           mt: 3,
           ":hover": {
-            backgroundColor: "#FE4D90",
+            backgroundColor: "#15842bff",
           },
         }}
         disabled={loading}

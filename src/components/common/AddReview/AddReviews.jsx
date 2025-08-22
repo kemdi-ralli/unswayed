@@ -148,7 +148,7 @@ const AddReviews = ({ data, id }) => {
             fontSize: { xs: "14px", sm: "16px", md: "19px", lg: "22px" },
             lineHeight: { xs: "22px", md: "18px" },
             fontWeight: 500,
-            color: "#FE4D82",
+            color: "#189e33ff",
             textTransform: "capitalize",
           }}
         >

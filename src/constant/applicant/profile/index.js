@@ -195,7 +195,7 @@ export const PROFILE_SETTINGS = [
   },
   {
     title: "Privacy Settings",
-    placeHolder: "Hide and Show your contact details",
+    placeHolder: "Hide and Show your contact details and following list display",
     name: "privacy",
     buttonLable: "Manage Privacy",
     link: "/applicant/settings/privacy"

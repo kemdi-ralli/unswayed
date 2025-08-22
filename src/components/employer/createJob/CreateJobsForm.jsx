@@ -4,8 +4,6 @@ import {
   Box,
   Typography,
   TextField,
-  FormControlLabel,
-  Checkbox,
   InputAdornment,
   Button,
 } from "@mui/material";
@@ -37,7 +35,7 @@ import { Toast } from "@/components/Toast/Toast";
 import { createJobValidationSchema } from "@/schemas/createJobSchema";
 import { enhanceText } from "@/helper/aiEnhanceHelper";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
-import { getCountries } from "@/helper/MasterGetApiHelper";
+import { getCountries as getCountriesHelper } from "@/helper/MasterGetApiHelper";
 import { useSelector } from "react-redux";
 
 const CreateJobsForm = ({
@@ -47,35 +45,36 @@ const CreateJobsForm = ({
   isEdit = false,
 }) => {
   const [form, setForm] = useState({
-    title: "",
-    no_of_positions: "",
-    deadline: null,
-    job_categories: [],
-    job_types: [],
-    job_locations: [],
-    job_shifts: [],
-    job_shift_timing: "",
-    country: null,
-    states: [],
-    cities: [],
-    skills: [],
-    experience_level: "",
-    salary: "",
-    salary_period: "",
-    requirements: "",
-    salary_currency: "",
-    company_about: "",
-    company_benefits: [],
-    description: "",
-    type: "internal",
-  });
+      title: "",
+      no_of_positions: "",
+      deadline: null,
+      job_categories: [],
+      job_types: [],
+      job_locations: [],
+      job_shifts: [],
+      job_shift_timing: "",
+      country: null,
+      states: [],
+      cities: [],
+      skills: [],
+      experience_level: "",
+      salary: "",
+      salary_period: "Per Month", // default
+      requirements: "",
+      salary_currency: "",
+      company_about: "",
+      company_benefits: "", // string
+      description: "",
+      type: "internal",
+    });
 
+  const [currencies, setCurrencies] = useState([]);
   const [jobCategories, setJobCategories] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [jobLocations, setJobLocations] = useState([]);
   const [jobShifts, setJobShifts] = useState([]);
   const [jobShiftsTimming, setJobShiftsTimming] = useState([]);
-  const [jobBenefits, setJobBenefits] = useState([])
+  const [jobBenefits, setJobBenefits] = useState([]);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -85,12 +84,56 @@ const CreateJobsForm = ({
   const [isModalOpen, setModalOpen] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [countryCurrencyMap, setCountryCurrencyMap] = useState({});
+
+
   const [experienceLevel, setExperienceLevel] = useState([
     { name: "Entry", id: "entry" },
     { name: "Intermediate", id: "intermediate" },
     { name: "Experienced", id: "experienced" },
     { name: "Advanced", id: "advanced" },
   ]);
+
+    // NEW: Salary period options
+  const salaryPeriods = [
+    { id: "Per Hour", name: "Per Hour" },
+    { id: "Per Day", name: "Per Day" },
+    { id: "Per Week", name: "Per Week" },
+    { id: "Per Month", name: "Per Month" },
+    { id: "Per Annum", name: "Per Annum" },
+  ];
+
+  // --- Helpers (benefits) ---
+  const formatBenefitsString = (names = []) => {
+    if (!names || names.length === 0) return "";
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  };
+
+  const normalize = (s) =>
+    String(s).replace(/\s+/g, " ").trim().toLowerCase();
+
+  const parseBenefitsStringToIds = (str, benefitsList) => {
+    if (!str || typeof str !== "string" || !benefitsList?.length) return [];
+    // split on commas or ' and ' (case insensitive), then trim
+    const parts = str
+      .split(/,| and /i)
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const mapByName = new Map(
+      benefitsList.map((b) => [normalize(b.name), b.id])
+    );
+    const ids = [];
+    parts.forEach((p) => {
+      const id = mapByName.get(normalize(p));
+      if (id) ids.push(id);
+    });
+    return ids;
+  };
+  // --- end helpers ---
 
   useEffect(() => {
     handleChange("skills", skills);
@@ -112,30 +155,28 @@ const CreateJobsForm = ({
   };
 
   const { userData } = useSelector((state) => state.auth);
-  const [userCountry, setUserCountry] = useState("")
-  useEffect(()=>{
+  const [userCountry, setUserCountry] = useState("");
+  useEffect(() => {
     const defaultUserId = userData?.user?.id;
     const getCountry = async (id) => {
       const response = await apiInstance.get(`${COUNTRIES}/${id}`);
       return response?.data?.data?.name || null;
-    }
+    };
 
     const getUserCountry = async (id) => {
-    try {
-      const response = await apiInstance.get(`${USER_PROFILE}/${id}`);
-      const targetCountry = response?.data?.data?.country_id || null;
+      try {
+        const response = await apiInstance.get(`${USER_PROFILE}/${id}`);
+        const targetCountry = response?.data?.data?.country_id || null;
 
-      const country = await getCountry(targetCountry);
-      setUserCountry(country);
-    } catch (error) {
-      console.error("Error fetching country:", error);
-      return null;
-    }
-  }
-  getUserCountry(defaultUserId);
-  },[userData])
-  
-  
+        const country = await getCountry(targetCountry);
+        setUserCountry(country);
+      } catch (error) {
+        console.error("Error fetching country:", error);
+        return null;
+      }
+    };
+    if (defaultUserId) getUserCountry(defaultUserId);
+  }, [userData]);
 
   const getJobTypes = async () => {
     try {
@@ -182,27 +223,27 @@ const CreateJobsForm = ({
       setErrors(error?.response?.data?.message || "Failed to load countries");
     }
   };
-  const benefitList = [
-  "Competitive salary and benefits package",
-  "Flexible work arrangements",
-  "Opportunities for professional growth and continuous learning",
-  "A collaborative, innovative, and supportive work environment",
-  "Health Insurance (Medical, Dental, Vision)",
-  "Retirement Plans (401k, Pension, Employer Match)",
-  "Remote Work / Hybrid Options",
-  "Professional Development & Training",
-  "Performance Bonuses / Profit Sharing",
-  "Employee Wellness Programs (Gym, Therapy, Yoga, etc.)",
-  "Free Food and Coffee at Cafeteria",
-  "Parental Leave (Maternity, Paternity, Adoption)",
-  "Life & Disability Insurance",
-  "Commuter Benefits / Transportation Allowance",
-  "Stock Options / Equity",
-].map((benefit, index) => ({
-  id: index + 1,
-  name: benefit,
-}));
 
+  const benefitList = [
+    "Competitive salary and benefits package",
+    "Flexible work arrangements",
+    "Opportunities for professional growth and continuous learning",
+    "A collaborative, innovative, and supportive work environment",
+    "Health Insurance (Medical, Dental, Vision)",
+    "Retirement Plans (401k, Pension, Employer Match)",
+    "Remote Work / Hybrid Options",
+    "Professional Development & Training",
+    "Performance Bonuses / Profit Sharing",
+    "Employee Wellness Programs (Gym, Therapy, Yoga, etc.)",
+    "Free Food and Coffee at Cafeteria",
+    "Parental Leave (Maternity, Paternity, Adoption)",
+    "Life & Disability Insurance",
+    "Commuter Benefits / Transportation Allowance",
+    "Stock Options / Equity",
+  ].map((benefit, index) => ({
+    id: index + 1,
+    name: benefit,
+  }));
 
   useEffect(() => {
     getJobCategories();
@@ -213,6 +254,19 @@ const CreateJobsForm = ({
     getCountries();
     setJobBenefits(benefitList || []);
   }, []);
+
+  // When benefits master list loads (and when editing), attempt to pre-select based on any existing string
+  useEffect(() => {
+    if (jobBenefits.length) {
+      const existingStr =
+        jobEditDetail?.company_benefits ||
+        jobDetail?.company_benefits ||
+        form.company_benefits;
+      const ids = parseBenefitsStringToIds(existingStr, jobBenefits);
+      if (ids.length) setSelectedBenefits(ids);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobBenefits]);
 
   useEffect(() => {
     if (form?.country) {
@@ -285,6 +339,8 @@ const CreateJobsForm = ({
         requirements: jobDetail?.requirements,
         description: jobDetail?.description,
         type: jobDetail?.type,
+        // keep existing string if provided
+        company_benefits: jobDetail?.company_benefits || "",
       });
       setSkills(jobDetail?.skills ?? []);
     }
@@ -314,7 +370,7 @@ const CreateJobsForm = ({
         requirements: jobEditDetail?.requirements || "",
         salary_currency: jobEditDetail?.salary_currency || "",
         company_about: jobEditDetail?.company_about || "",
-        company_benefits: jobEditDetail?.company_benefits || "",
+        company_benefits: jobEditDetail?.company_benefits || "", // string
         description: jobEditDetail?.description || "",
         type: jobEditDetail?.type || "internal",
       });
@@ -346,6 +402,7 @@ const CreateJobsForm = ({
       return false;
     }
   };
+
   const createJob = async () => {
     const isValid = await validateForm();
     if (!isValid) return;
@@ -381,6 +438,7 @@ const CreateJobsForm = ({
       setLoading(false);
     }
   };
+
   const handleEditJob = async (id) => {
     const isValid = await validateForm();
     if (!isValid) return;
@@ -423,6 +481,78 @@ const CreateJobsForm = ({
     }
   };
 
+  // 🔹 Fetch currencies from RestCountries
+    // 🔹 Fetch currencies from RestCountries
+useEffect(() => {
+  const fetchCurrencies = async () => {
+    try {
+      const res = await fetch(
+        "https://restcountries.com/v3.1/all?fields=currencies,name,cca2"
+      );
+      const data = await res.json();
+
+      const currencyList = [];
+      data.forEach((country) => {
+        if (country.currencies) {
+          Object.keys(country.currencies).forEach((code) => {
+            if (!currencyList.find((c) => c.id === code)) {
+              currencyList.push({ id: code, name: code });
+            }
+          });
+        }
+      });
+
+      setCurrencies(currencyList);
+
+      // 🔹 Save country → currency mapping for quick lookup
+      const map = {};
+      data.forEach((country) => {
+        if (country.currencies) {
+          const defaultCurrency = Object.keys(country.currencies)[0];
+          if (defaultCurrency) {
+            map[country.cca2] = defaultCurrency; // Example: US → USD
+          }
+        }
+      });
+      setCountryCurrencyMap(map);
+    } catch (err) {
+      console.error("Failed to fetch currencies", err);
+    }
+  };
+  fetchCurrencies();
+}, []);
+
+// 🔹 Auto-update salary_currency when country changes
+useEffect(() => {
+  if (form.country && countryCurrencyMap[form.country]) {
+    // Set default currency only if salary_currency is empty or just switched country
+    setForm((prev) => ({
+      ...prev,
+      salary_currency: countryCurrencyMap[form.country],
+    }));
+  }
+}, [form.country, countryCurrencyMap]);
+
+    // 🔹 Set default currency when country changes
+    // useEffect(() => {
+    //   const setCurrencyFromCountry = async () => {
+    //     if (!form.country) return;
+    //     try {
+    //       const res = await fetch(
+    //         `https://restcountries.com/v3.1/alpha/${form.country}?fields=currencies`
+    //       );
+    //       const data = await res.json();
+    //       if (data?.currencies) {
+    //         const defaultCurrency = Object.keys(data.currencies)[0];
+    //         handleChange("salary_currency", defaultCurrency);
+    //       }
+    //     } catch (err) {
+    //       console.error("Error fetching currency by country", err);
+    //     }
+    //   };
+    //   setCurrencyFromCountry();
+    // }, [form.country]);
+
   const handleEnhanceAi = async (fieldName, text) => {
     try {
       const enhancedText = await enhanceText(text);
@@ -434,9 +564,10 @@ const CreateJobsForm = ({
       console.error(`Error enhancing ${fieldName}:`, error);
     }
   };
+
   return (
     <Box>
-      {data?.form?.map((item, index) => (
+      {data?.form?.map((item) => (
         <React.Fragment key={item.name}>
           {item.type !== "dropdown" && (
             <Box sx={{ mb: "20px" }}>
@@ -567,6 +698,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "job_categories" && (
             <Box>
               <RalliDropdown
@@ -584,6 +716,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "job_types" && (
             <Box>
               <RalliDropdown
@@ -601,6 +734,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "job_locations" && (
             <Box>
               <RalliDropdown
@@ -618,6 +752,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "job_shifts" && (
             <Box>
               <RalliDropdown
@@ -635,6 +770,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "job_shift_timing" && (
             <Box>
               <RalliDropdown
@@ -652,6 +788,30 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+          {item.type === "dropdown" && item.name === "salary_period" && (
+                      <Box>
+                        <RalliDropdown
+                          names={salaryPeriods}
+                          label={item.title}
+                          required={item.required}
+                          selectedValue={form.salary_period || "Per Month"}
+                          onChange={(value) => handleChange("salary_period", value)}
+                        />
+                      </Box>
+                    )}
+
+          {item.type === "dropdown" && item.name === "salary_currency" && (
+                      <Box>
+                        <RalliDropdown
+                          names={currencies}
+                          label={item.title}
+                          required={item.required}
+                          selectedValue={form.salary_currency || ""}
+                          onChange={(value) => handleChange("salary_currency", value)}
+                        />
+                      </Box>
+                    )}
+
           {item.type === "dropdown" && item.name === "experience_level" && (
             <Box>
               <RalliDropdown
@@ -669,6 +829,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "country" && (
             <Box>
               <RalliDropdown
@@ -685,6 +846,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "states" && (
             <Box>
               <RalliDropdown
@@ -702,6 +864,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "cities" && (
             <Box>
               <RalliDropdown
@@ -719,6 +882,7 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "company_benefits" && (
             <Box>
               <RalliDropdown
@@ -726,14 +890,27 @@ const CreateJobsForm = ({
                 multiple={true}
                 label={item.title}
                 required={item.required}
-                selectedValue={form?.company_benefits || ""}
-                onChange={(value) => handleChange("company_benefits", value)}
+                // Use the dedicated state for the dropdown (array of IDs)
+                selectedValue={selectedBenefits}
+                onChange={(ids) => {
+                  const safeIds = Array.isArray(ids) ? ids : [];
+                  setSelectedBenefits(safeIds);
+                  const selectedNames = jobBenefits
+                    .filter((b) => safeIds.includes(b.id))
+                    .map((b) => b.name);
+                  const formatted = formatBenefitsString(selectedNames);
+                  handleChange("company_benefits", formatted);
+                }}
               />
               {formikErrors[item.name] && (
                 <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
                   {formikErrors[item.name]}
                 </Typography>
               )}
+              {/* Optional: show the final string to the user */}
+              {/* <Typography sx={{ mt: 1, fontSize: 12, color: "#666" }}>
+                Will submit as: {form.company_benefits || "(none)"}
+              </Typography> */}
             </Box>
           )}
         </React.Fragment>

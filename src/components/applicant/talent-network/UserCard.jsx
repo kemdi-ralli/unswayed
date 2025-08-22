@@ -190,13 +190,13 @@ const UserCard = () => {
                 <Box sx={{ py: 1 }}>
                   <Button
                     sx={{
-                      backgroundColor: !item.isFollowed && "#FE4D82",
+                      backgroundColor: !item.isFollowed && "#189e33ff",
                       minWidth: "151.16px",
                       height: "46px",
                       margin: "0px auto",
                       borderRadius: "6px",
                       border: "1px solid",
-                      borderColor: !item.isFollowed ? "#FE4D82" : "#00305B",
+                      borderColor: !item.isFollowed ? "#189e33ff" : "#00305B",
                       color: !item.isFollowed ? "#FFFFFF" : "#00305B",
                       alignItems: "center",
                       display: "flex",

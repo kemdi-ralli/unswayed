@@ -632,7 +632,7 @@ const CommentsPage = ({
                     zIndex:1
                   }}
                 >
-                  <CancelIcon sx={{color:"#FE4D82", position: 'absolute', right: 1}}
+                  <CancelIcon sx={{color:"#189e33ff", position: 'absolute', right: 1}}
                   onClick={handleEditCancel}/>
                 </Box>
               }
@@ -655,7 +655,7 @@ const CommentsPage = ({
                   fontSize: { xs: "14px", lg: "16px" },
                   fontWeight: 600,
                   color: "#FFFFFF",
-                  backgroundColor: "#FE4D82",
+                  backgroundColor: "#189e33ff",
                   borderRadius: "30px",
                   px: 4,
                   py: 1,

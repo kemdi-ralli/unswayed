@@ -6,11 +6,12 @@ import Container from "@/components/common/Container";
 import { Box, Button, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
-import { GET_JOB_DETAIL } from "@/services/apiService/apiEndPoints";
+import { GET_JOB_DETAIL, SAVE_JOB } from "@/services/apiService/apiEndPoints";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { decode } from "@/helper/GeneralHelpers";
 import { useDispatch } from "react-redux";
 import { setAppliedData } from "@/redux/slices/applicantAppliedSpecificJob";
+import { Toast } from "@/components/Toast/Toast";
 
 const JobDetail = ({ params }) => {
   const [jobDetail, setJobDetail] = useState(null);
@@ -28,6 +29,31 @@ const JobDetail = ({ params }) => {
   const handleApplyNow = (data) => {
     dispatch(setAppliedData(data));
     router.push(`/applicant/career-areas/job-details/${decodeId}/apply`);
+  };
+
+  const handleJobSaved = async (id) => {
+    if (!jobDetail) return;
+
+    // toggle UI immediately
+    setJobDetail((prevJob) =>
+      prevJob ? { ...prevJob, is_saved: !prevJob.is_saved } : prevJob
+    );
+
+    try {
+      const response = await apiInstance.post(`${SAVE_JOB}/${id}`);
+
+      if (response?.data?.status !== "success") {
+        throw new Error(response?.data?.message || "Failed to save job");
+      }
+
+      Toast("success", response?.data?.message);
+    } catch (error) {
+      // revert toggle if error
+      setJobDetail((prevJob) =>
+        prevJob ? { ...prevJob, is_saved: !prevJob.is_saved } : prevJob
+      );
+      Toast("error", error.message || "Failed to save");
+    }
   };
 
   const fetchJobDetail = async () => {
@@ -77,9 +103,12 @@ const JobDetail = ({ params }) => {
           <CircularProgress />
         </Box>
       ) : (
-        <JobsCardDetails data={jobDetail} ApplyNow={handleApplyNow} />
+        <JobsCardDetails
+          data={jobDetail}
+          ApplyNow={handleApplyNow}
+          OnSave={handleJobSaved}   // 👈 integrated Save button
+        />
       )}
-
     </Container>
   );
 };

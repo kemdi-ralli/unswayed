@@ -25,7 +25,7 @@ const MyJobCard = ({
         boxShadow: "0px 1px 5px #00000040",
         // cursor: "pointer",
         "&:hover": {
-          border: "2px solid #FE4D82",
+          border: "2px solid #189e33ff",
         },
       }}
     >
@@ -93,9 +93,9 @@ const MyJobCard = ({
         <Typography
           sx={{
             fontSize: "15px",
-            fontWeight: 300,
+            fontWeight: 500,
             lineHeight: "16px",
-            color: "#333333",
+            color: "#00305B"
           }}
         >
           {item?.country}
@@ -144,7 +144,7 @@ const MyJobCard = ({
           <FiberManualRecordOutlinedIcon
             sx={{
               width: "18px",
-              color: "#FE4D82",
+              color: "#189e33ff",
               pt: "8px",
             }}
           />
@@ -152,7 +152,7 @@ const MyJobCard = ({
             sx={{
               color: "#111111",
               fontSize: "14px",
-              fontWeight: 270,
+              fontWeight: 400,
               lineHeight: "24px",
               py: "3px",
               pl: "2px",
@@ -168,7 +168,7 @@ const MyJobCard = ({
       </Box>
       <Typography
         sx={{
-          color: "#FE4D82",
+          color: "#189e33ff",
           fontSize: "14px",
           fontWeight: 400,
           lineHeight: "20px",

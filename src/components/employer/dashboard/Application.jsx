@@ -72,7 +72,7 @@ const Application = ({
           my: 2,
           cursor: "pointer",
           "&:hover": {
-            border: "2px solid #FE4D82",
+            border: "2px solid #189e33ff",
           },
         }}
       >
@@ -184,7 +184,7 @@ const Application = ({
           </Box>
           <Button
             sx={{
-              backgroundColor: "#FE4D82",
+              backgroundColor: "#189e33ff",
               color: "#fff",
               fontSize: { xs: "8px", sm: "10px", md: "12px" },
               lineHeight: "24px",

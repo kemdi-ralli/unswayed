@@ -138,7 +138,7 @@ const ApplicantEducationInfo = ({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    backgroundColor: "#FE4D82",
+                    backgroundColor: "#189e33ff",
                     color: "white",
                     padding: "10px",
                     marginBottom: "10px",

@@ -306,7 +306,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
                 lineHeight: { xs: "25px", sm: "20px", md: "17px" },
                 fontWeight: 500,
                 textDecoration: "underline",
-                color: "#FE4D82",
+                color: "#189e33ff",
                 cursor: "pointer",
               }}
               onClick={() => onJobDetail(applicationDetail?.job?.id)}
@@ -362,7 +362,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
 
                 <Button
                   sx={{
-                    backgroundColor: "#FE4D82",
+                    backgroundColor: "#189e33ff",
                     color: "#fff",
                     fontSize: { xs: "13px", sm: "14px", md: "16px" },
                     lineHeight: { xs: "15px", md: "24px" },

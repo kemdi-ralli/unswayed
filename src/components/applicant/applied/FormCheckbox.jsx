@@ -91,7 +91,7 @@ const FormCheckbox = ({
               <Checkbox
                 checked={selectedOption === "yes"}
                 onChange={() => handleCheckboxChange("yes")}
-                sx={{ color: "#FE4D82" }}
+                sx={{ color: "#189e33ff" }}
               />
             }
             label="Yes"
@@ -118,7 +118,7 @@ const FormCheckbox = ({
               <Checkbox
                 checked={selectedOption === "no"}
                 onChange={() => handleCheckboxChange("no")}
-                sx={{ color: "#FE4D82" }}
+                sx={{ color: "#189e33ff" }}
               />
             }
             label="No"
@@ -146,7 +146,7 @@ const FormCheckbox = ({
                 <Checkbox
                   checked={selectedOption === "no_answer"}
                   onChange={() => handleCheckboxChange("no_answer")}
-                  sx={{ color: "#FE4D82" }}
+                  sx={{ color: "#189e33ff" }}
                 />
               }
               label="Do Not Wish To Answer"

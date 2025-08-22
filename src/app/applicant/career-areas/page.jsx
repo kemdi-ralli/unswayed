@@ -308,7 +308,7 @@ const Page = () => {
                     mb: 2,
                     display: "flex",
                     alignItems: "center",
-                    backgroundColor: "#FE4D82",
+                    backgroundColor: "#189e33ff",
                     color: "#FFF",
                   }}
                   onClick={handleClearFilters}
