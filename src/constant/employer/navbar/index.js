@@ -1,5 +1,5 @@
 export const EMPLOYER_NAVBAR_DATA = {
-    logo:'/assets/images/Ralli_Dark_Logo.png',
+    logo:'/assets/images/logo-inverse-single.png',
     items: [
         {
             navImg:'/assets/images/navbar/home.png',

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import WorkIcon from "@mui/icons-material/Work";
 import FlagIcon from "@mui/icons-material/Flag";
@@ -17,18 +18,96 @@ import { useRouter } from "next/navigation";
 import ConfirmModal from "@/components/Modal/ConfirmModal";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { EMPLOYER_CRUD_JOBS } from "@/services/apiService/apiEndPoints";
+import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
 
 const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
   const { userData } = useSelector((state) => state.auth);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [userCountry, setUserCountry] = useState("");
+  const [exchangeRate, setExchangeRate] = useState(null);
+  const [convertedSalary, setConvertedSalary] = useState(null);
   const router = useRouter();
+  const today = new Date().toISOString().split("T")[0];
 
+const addCommaToString = (num) => {
+  if (num === null || num === undefined) return "";
+
+  let str = num.toString();
+
+  let [integerPart, decimalPart] = str.split(".");
+
+  let result = "";
+  let count = 0;
+
+  for (let i = integerPart.length - 1; i >= 0; i--) {
+    result = integerPart[i] + result;
+    count++;
+
+    if (count % 3 === 0 && i !== 0) {
+      result = "," + result;
+    }
+  }
+
+  return decimalPart ? `${result}.${decimalPart}` : result;
+};
+
+
+  const cleanCountryName = (country) =>
+    country?.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const locData = await res.json();
+          setUserCountry(cleanCountryName(locData.countryName));
+        } catch (err) {
+          console.error("Failed to fetch country:", err);
+        }
+      },
+      (error) => console.error("User denied location access:", error)
+    );
+  }, []);
+
+  // ✅ Get exchange rate once we know userCountry
+  useEffect(() => {
+    const fetchRate = async () => {
+      if (!userCountry) return;
+
+      try {
+        const currencyCode = countryToCurrency[userCountry];
+        if (!currencyCode) return;
+
+        const url = `https://v6.exchangerate-api.com/v6/818177da10bc162069a91e5b/latest/USD`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        if (
+          result.result === "success" &&
+          result.conversion_rates[currencyCode]
+        ) {
+          const rate = result.conversion_rates[currencyCode];
+          setExchangeRate(rate);
+          setConvertedSalary(Math.round(data?.salary * rate));
+        }
+      } catch (err) {
+        console.error("Failed to fetch exchange rate:", err);
+      }
+    };
+
+    fetchRate();
+  }, [userCountry, data?.salary]);
+
+  // === Job actions ===
   const onApplicationClick = () => {
     if (userData.user.type === "employer" && data?.isMyjob) {
       var encodeId = encode(data?.id);
       router.push(`/employer/dashboard/${encodeId}`);
     }
-    return;
   };
 
   const onEdit = () => {
@@ -36,14 +115,12 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
       var encodeId = encode(data?.id);
       router.push(`/employer/my-posts/form/${encodeId}`);
     }
-    return;
   };
 
   const onDelete = () => {
     if (userData.user.type === "employer" && data?.isMyjob) {
       setIsConfirmModalOpen(true);
     }
-    return;
   };
 
   const onDeleteConfirm = async () => {
@@ -55,14 +132,10 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
         router.push(`/employer/my-posts`);
       }
     }
-    return;
   };
 
   const onDeleteCancle = () => {
-    if (userData.user.type === "employer" && data?.isMyjob) {
-      setIsConfirmModalOpen(false);
-    }
-    return;
+    setIsConfirmModalOpen(false);
   };
 
   const onEmployerClick = () => {
@@ -101,9 +174,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
               onClick={() => ApplyNow(data)}
               sx={styles.applyButton}
               disabled={
-                data?.is_applied ||
-                data?.is_closed ||
-                dayjs(data?.deadline).isBefore(dayjs())
+                data?.is_applied || data?.is_closed || data?.deadline < today
               }
             >
               Apply Now
@@ -139,12 +210,11 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
         {data?.is_closed && userData?.user?.type !== "employer" && (
           <Typography sx={styles.actionText}>Position FullFilled</Typography>
         )}
-        {dayjs(data?.deadline).isBefore(dayjs()) &&
-          userData.user.type !== "employer" && (
-            <Typography sx={styles.actionText}>
-              No Longer Accepting Applications
-            </Typography>
-          )}
+        {data?.deadline < today && userData.user.type !== "employer" && (
+          <Typography sx={styles.actionText}>
+            No Longer Accepting Applications
+          </Typography>
+        )}
       </Box>
 
       <Box sx={styles.detailsSection}>
@@ -173,7 +243,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
         <Box sx={styles.detailRow}>
           <AccessTimeIcon sx={styles.icon} />
           <Typography>
-            Deadline: {dayjs(data?.deadline).format("DD MMM, YYYY")}
+            Deadline: {dayjs(data?.deadline).format("MM-DD-YYYY")}
           </Typography>
         </Box>
 
@@ -189,7 +259,13 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
 
         <Box sx={styles.detailRow}>
           <MonetizationOnIcon sx={styles.icon} />
-          <Typography>Salary: {data?.salary}</Typography>
+          <Typography>
+            Salary: {data?.salary_currency} {addCommaToString(data?.salary)}
+            {convertedSalary &&
+              ` (~${addCommaToString(
+                convertedSalary.toFixed(2)
+              )} ${countryToCurrency[userCountry]})`}
+          </Typography>
         </Box>
       </Box>
 

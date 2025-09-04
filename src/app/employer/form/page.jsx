@@ -20,6 +20,7 @@ import {
 } from "@/services/apiService/apiEndPoints";
 import { Toast } from "@/components/Toast/Toast";
 import Cookie from "js-cookie";
+import EmployerRegistrationInfo from "@/components/employer/employerForm/EmployerRegistrationInfo";
 
 const Page = () => {
   const [countries, setCountries] = useState([]);
@@ -161,7 +162,7 @@ const Page = () => {
 
     return (
       <Wizard>
-        <RegistrationInfo
+        <EmployerRegistrationInfo
           data={FINAL_REGISTRATION}
           formData={formData.registrationInfo}
           onFieldChange={(field, value) =>

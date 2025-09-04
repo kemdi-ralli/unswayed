@@ -8,7 +8,7 @@ const Footer = ({ data }) => {
             sx={{
                 width: '100vw',
                 height: 'auto',
-                backgroundColor: '#00305B',
+                backgroundColor: '#106020ff',
                 py: '30px'
             }}>
             <Box sx={{

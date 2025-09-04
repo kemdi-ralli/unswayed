@@ -239,23 +239,35 @@ function EmployerNavbar({ data }) {
 
   return (
     <AppBar
-      position="static"
+      position="sticky"
       sx={{
-        backgroundColor: "#FDF7F7",
+        backgroundColor: "#189e33ff",
         boxShadow: "none",
         borderBottom: "0.4px solid #0000004D",
       }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <Box sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}>
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              mr: 1,
+              borderRadius: "50%",
+              overflow: "hidden", // ensures the image respects round shape
+              width: 50,
+              height: 50,
+            }}
+          >
             <Image
               src={data?.logo}
-              width={87.76}
-              height={57.85}
+              width={50}
+              height={50}
               priority
               alt="nav img"
-              sx={{ border: "2px solid red" }}
+              style={{
+                borderRadius: "50%", // makes it round
+                objectFit: "cover", // prevents stretching
+              }}
             />
           </Box>
           <Typography
@@ -318,7 +330,7 @@ function EmployerNavbar({ data }) {
                         fontSize: "16px",
                         fontWeight: 400,
                         lineHeight: "18px",
-                        color: "#222222",
+                        color: "#ffffff",
                         textAlign: "center",
                       }}
                     >
@@ -392,7 +404,7 @@ function EmployerNavbar({ data }) {
                           fontSize: "16px",
                           fontWeight: 400,
                           lineHeight: "18px",
-                          color: "#222222",
+                          color: "#ffffffff",
                         }}
                       >
                         {page.navTitle}

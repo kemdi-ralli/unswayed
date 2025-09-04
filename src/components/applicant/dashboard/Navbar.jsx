@@ -31,6 +31,7 @@ import { Toast } from "@/components/Toast/Toast";
 import { useEffect } from "react";
 import { Avatar, Badge } from "@mui/material";
 import { setType } from "@/redux/slices/NotificationSlice";
+import { object } from "yup";
 
 const iconStyle = { color: "#189e33ff", fontSize: "16px" };
 
@@ -146,7 +147,7 @@ function Navbar({ data }) {
   const [isProfilePic, setIsProfilePic] = React.useState(null);
   const { userData } = useSelector((state) => state.auth);
   const type = useSelector((state) => state?.notificationTye);
-  
+
   const showChatDot = type?.isChat;
   const showNotificationDot = type?.isNotification;
 
@@ -208,8 +209,8 @@ function Navbar({ data }) {
     } catch (error) {
       setError(
         error?.response?.data?.message ||
-        error.message ||
-        "Something went wrong"
+          error.message ||
+          "Something went wrong"
       );
       Toast("error", error?.response?.data?.message || "Failed to logout");
     } finally {
@@ -222,8 +223,8 @@ function Navbar({ data }) {
     handleCloseProfileMenu();
   };
   useEffect(() => {
-    const channel = echo.channel(`ralli.notify.${userData?.user?.id}`)
-    channel.listen('NotifyUser', event => {
+    const channel = echo.channel(`ralli.notify.${userData?.user?.id}`);
+    channel.listen("NotifyUser", (event) => {
       dispatch(setType(event));
     });
     return () => {
@@ -231,29 +232,40 @@ function Navbar({ data }) {
     };
   }, []);
 
-
-
   return (
     <AppBar
-      position="static"
+      position="sticky"
       sx={{
-        backgroundColor: "#FDF7F7",
+        backgroundColor: "#e8faf0ff",
         boxShadow: "none",
         borderBottom: "0.4px solid #0000004D",
       }}
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <Box sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}>
+          <Box
+            sx={{
+              display: { xs: "none", md: "flex" },
+              mr: 1,
+              borderRadius: "50%",
+              overflow: "hidden", // ensures the image respects round shape
+              width: 50,
+              height: 50,
+            }}
+          >
             <Image
               src={data?.logo}
-              width={87.76}
-              height={57.85}
+              width={50}
+              height={50}
               priority
               alt="nav img"
-              sx={{ border: "2px solid red" }}
+              style={{
+                borderRadius: "50%", // makes it round
+                objectFit: "cover", // prevents stretching
+              }}
             />
           </Box>
+
           <Typography
             variant="h6"
             noWrap
@@ -315,8 +327,9 @@ function Navbar({ data }) {
                         fontWeight: 400,
                         lineHeight: "18px",
                         color: "#222222",
-                        textAlign: 'center'
-                      }}>
+                        textAlign: "center",
+                      }}
+                    >
                       {page.navTitle}
                     </Typography>
                   </MenuItem>
@@ -334,11 +347,14 @@ function Navbar({ data }) {
           >
             <Image
               src={data?.logo}
-              width={35}
-              height={35}
+              width={50}
+              height={50}
               priority
               alt="nav img"
-              sx={{ border: "2px solid red" }}
+              style={{
+                borderRadius: "50%", // makes it round
+                objectFit: "cover", // prevents stretching
+              }}
             />
           </Box>
 
@@ -451,12 +467,18 @@ function Navbar({ data }) {
                     >
                       {index === 0 ? (
                         <Badge
-                          color="error" variant="dot" invisible={!showChatDot}
+                          color="error"
+                          variant="dot"
+                          invisible={!showChatDot}
                         >
                           <MailIcon sx={{ fontSize: 25, color: "#000" }} />
                         </Badge>
                       ) : index === 1 ? (
-                        <Badge color="error" variant="dot" invisible={!showNotificationDot}>
+                        <Badge
+                          color="error"
+                          variant="dot"
+                          invisible={!showNotificationDot}
+                        >
                           <NotificationsIcon
                             sx={{ fontSize: 25, color: "#000" }}
                           />

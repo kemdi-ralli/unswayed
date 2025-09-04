@@ -129,7 +129,7 @@ const MessageItems = ({ setChatUser = () => { }, chatId = null }) => {
               backgroundColor:
                 SelectedUser === item.id ? "#00305B" : "transparent",
               borderRadius: "8px",
-              padding: { lg: "8px" },
+              padding: "8px",
               transition: "background-color 0.1s",
             }}
           >

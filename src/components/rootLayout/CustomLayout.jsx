@@ -89,7 +89,7 @@ export default function CustomLayout({ children }) {
           <Navbar data={NAVBAR_DATA} />
         ))}
 
-      <Box sx={{ flex: 1 }}>{children}</Box>
+      <Box sx={{ flex: 1}}>{children}</Box>
 
       {!hiddenNavbarRoutes.includes(pathname) && isAuthenticated && (
         <Footer data={FOOTER_DATA} />

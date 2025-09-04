@@ -1,5 +1,5 @@
 export const NAVBAR_DATA = {
-    logo:'/assets/images/Ralli_Dark_Logo.png',
+    logo:'/assets/images/logo-single.png',
     items: [
         {
             navImg:'/assets/images/navbar/career.png',

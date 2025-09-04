@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -26,6 +26,7 @@ import {
   employerBasicInfoValidationSchema,
 } from "@/schemas/basicInfo";
 import { usePathname, useRouter } from "next/navigation";
+import { Loader } from "@googlemaps/js-api-loader";
 
 const BasicInfo = ({
   data,
@@ -63,6 +64,41 @@ const BasicInfo = ({
       return false;
     }
   };
+
+  const inputRef = useRef(null);
+  const [address, setAddress] = useState("");
+  const [details, setDetails] = useState(null);
+
+  const GOOGLE_MAPS_API_KEY="AIzaSyANustHLajHU4YAtA3PnAs9rhzt7YResIg";
+
+  useEffect(() => {
+    formData.address = address
+    const loader = new Loader({
+      apiKey: GOOGLE_MAPS_API_KEY,
+      libraries: ["places"],
+    });
+
+    loader.load().then(() => {
+      if (!inputRef.current) return;
+
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          types: ["geocode"], // restrict results to addresses
+        }
+      );
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        setAddress(place.formatted_address || "");
+        setDetails({
+          address: place.formatted_address,
+          components: place.address_components,
+          location: place.geometry?.location?.toJSON(),
+        });
+      });
+    });
+  }, []);
 
   const handleNext = async () => {
     const isValid = await validateForm();
@@ -150,16 +186,18 @@ const BasicInfo = ({
               </LocalizationProvider>
             ) : item.name === "phone" ? (
               // 📱 Country code + phone number split
-              <Box sx={{
+              <Box
+                sx={{
                   display: "flex",
                   gap: 1,
                   width: "100%",
                   boxShadow: "0px 0px 3px 1px #00000040",
                   borderRadius: "10px",
                   alignItems: "center",
-                }} >
+                }}
+              >
                 {/* Country Code Dropdown */}
-                <FormControl sx={{ minWidth: 90}}>
+                <FormControl sx={{ minWidth: 90 }}>
                   <Select
                     value={formData.countryCode || "+1"}
                     onChange={(e) => {
@@ -190,38 +228,40 @@ const BasicInfo = ({
                   </Select>
                 </FormControl>
 
-<Box sx={{
-                  display: "flex",
-                  gap: 1,
-                  width: "100%",
-                  padding: "0 8px",
-                  alignItems: "center",
-                }}>
-                {/* Remaining Number Field */}
                 <Box
-                  component="input"
-                  type="tel"
-                  placeholder={item.placeHolder || "Enter phone number"}
-                  value={formData.phoneNumber || ""}
-                  onChange={(e) => {
-                    const value = e.target.value
-                      .replace(/\D/g, "")
-                      .slice(0, 10); // Only digits, max 10
-                    onFieldChange("phoneNumber", value);
-                    onFieldChange(
-                      item.name,
-                      `${formData.countryCode || "+1"}${value}`
-                    );
+                  sx={{
+                    display: "flex",
+                    gap: 1,
+                    width: "100%",
+                    padding: "0 8px",
+                    alignItems: "center",
                   }}
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    fontSize: "16px",
-                    padding: "12px",
-                    borderRadius: "10px",
-                  }}
-                />
+                >
+                  {/* Remaining Number Field */}
+                  <Box
+                    component="input"
+                    type="tel"
+                    placeholder={item.placeHolder || "Enter phone number"}
+                    value={formData.phoneNumber || ""}
+                    onChange={(e) => {
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10); // Only digits, max 10
+                      onFieldChange("phoneNumber", value);
+                      onFieldChange(
+                        item.name,
+                        `${formData.countryCode || "+1"}${value}`
+                      );
+                    }}
+                    style={{
+                      flex: 1,
+                      border: "none",
+                      outline: "none",
+                      fontSize: "16px",
+                      padding: "12px",
+                      borderRadius: "10px",
+                    }}
+                  />
                 </Box>
               </Box>
             ) : ["country", "state", "city", "ethnicity", "gender"].includes(
@@ -277,6 +317,49 @@ const BasicInfo = ({
                   </MenuItem>
                 ))}
               </Select>
+            ) : item.name === "address" ? (
+              <>
+                <Box
+                  component="input"
+                  ref={inputRef}
+                  placeholder={item.placeHolder}
+                  value={formData.address || ""}
+                  onChange={(e) => {onFieldChange(item.name, e.target.value);
+                    setAddress(e.target.value)}}
+                  sx={{
+                    width: "100%",
+                    boxShadow: "0px 0px 3px 1px #00000040",
+                    border: "none",
+                    padding: "18px 20px",
+                    borderRadius: "10px",
+                    fontSize: "16px",
+                  }}
+                />
+
+                {details && (
+                  <Box
+                    sx={{
+                      marginTop: "8px",
+                      width: "100%",
+                      boxShadow: "0px 0px 3px 1px #00000040",
+                      border: "none",
+                      padding: "18px 20px",
+                      borderRadius: "10px",
+                      fontSize: "16px",
+                    }}
+                  >
+                    <p>
+                      <strong>Address:</strong> {details.address}
+                    </p>
+                    <p>
+                      <strong>Lat:</strong> {details.location?.lat}
+                    </p>
+                    <p>
+                      <strong>Lng:</strong> {details.location?.lng}
+                    </p>
+                  </Box>
+                )}
+              </>
             ) : (
               // Default input
               <Box

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -8,6 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import AssistantIcon from "@mui/icons-material/Assistant";
+import { CircularProgress } from "@mui/material";
 
 import RalliDropdown from "@/components/applicant/applied/RalliDropdown";
 import RalliButton from "@/components/button/RalliButton";
@@ -19,14 +20,12 @@ import {
   CITIES,
   COUNTRIES,
   EMPLOYER_CRUD_JOBS,
-  GET_JOB_DETAIL,
   JOB_CATEGORIES,
   JOB_LOCATIONS,
   JOB_SHIFTS,
   JOB_SHIFTS_TIMMING,
   JOB_TYPES,
   STATES,
-  USER_PROFILE,
 } from "@/services/apiService/apiEndPoints";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import dayjs from "dayjs";
@@ -35,8 +34,8 @@ import { Toast } from "@/components/Toast/Toast";
 import { createJobValidationSchema } from "@/schemas/createJobSchema";
 import { enhanceText } from "@/helper/aiEnhanceHelper";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
-import { getCountries as getCountriesHelper } from "@/helper/MasterGetApiHelper";
 import { useSelector } from "react-redux";
+import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
 
 const CreateJobsForm = ({
   data,
@@ -45,28 +44,29 @@ const CreateJobsForm = ({
   isEdit = false,
 }) => {
   const [form, setForm] = useState({
-      title: "",
-      no_of_positions: "",
-      deadline: null,
-      job_categories: [],
-      job_types: [],
-      job_locations: [],
-      job_shifts: [],
-      job_shift_timing: "",
-      country: null,
-      states: [],
-      cities: [],
-      skills: [],
-      experience_level: "",
-      salary: "",
-      salary_period: "Per Month", // default
-      requirements: "",
-      salary_currency: "",
-      company_about: "",
-      company_benefits: "", // string
-      description: "",
-      type: "internal",
-    });
+    title: "",
+    no_of_positions: "",
+    deadline: null,
+    job_categories: [],
+    job_types: [],
+    job_locations: [],
+    job_shifts: [],
+    job_shift_timing: "",
+    country: null,
+    states: [],
+    cities: [],
+    skills: [],
+    experience_level: "",
+    salary: "",
+    salary_period: "Per Month", // default
+    requirements: "",
+    salary_currency: "",
+    company_about: "",
+    company_benefits: "", // string
+    description: "",
+    type: "internal",
+    external_link: "",
+  });
 
   const [currencies, setCurrencies] = useState([]);
   const [jobCategories, setJobCategories] = useState([]);
@@ -85,17 +85,18 @@ const CreateJobsForm = ({
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
-  const [countryCurrencyMap, setCountryCurrencyMap] = useState({});
 
+  const { userData } = useSelector((state) => state.auth);
+  const [userCountry, setUserCountry] = useState("");
 
-  const [experienceLevel, setExperienceLevel] = useState([
+  const [experienceLevel] = useState([
     { name: "Entry", id: "entry" },
     { name: "Intermediate", id: "intermediate" },
     { name: "Experienced", id: "experienced" },
     { name: "Advanced", id: "advanced" },
   ]);
 
-    // NEW: Salary period options
+  // Salary period options
   const salaryPeriods = [
     { id: "Per Hour", name: "Per Hour" },
     { id: "Per Day", name: "Per Day" },
@@ -112,12 +113,10 @@ const CreateJobsForm = ({
     return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
   };
 
-  const normalize = (s) =>
-    String(s).replace(/\s+/g, " ").trim().toLowerCase();
+  const normalize = (s) => String(s).replace(/\s+/g, " ").trim().toLowerCase();
 
   const parseBenefitsStringToIds = (str, benefitsList) => {
     if (!str || typeof str !== "string" || !benefitsList?.length) return [];
-    // split on commas or ' and ' (case insensitive), then trim
     const parts = str
       .split(/,| and /i)
       .map((t) => t.trim())
@@ -137,6 +136,7 @@ const CreateJobsForm = ({
 
   useEffect(() => {
     handleChange("skills", skills);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skills]);
 
   const handleChange = (name, value) => {
@@ -153,30 +153,6 @@ const CreateJobsForm = ({
       );
     }
   };
-
-  const { userData } = useSelector((state) => state.auth);
-  const [userCountry, setUserCountry] = useState("");
-  useEffect(() => {
-    const defaultUserId = userData?.user?.id;
-    const getCountry = async (id) => {
-      const response = await apiInstance.get(`${COUNTRIES}/${id}`);
-      return response?.data?.data?.name || null;
-    };
-
-    const getUserCountry = async (id) => {
-      try {
-        const response = await apiInstance.get(`${USER_PROFILE}/${id}`);
-        const targetCountry = response?.data?.data?.country_id || null;
-
-        const country = await getCountry(targetCountry);
-        setUserCountry(country);
-      } catch (error) {
-        console.error("Error fetching country:", error);
-        return null;
-      }
-    };
-    if (defaultUserId) getUserCountry(defaultUserId);
-  }, [userData]);
 
   const getJobTypes = async () => {
     try {
@@ -253,6 +229,7 @@ const CreateJobsForm = ({
     getJobShiftTimming();
     getCountries();
     setJobBenefits(benefitList || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When benefits master list loads (and when editing), attempt to pre-select based on any existing string
@@ -268,6 +245,7 @@ const CreateJobsForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobBenefits]);
 
+  // --- Dependent dropdowns: states by country ---
   useEffect(() => {
     if (form?.country) {
       const getStates = async () => {
@@ -294,8 +272,140 @@ const CreateJobsForm = ({
     }
   }, [form?.country]);
 
+  // --- Build CURRENCIES list from countryToCurrency once (unique) ---
   useEffect(() => {
-    if (form?.states.length > 0) {
+    const uniqueCodes = Array.from(
+      new Set(Object.values(countryToCurrency).filter(Boolean))
+    ).sort();
+    setCurrencies(uniqueCodes.map((code) => ({ id: code, name: code })));
+  }, []);
+
+  // ---- Helper: try many ways to resolve currency from whatever `country` value you receive ----
+  const resolveCurrencyFromCountry = (countryValue) => {
+    if (!countryValue) return null;
+
+    const tryKey = (k) => {
+      if (k == null) return null;
+      const ks = String(k);
+      if (countryToCurrency[ks]) return countryToCurrency[ks];
+      if (countryToCurrency[ks.toUpperCase()]) return countryToCurrency[ks.toUpperCase()];
+      if (countryToCurrency[ks.toLowerCase()]) return countryToCurrency[ks.toLowerCase()];
+      return null;
+    };
+
+    // If primitive (string/number), try direct lookup or search countries list for a matching item
+    if (typeof countryValue === "string" || typeof countryValue === "number") {
+      const direct = tryKey(countryValue);
+      if (direct) return direct;
+
+      // check in loaded countries array: match common keys
+      const found = countries.find(
+        (c) =>
+          c?.id === countryValue ||
+          String(c?.id) === String(countryValue) ||
+          c?.iso2 === countryValue ||
+          c?.code === countryValue ||
+          c?.cca2 === countryValue ||
+          c?.country_code === countryValue ||
+          (c?.name && (c.name.common === countryValue || c.name === countryValue))
+      );
+      if (found) {
+        return (
+          tryKey(found.id) ||
+          tryKey(found.iso2) ||
+          tryKey(found.code) ||
+          tryKey(found.cca2) ||
+          tryKey(found.country_code) ||
+          tryKey(found.name?.common) ||
+          tryKey(found.name)
+        );
+      }
+      return null;
+    }
+
+    // If object, probe known properties
+    if (typeof countryValue === "object") {
+      const keysToProbe = [
+        "id",
+        "iso2",
+        "cca2",
+        "alpha2",
+        "code",
+        "country_code",
+        "countryCode",
+        "name",
+        "label",
+      ];
+      for (const k of keysToProbe) {
+        if (countryValue[k]) {
+          const res = tryKey(countryValue[k]);
+          if (res) return res;
+        }
+      }
+      // last-ditch: if object has 'name', try to find that name inside countries list
+      if (countryValue.name) {
+        const foundByName = countries.find(
+          (c) =>
+            (c?.name && (c.name.common === countryValue.name || c.name === countryValue.name)) ||
+            c?.label === countryValue.name ||
+            c?.displayName === countryValue.name
+        );
+        if (foundByName) {
+          return (
+            tryKey(foundByName.id) ||
+            tryKey(foundByName.iso2) ||
+            tryKey(foundByName.code) ||
+            tryKey(foundByName.cca2) ||
+            tryKey(foundByName.country_code)
+          );
+        }
+      }
+    }
+    return null;
+  };
+
+  // ---- previousCountryRef to avoid overriding prefilled values on initial load ----
+  const previousCountryRef = useRef(form.country);
+
+  // ---- Fallback effect: if country changed programmatically, ensure currency is updated (but avoid overriding initial prefill) ----
+  useEffect(() => {
+    const prev = previousCountryRef.current;
+    const curr = form.country;
+    if (prev === curr) {
+      // keep ref in sync but do not force a change
+      previousCountryRef.current = curr;
+      return;
+    }
+
+    // country actually changed -> resolve currency
+    const code = resolveCurrencyFromCountry(curr);
+    if (code && form.salary_currency !== code) {
+      setForm((prev) => ({ ...prev, salary_currency: code }));
+    }
+
+    previousCountryRef.current = curr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.country, countries]);
+
+  // ---- Primary decisive handler: called when user selects a country in the dropdown ----
+  const handleCountryChange = (value) => {
+    // resolve currency synchronously and set both in a single setState -> immediate UI feedback
+    const code = resolveCurrencyFromCountry(value) || "";
+    setForm((prev) => ({
+      ...prev,
+      country: value,
+      salary_currency: code,
+      // optionally clear dependent selections if needed
+      states: [],
+      cities: [],
+    }));
+    // update previousCountryRef for the fallback effect
+    previousCountryRef.current = value;
+  };
+
+  // --- Dependent dropdowns: cities by states ---
+  useEffect(() => {
+    if (form?.states?.length > 0) {
       const getCities = async () => {
         try {
           const response = await apiInstance.get(`${CITIES}/[${form?.states}]`);
@@ -320,6 +430,7 @@ const CreateJobsForm = ({
     }
   }, [form?.states]);
 
+  // --- Pre-fill when viewing a single job (detail) ---
   useEffect(() => {
     if (jobDetail) {
       const formattedDate = dayjs(jobDetail?.deadline).format("YYYY-MM-DD");
@@ -339,13 +450,18 @@ const CreateJobsForm = ({
         requirements: jobDetail?.requirements,
         description: jobDetail?.description,
         type: jobDetail?.type,
-        // keep existing string if provided
         company_benefits: jobDetail?.company_benefits || "",
+        salary: jobDetail?.salary || "",
+        salary_period: jobDetail?.salary_period || "Per Month",
+        salary_currency: jobDetail?.salary_currency || "",
+        company_about: jobDetail?.company_about || "",
       });
       setSkills(jobDetail?.skills ?? []);
+      previousCountryRef.current = jobDetail?.country?.id || jobDetail?.country || null;
     }
   }, [jobDetail]);
 
+  // --- Pre-fill when editing (edit detail) ---
   useEffect(() => {
     if (jobEditDetail) {
       const formattedDate = dayjs(jobEditDetail?.deadline).format("YYYY-MM-DD");
@@ -366,15 +482,16 @@ const CreateJobsForm = ({
         experience_level: jobEditDetail?.experience_level || "",
         skills: jobEditDetail?.skills || [],
         salary: jobEditDetail?.salary || "",
-        salary_period: jobEditDetail?.salary_period || "",
+        salary_period: jobEditDetail?.salary_period || "Per Month",
         requirements: jobEditDetail?.requirements || "",
         salary_currency: jobEditDetail?.salary_currency || "",
         company_about: jobEditDetail?.company_about || "",
-        company_benefits: jobEditDetail?.company_benefits || "", // string
+        company_benefits: jobEditDetail?.company_benefits || "",
         description: jobEditDetail?.description || "",
         type: jobEditDetail?.type || "internal",
       });
       setSkills(jobEditDetail?.skills ?? []);
+      previousCountryRef.current = jobEditDetail?.country?.id || jobEditDetail?.country || null;
     }
   }, [jobEditDetail]);
 
@@ -481,80 +598,11 @@ const CreateJobsForm = ({
     }
   };
 
-  // 🔹 Fetch currencies from RestCountries
-    // 🔹 Fetch currencies from RestCountries
-useEffect(() => {
-  const fetchCurrencies = async () => {
-    try {
-      const res = await fetch(
-        "https://restcountries.com/v3.1/all?fields=currencies,name,cca2"
-      );
-      const data = await res.json();
-
-      const currencyList = [];
-      data.forEach((country) => {
-        if (country.currencies) {
-          Object.keys(country.currencies).forEach((code) => {
-            if (!currencyList.find((c) => c.id === code)) {
-              currencyList.push({ id: code, name: code });
-            }
-          });
-        }
-      });
-
-      setCurrencies(currencyList);
-
-      // 🔹 Save country → currency mapping for quick lookup
-      const map = {};
-      data.forEach((country) => {
-        if (country.currencies) {
-          const defaultCurrency = Object.keys(country.currencies)[0];
-          if (defaultCurrency) {
-            map[country.cca2] = defaultCurrency; // Example: US → USD
-          }
-        }
-      });
-      setCountryCurrencyMap(map);
-    } catch (err) {
-      console.error("Failed to fetch currencies", err);
-    }
-  };
-  fetchCurrencies();
-}, []);
-
-// 🔹 Auto-update salary_currency when country changes
-useEffect(() => {
-  if (form.country && countryCurrencyMap[form.country]) {
-    // Set default currency only if salary_currency is empty or just switched country
-    setForm((prev) => ({
-      ...prev,
-      salary_currency: countryCurrencyMap[form.country],
-    }));
-  }
-}, [form.country, countryCurrencyMap]);
-
-    // 🔹 Set default currency when country changes
-    // useEffect(() => {
-    //   const setCurrencyFromCountry = async () => {
-    //     if (!form.country) return;
-    //     try {
-    //       const res = await fetch(
-    //         `https://restcountries.com/v3.1/alpha/${form.country}?fields=currencies`
-    //       );
-    //       const data = await res.json();
-    //       if (data?.currencies) {
-    //         const defaultCurrency = Object.keys(data.currencies)[0];
-    //         handleChange("salary_currency", defaultCurrency);
-    //       }
-    //     } catch (err) {
-    //       console.error("Error fetching currency by country", err);
-    //     }
-    //   };
-    //   setCurrencyFromCountry();
-    // }, [form.country]);
-
+  // Per-field AI enhance loader
+  const [loadingField, setLoadingField] = useState(null);
   const handleEnhanceAi = async (fieldName, text) => {
     try {
+      setLoadingField(fieldName);
       const enhancedText = await enhanceText(text);
       setForm((prev) => ({
         ...prev,
@@ -562,6 +610,8 @@ useEffect(() => {
       }));
     } catch (error) {
       console.error(`Error enhancing ${fieldName}:`, error);
+    } finally {
+      setLoadingField(null);
     }
   };
 
@@ -586,7 +636,7 @@ useEffect(() => {
                 )}
               </Typography>
 
-              {(item.type === "text" || item.type === "number") && (
+              {(item.type === "text" || item.type === "number" || item.type === "url") && (
                 <Box
                   component="input"
                   sx={{
@@ -608,10 +658,11 @@ useEffect(() => {
                   type={item.type}
                   min={1}
                   placeholder={item?.placeHolder}
-                  value={form?.[item.name]}
+                  value={form?.[item.name] ?? ""}
                   onChange={(e) => handleChange(item.name, e.target.value)}
                 />
               )}
+
 
               {item.type === "date" && (
                 <DatePickerInput
@@ -627,7 +678,7 @@ useEffect(() => {
                   rows={4}
                   fullWidth
                   placeholder={item?.placeHolder}
-                  value={form?.[item.name]}
+                  value={form?.[item.name] ?? ""}
                   onChange={(e) => handleChange(item.name, e.target.value)}
                   InputProps={{
                     endAdornment: item?.ai && (
@@ -641,9 +692,21 @@ useEffect(() => {
                             bottom: 4,
                             right: 0,
                           }}
-                          startIcon={<AssistantIcon />}
+                          startIcon={
+                            loadingField === item.name ? (
+                              <CircularProgress
+                                size={20}
+                                sx={{ color: "#189e33ff" }}
+                              />
+                            ) : (
+                              <AssistantIcon />
+                            )
+                          }
+                          disabled={loadingField === item.name}
                         >
-                          Enhance With AI
+                          {loadingField === item.name
+                            ? "Enhancing..."
+                            : "Enhance With AI"}
                         </Button>
                       </InputAdornment>
                     ),
@@ -696,6 +759,61 @@ useEffect(() => {
                   {formikErrors[item.name]}
                 </Typography>
               )}
+            </Box>
+          )}
+          {item.type === "number" && item.name === "salary" && (
+            <Box sx={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}>
+              <Box
+                  component="input"
+                  sx={{
+                    width: "100%",
+                    boxShadow: "0px 0px 3px 1px #00000040",
+                    border: "none",
+                    padding: "18px 20px",
+                    borderRadius: "10px",
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    lineHeight: "18px",
+                    color: "#222222",
+                    "&::placeholder": {
+                      color: "rgba(0, 0, 0, 0.5)",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    },
+                  }}
+                  type={item.type}
+                  min={1}
+                  placeholder="Minimum Salary"
+                  value={form?.[item.name] ?? ""}
+                  onChange={(e) => handleChange(item.name, e.target.value)}
+                />
+                <Box
+                  component="input"
+                  sx={{
+                    width: "100%",
+                    boxShadow: "0px 0px 3px 1px #00000040",
+                    border: "none",
+                    padding: "18px 20px",
+                    borderRadius: "10px",
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    lineHeight: "18px",
+                    color: "#222222",
+                    "&::placeholder": {
+                      color: "rgba(0, 0, 0, 0.5)",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    },
+                  }}
+                  type={item.type}
+                  min={1}
+                  placeholder="Maximun Salary"
+                  value={form?.[item.name] ?? ""}
+                  onChange={(e) => handleChange(item.name, e.target.value)}
+                />
             </Box>
           )}
 
@@ -775,7 +893,6 @@ useEffect(() => {
             <Box>
               <RalliDropdown
                 names={jobShiftsTimming}
-                // multiple={true}
                 label={item.title}
                 required={item.required}
                 selectedValue={form.job_shift_timing || ""}
@@ -788,35 +905,40 @@ useEffect(() => {
               )}
             </Box>
           )}
+
           {item.type === "dropdown" && item.name === "salary_period" && (
-                      <Box>
-                        <RalliDropdown
-                          names={salaryPeriods}
-                          label={item.title}
-                          required={item.required}
-                          selectedValue={form.salary_period || "Per Month"}
-                          onChange={(value) => handleChange("salary_period", value)}
-                        />
-                      </Box>
-                    )}
+            <Box>
+              <RalliDropdown
+                names={salaryPeriods}
+                label={item.title}
+                required={item.required}
+                selectedValue={form.salary_period || "Per Month"}
+                onChange={(value) => handleChange("salary_period", value)}
+              />
+            </Box>
+          )}
 
           {item.type === "dropdown" && item.name === "salary_currency" && (
-                      <Box>
-                        <RalliDropdown
-                          names={currencies}
-                          label={item.title}
-                          required={item.required}
-                          selectedValue={form.salary_currency || ""}
-                          onChange={(value) => handleChange("salary_currency", value)}
-                        />
-                      </Box>
-                    )}
+            <Box>
+              <RalliDropdown
+                names={currencies}
+                label={item.title}
+                required={item.required}
+                selectedValue={form.salary_currency || ""}
+                onChange={(value) => handleChange("salary_currency", value)}
+              />
+              {formikErrors[item.name] && (
+                <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+                  {formikErrors[item.name]}
+                </Typography>
+              )}
+            </Box>
+          )}
 
           {item.type === "dropdown" && item.name === "experience_level" && (
             <Box>
               <RalliDropdown
                 names={experienceLevel}
-                // multiple={true}
                 label={item.title}
                 required={item.required}
                 selectedValue={form.experience_level || ""}
@@ -837,7 +959,7 @@ useEffect(() => {
                 label={item.title}
                 required={item.required}
                 selectedValue={form.country || ""}
-                onChange={(value) => handleChange("country", value)}
+                onChange={(value) => handleCountryChange(value)}
               />
               {formikErrors[item.name] && (
                 <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
@@ -890,7 +1012,6 @@ useEffect(() => {
                 multiple={true}
                 label={item.title}
                 required={item.required}
-                // Use the dedicated state for the dropdown (array of IDs)
                 selectedValue={selectedBenefits}
                 onChange={(ids) => {
                   const safeIds = Array.isArray(ids) ? ids : [];
@@ -907,10 +1028,6 @@ useEffect(() => {
                   {formikErrors[item.name]}
                 </Typography>
               )}
-              {/* Optional: show the final string to the user */}
-              {/* <Typography sx={{ mt: 1, fontSize: 12, color: "#666" }}>
-                Will submit as: {form.company_benefits || "(none)"}
-              </Typography> */}
             </Box>
           )}
         </React.Fragment>

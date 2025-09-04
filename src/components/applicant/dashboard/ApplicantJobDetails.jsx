@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Grid, Skeleton, Typography } from "@mui/material";
 import JobsCard from "./JobsCard";
+import dayjs from "dayjs";
 
 const ApplicantJobDetails = ({
   data = [],
@@ -38,7 +39,7 @@ const ApplicantJobDetails = ({
         ) : (
           data.map(
             (job, index) =>
-              !job.is_applied && job.deadline >= today && (
+              !job?.is_applied && job.deadline >= today && (
                 <Grid key={index} item xs={12} md={6}>
                   <JobsCard
                     item={job}

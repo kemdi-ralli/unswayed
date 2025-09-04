@@ -11,6 +11,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
   dayjs.extend(relativeTime);
   const maxLength = 220;
+  const today = new Date().toISOString().split("T")[0]; 
 
   return (
     <Box>
@@ -133,13 +134,13 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             disabled={
               item?.is_applied ||
               item?.is_Closed ||
-              dayjs(item?.deadline).isBefore(dayjs())
+              item?.deadline < today
             }
           >
             <SendRoundedIcon sx={{ width: "18px" }} />
             Easy Apply
           </Button>
-          {dayjs(item?.deadline).isBefore(dayjs()) && (
+          {item?.deadline < today && (
             <Typography
               sx={{
                 color: "red",
@@ -216,7 +217,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             pt: 0.8,
           }}
         >
-          Posted: {dayjs(item?.created_at).format("DD-MM-YYYY")}
+          Posted: {dayjs(item?.created_at).format("MM-DD-YYYY")}
         </Typography>
         <Typography
           sx={{
@@ -228,9 +229,9 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
           }}
         >
           Deadline:{" "}
-          {dayjs(item?.deadline).isBefore(dayjs())
+          {item?.deadline < today
             ? "Job Closed"
-            : dayjs(item?.deadline).format("DD-MM-YYYY")}
+            : dayjs(item?.deadline).format("MM-DD-YYYY")}
         </Typography>
       </Box>
     </Box>

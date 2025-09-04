@@ -1,4 +1,4 @@
-
+//RegistrationInfo.jsx
 import React, { useState } from "react";
 import { Box, Button, Typography, IconButton } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
@@ -6,14 +6,15 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useWizard } from "react-use-wizard";
 import Image from "next/image";
-import RalliButton from "../button/RalliButton";
-import FormTitle from "../applicant/dashboard/FormTitle";
-import Container from "../common/Container";
+
 import { usePathname, useRouter } from "next/navigation";
 import { ApplicantSignUpSchema } from "@/schemas/applicantRegistrationSchema";
-import TremsOfUse from "../common/tremsAndConditionModal/TremsOfUse";
+import RalliButton from "@/components/button/RalliButton";
+import FormTitle from "@/components/applicant/dashboard/FormTitle";
+import Container from "@/components/common/Container";
+import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
 
-const RegistrationInfo = ({
+const EmployerRegistrationInfo = ({
   data,
   formData,
   onFieldChange,
@@ -22,7 +23,7 @@ const RegistrationInfo = ({
   agreeTerms,
   setAgreeTerms,
 }) => {
-  const { nextStep, previousStep } = useWizard();
+  const { nextStep } = useWizard();
   const router = useRouter();
   const pathName = usePathname();
 
@@ -57,6 +58,49 @@ const RegistrationInfo = ({
     try {
       await ApplicantSignUpSchema.validate(formData, { abortEarly: false });
 
+      // Restricted personal domains
+      const restrictedDomains = [
+        "@gmail.com",
+        "@yahoo.com",
+        "@aol.com",
+        "@comcast.net",
+        "@onmicrosoft.com",
+        "@outlook.com",
+        "@hotmail.com",
+        "@live.com",
+        "@protonmail.com",
+        "@mail.com",
+        "@zoho.com",
+        "@icloud.com",
+      ];
+
+      // Whitelisted domains (allowed even if not company-standard)
+      const whitelistDomains = [
+        "@partner.org",
+        "@affiliate.net",
+      ];
+
+      const email = formData.email?.toLowerCase().trim();
+      if (!email) {
+        throw new Error("Email is required.");
+      }
+
+      const isWhitelisted = whitelistDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      const isRestricted = restrictedDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      if (!isWhitelisted && isRestricted) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          email: "Use your company email (e.g., @yourcompany.com).",
+        }));
+        return false;
+      }
+
       if (!agreeTerms) {
         throw new Error("You must agree to the terms of use.");
       }
@@ -71,7 +115,11 @@ const RegistrationInfo = ({
           newErrors[error.path] = error.message;
         });
       } else {
-        newErrors.terms = validationErrors.message;
+        if (validationErrors.message.includes("terms")) {
+          newErrors.terms = validationErrors.message;
+        } else {
+          newErrors.email = validationErrors.message;
+        }
       }
 
       setValidationErrors(newErrors);
@@ -106,6 +154,7 @@ const RegistrationInfo = ({
           </Button>
           <Image src={data?.logo} width={70} height={140} alt="logo" />
         </Box>
+
         <FormTitle label={data?.title} />
 
         {data?.form?.map((item) => (
@@ -155,7 +204,9 @@ const RegistrationInfo = ({
               />
               {item.name.toLowerCase().includes("password") && (
                 <IconButton
-                  onClick={() => handleTogglePassword(item.name.toLowerCase())}
+                  onClick={() =>
+                    handleTogglePassword(item.name.toLowerCase())
+                  }
                   sx={{
                     position: "absolute",
                     right: "10px",
@@ -172,6 +223,7 @@ const RegistrationInfo = ({
                 </IconButton>
               )}
             </Box>
+
             {mergedErrors[item.name] && (
               <Typography sx={{ color: "red", fontSize: "12px", mt: "5px" }}>
                 {mergedErrors[item.name]}
@@ -179,6 +231,7 @@ const RegistrationInfo = ({
             )}
           </Box>
         ))}
+
         <TremsOfUse
           error={validationErrors.terms}
           agreeTerms={agreeTerms}
@@ -191,4 +244,4 @@ const RegistrationInfo = ({
   );
 };
 
-export default RegistrationInfo;
+export default EmployerRegistrationInfo;

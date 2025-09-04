@@ -59,7 +59,12 @@ const TextInput = ({
               width: "100%",
               border: "none",
               outline: "none",
-              background: "transparent",
+              background: "#f1f1f1",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 10,
+              padding: 20
             }}
           />
         ) : (
