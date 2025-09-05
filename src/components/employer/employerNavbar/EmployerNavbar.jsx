@@ -241,7 +241,7 @@ function EmployerNavbar({ data }) {
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "#189e33ff",
+        backgroundColor: "#e8faf0ff",
         boxShadow: "none",
         borderBottom: "0.4px solid #0000004D",
       }}
@@ -330,7 +330,7 @@ function EmployerNavbar({ data }) {
                         fontSize: "16px",
                         fontWeight: 400,
                         lineHeight: "18px",
-                        color: "#ffffff",
+                        color: "#000000",
                         textAlign: "center",
                       }}
                     >
@@ -404,7 +404,7 @@ function EmployerNavbar({ data }) {
                           fontSize: "16px",
                           fontWeight: 400,
                           lineHeight: "18px",
-                          color: "#ffffffff",
+                          color: "#000000",
                         }}
                       >
                         {page.navTitle}
