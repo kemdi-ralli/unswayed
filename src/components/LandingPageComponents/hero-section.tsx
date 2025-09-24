@@ -276,10 +276,11 @@ export function HeroSection() {
         <Typography
           component="h1"
           sx={{
-            color: "hsl(var(--foreground))",
+            color: "#00305B",
             fontWeight: 600,
             fontSize: { xs: "2rem", md: "2.5rem", lg: "3.75rem" },
             lineHeight: 1.2,
+
           }}
         >
           Merit-Based Hiring Made Simple
@@ -296,7 +297,7 @@ export function HeroSection() {
             mx: "auto",
           }}
         >
-          Unswayed uses AI-powered talent matching to connect qualified candidates with employers through bias-free,
+          Unswayed uses AI-powered talent matching to connect qualified candidates with employers through fair and inclusive,
           credential-focused recruitment.
         </Typography>
 

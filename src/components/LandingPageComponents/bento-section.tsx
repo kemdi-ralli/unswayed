@@ -103,7 +103,7 @@ export function BentoSection() {
       Component: AiCodeReviews,
     },
     {
-      title: "Bias-Free Recruitment",
+      title: "Fair and Inclusive Recruitment",
       description: "Anonymized candidate information focuses solely on credentials for fair hiring practices.",
       Component: RealtimeCodingPreviews,
     },

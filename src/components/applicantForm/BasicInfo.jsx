@@ -7,8 +7,6 @@ import {
   Select,
   Typography,
   FormControl,
-  InputLabel,
-  TextField,
 } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeft";
 import { useWizard } from "react-use-wizard";
@@ -69,10 +67,19 @@ const BasicInfo = ({
   const [address, setAddress] = useState("");
   const [details, setDetails] = useState(null);
 
-  const GOOGLE_MAPS_API_KEY="AIzaSyANustHLajHU4YAtA3PnAs9rhzt7YResIg";
+  const GOOGLE_MAPS_API_KEY = "AIzaSyANustHLajHU4YAtA3PnAs9rhzt7YResIg";
+
+  // 🔑 Helper function to extract postal code
+  const extractZipCode = (components) => {
+    if (!components) return "";
+    const postal = components.find((comp) =>
+      comp.types.includes("postal_code")
+    );
+    return postal ? postal.long_name : "";
+  };
 
   useEffect(() => {
-    formData.address = address
+    formData.address = address;
     const loader = new Loader({
       apiKey: GOOGLE_MAPS_API_KEY,
       libraries: ["places"],
@@ -90,12 +97,20 @@ const BasicInfo = ({
 
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
+        const zip = extractZipCode(place.address_components);
+
         setAddress(place.formatted_address || "");
         setDetails({
           address: place.formatted_address,
           components: place.address_components,
           location: place.geometry?.location?.toJSON(),
+          zipCode: zip,
         });
+
+        // ✅ Auto-populate zip code field
+        if (zip) {
+          onFieldChange("zip_code", zip);
+        }
       });
     });
   }, []);
@@ -324,8 +339,10 @@ const BasicInfo = ({
                   ref={inputRef}
                   placeholder={item.placeHolder}
                   value={formData.address || ""}
-                  onChange={(e) => {onFieldChange(item.name, e.target.value);
-                    setAddress(e.target.value)}}
+                  onChange={(e) => {
+                    onFieldChange(item.name, e.target.value);
+                    setAddress(e.target.value);
+                  }}
                   sx={{
                     width: "100%",
                     boxShadow: "0px 0px 3px 1px #00000040",
@@ -356,6 +373,9 @@ const BasicInfo = ({
                     </p>
                     <p>
                       <strong>Lng:</strong> {details.location?.lng}
+                    </p>
+                    <p>
+                      <strong>Zip:</strong> {details.zipCode || "N/A"}
                     </p>
                   </Box>
                 )}

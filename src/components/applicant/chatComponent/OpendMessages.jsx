@@ -224,7 +224,7 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
                 <SharePostMessage data={msg} />
               </Box>
             ) : (
-              <Box key={index} sx={{ mb: 2, textAlign: MyMessage ? "right" : "left" }}>
+              <Box key={index} sx={{ mb: 2, textAlign: "left" }}>
                 <Typography
                   sx={{
                     display: "inline-block",
@@ -232,7 +232,7 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
                     padding: "8px 12px",
                     borderRadius: "12px",
                     maxWidth: "70%",
-                    backgroundColor: MyMessage ? "#DCF8C6" : "gray",
+                    backgroundColor: MyMessage ? "#e8faf0ff" : "#c2c2c2ff",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
                   }}
@@ -273,7 +273,7 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
           <Box
             sx={{
               width: "100%",
-              backgroundColor: "#DCF8C6",
+              backgroundColor: "#e8faf0ff",
               display: "flex",
               justifyContent: "space-between",
               mb: "5px",
@@ -297,7 +297,7 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
     </Box>
   );
 };
-
+// MyMessage ? "right" : "left"
 // styles
 const styles = {
   container: {

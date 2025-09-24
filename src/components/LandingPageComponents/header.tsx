@@ -38,7 +38,7 @@ export function Header() {
       >
         {/* Left: Logo + Nav */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "hsl(var(--foreground))" }}>
+          <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "#189e33ff" }}>
             Unswayed
           </Typography>
 
@@ -109,7 +109,7 @@ export function Header() {
             <SheetContent>
               <SheetHeader>
                 <SheetTitle>
-                  <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "hsl(var(--foreground))" }}>
+                  <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "#189e33ff" }}>
                     Unswayed
                   </Typography>
                 </SheetTitle>

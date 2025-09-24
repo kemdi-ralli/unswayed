@@ -212,9 +212,9 @@ const MessageItems = ({ setChatUser = () => { }, chatId = null }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    fontSize: { xs: "8px", sm: "8px", lg: "11px" },
+                    fontSize: { xs: "8px", sm: "12px", lg: "16px" },
                     lineHeight: { xs: "12px", md: "15px" },
-                    fontWeight: 300,
+                    fontWeight: 400,
                     color: SelectedUser === item.id ? "#FFFFFFFF" : "#189e33ff",
                     textDecoration: "underline",
                   }}

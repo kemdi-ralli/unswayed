@@ -5,7 +5,7 @@ export function DashboardPreview() {
   return (
     <Box
       sx={{
-        width: { xs: "calc(100vw - 32px)", md: "1160px", lg: "360px" },
+        width: { xs: "calc(100vw - 32px)", md: "1160px" },
       }}
     >
       <Box

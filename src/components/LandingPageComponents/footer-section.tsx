@@ -77,7 +77,7 @@ export function FooterSection() {
               {section.links.map((link) => (
                 <MuiLink
                   key={link}
-                  href="#"
+                  href="/chatbot"
                   sx={{
                     color: "hsl(var(--foreground))",
                     fontSize: "0.875rem",

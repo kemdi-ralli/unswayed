@@ -24,7 +24,7 @@ export const FOOTER_DATA = [
         link: 'https://www.rallitechnologies.online/'
     },
     {
-        title: 'Ralli Technologies 2024',
+        title: 'RALLi Technologies 2025',
         link: 'https://www.rallitechnologies.online/'
     },
 ];

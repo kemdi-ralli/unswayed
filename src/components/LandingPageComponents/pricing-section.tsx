@@ -14,7 +14,7 @@ export function PricingSection() {
       name: "Free",
       monthlyPrice: "$0",
       annualPrice: "$0",
-      description: "Perfect for candidates just getting started on UnSwayed.",
+      description: "Perfect for candidates just getting started on Unswayed.",
       features: [
         "Create and manage your professional profile",
         "Access basic job matching opportunities",
@@ -80,7 +80,7 @@ export function PricingSection() {
           variant="body1"
           sx={{ color: "rgba(60,60,60,0.7)", mt: 1.5 }}
         >
-          UnSwayed offers transparent pricing for individuals, professionals, and enterprise teams,
+          Unswayed offers transparent pricing for individuals, professionals, and enterprise teams,
           ensuring precise talent matching and a merit-based hiring system.
         </Typography>
       </Box>

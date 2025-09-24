@@ -43,6 +43,7 @@ const CreateJobsForm = ({
   jobEditDetail,
   isEdit = false,
 }) => {
+  // --- form default: external_link default to https:// ---
   const [form, setForm] = useState({
     title: "",
     no_of_positions: "",
@@ -65,7 +66,7 @@ const CreateJobsForm = ({
     company_benefits: "", // string
     description: "",
     type: "internal",
-    external_link: "",
+    external_link: "https://", // <- default prefix shown automatically
   });
 
   const [currencies, setCurrencies] = useState([]);
@@ -95,6 +96,8 @@ const CreateJobsForm = ({
     { name: "Experienced", id: "experienced" },
     { name: "Advanced", id: "advanced" },
   ]);
+
+  const [disabled, setdisabled] = useState("")
 
   // Salary period options
   const salaryPeriods = [
@@ -216,6 +219,7 @@ const CreateJobsForm = ({
     "Life & Disability Insurance",
     "Commuter Benefits / Transportation Allowance",
     "Stock Options / Equity",
+    "Per Diem"
   ].map((benefit, index) => ({
     id: index + 1,
     name: benefit,
@@ -455,6 +459,7 @@ const CreateJobsForm = ({
         salary_period: jobDetail?.salary_period || "Per Month",
         salary_currency: jobDetail?.salary_currency || "",
         company_about: jobDetail?.company_about || "",
+        external_link: jobDetail?.external_link || "https://",
       });
       setSkills(jobDetail?.skills ?? []);
       previousCountryRef.current = jobDetail?.country?.id || jobDetail?.country || null;
@@ -489,6 +494,7 @@ const CreateJobsForm = ({
         company_benefits: jobEditDetail?.company_benefits || "",
         description: jobEditDetail?.description || "",
         type: jobEditDetail?.type || "internal",
+        external_link: jobEditDetail?.external_link || "https://",
       });
       setSkills(jobEditDetail?.skills ?? []);
       previousCountryRef.current = jobEditDetail?.country?.id || jobEditDetail?.country || null;
@@ -497,7 +503,52 @@ const CreateJobsForm = ({
 
   const router = useRouter();
 
+  // --- URL helpers for external_link field ---
+  const ensureProtocolPrefix = (val) => {
+    if (!val || val.trim() === "") return "https://";
+    // if already has a scheme like http:// or https:// return as-is
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(val)) return val;
+    // otherwise prefix with https:// but avoid double slashes
+    return "https://" + val.replace(/^\/+/, "");
+  };
+
+  /**
+   * Validates that a provided URL has a domain suffix (like .com/.org/.io/.co.uk)
+   * Returns empty string when valid or when empty (we don't force required here).
+   * Returns an error message when invalid.
+   */
+  const validateExternalLink = (val) => {
+    if (!val || String(val).trim() === "") return ""; // no value -> no error here (schema may enforce required)
+    try {
+      // Ensure URL constructor can parse (prefix with https if missing)
+      const toParse = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(val)
+        ? val
+        : "https://" + val;
+      const parsed = new URL(toParse);
+      const host = parsed.hostname; // e.g. example.com or sub.example.co.uk
+      // Host must contain at least one dot and a valid TLD segment of >=2 letters.
+      const parts = host.split(".");
+      if (parts.length < 2) {
+        return "URL must contain a domain suffix (e.g. .com, .org).";
+      }
+      const tld = parts[parts.length - 1];
+      if (!/^[a-zA-Z]{2,}$/.test(tld)) {
+        return "URL must have a valid alphabetic suffix (e.g. .com, .org).";
+      }
+      return "";
+    } catch (e) {
+      return "Enter a valid URL.";
+    }
+  };
+
   const validateForm = async () => {
+    // Validate external_link early (so user sees that suffix error below the field)
+    const extErr = validateExternalLink(form.external_link);
+    if (extErr) {
+      setFormikErrors((prev) => ({ ...prev, external_link: extErr }));
+      return false;
+    }
+
     try {
       await createJobValidationSchema.validate(form, { abortEarly: false });
       if (!agreeTerms) {
@@ -636,7 +687,65 @@ const CreateJobsForm = ({
                 )}
               </Typography>
 
-              {(item.type === "text" || item.type === "number" || item.type === "url") && (
+              {/* ---------------------------
+                  EXTERNAL LINK (SEPARATE)
+                  --------------------------- */}
+              {item.type === "text" && item.name === "external_link" && (
+                <Box>
+                  <Box
+                    component="input"
+                    type="text"
+                    placeholder={item?.placeHolder || "https://example.com"}
+                    value={form.external_link ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      // update value but don't validate aggressively while typing
+                      handleChange("external_link", v);
+                      setFormikErrors((prev) => ({ ...prev, external_link: "" }));
+                    }}
+                    onBlur={(e) => {
+                      // Ensure protocol present (so URL parsing works reliably)
+                      let v = e.target.value ?? "";
+                      if (v.trim() === "") {
+                        v = "https://";
+                      } else {
+                        v = ensureProtocolPrefix(v);
+                      }
+                      handleChange("external_link", v);
+                      const err = validateExternalLink(v);
+                      setFormikErrors((prev) => ({ ...prev, external_link: err }));
+                    }}
+                    sx={{
+                      width: "100%",
+                      boxShadow: "0px 0px 3px 1px #00000040",
+                      border: "none",
+                      padding: "18px 20px",
+                      borderRadius: "10px",
+                      fontSize: "16px",
+                      fontWeight: 300,
+                      lineHeight: "18px",
+                      color: "#222222",
+                      "&::placeholder": {
+                        color: "rgba(0, 0, 0, 0.5)",
+                        fontSize: "16px",
+                        fontWeight: 400,
+                      },
+                    }}
+                  />
+                  {formikErrors.external_link && (
+                    <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+                      {formikErrors.external_link}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
+              {/* ---------------------------
+                  GENERIC TEXT / NUMBER (non-salary)
+                  --------------------------- */}
+              {(item.type === "text" && item.name !== "external_link") ||
+              (item.type === "number" && item.name !== "salary") ||
+              item.type === "url" ? (
                 <Box
                   component="input"
                   sx={{
@@ -661,8 +770,7 @@ const CreateJobsForm = ({
                   value={form?.[item.name] ?? ""}
                   onChange={(e) => handleChange(item.name, e.target.value)}
                 />
-              )}
-
+              ) : null}
 
               {item.type === "date" && (
                 <DatePickerInput
@@ -761,62 +869,39 @@ const CreateJobsForm = ({
               )}
             </Box>
           )}
+
+          {/* Salary range (two inputs, stored as "min - max") */}
           {item.type === "number" && item.name === "salary" && (
-            <Box sx={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}>
+            <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
               <Box
-                  component="input"
-                  sx={{
-                    width: "100%",
-                    boxShadow: "0px 0px 3px 1px #00000040",
-                    border: "none",
-                    padding: "18px 20px",
-                    borderRadius: "10px",
-                    fontSize: "16px",
-                    fontWeight: 300,
-                    lineHeight: "18px",
-                    color: "#222222",
-                    "&::placeholder": {
-                      color: "rgba(0, 0, 0, 0.5)",
-                      fontSize: "16px",
-                      fontWeight: 400,
-                    },
-                  }}
-                  type={item.type}
-                  min={1}
-                  placeholder="Minimum Salary"
-                  value={form?.[item.name] ?? ""}
-                  onChange={(e) => handleChange(item.name, e.target.value)}
-                />
-                <Box
-                  component="input"
-                  sx={{
-                    width: "100%",
-                    boxShadow: "0px 0px 3px 1px #00000040",
-                    border: "none",
-                    padding: "18px 20px",
-                    borderRadius: "10px",
-                    fontSize: "16px",
-                    fontWeight: 300,
-                    lineHeight: "18px",
-                    color: "#222222",
-                    "&::placeholder": {
-                      color: "rgba(0, 0, 0, 0.5)",
-                      fontSize: "16px",
-                      fontWeight: 400,
-                    },
-                  }}
-                  type={item.type}
-                  min={1}
-                  placeholder="Maximun Salary"
-                  value={form?.[item.name] ?? ""}
-                  onChange={(e) => handleChange(item.name, e.target.value)}
-                />
+                component="input"
+                type="number"
+                min={0}
+                placeholder="Minimum Salary"
+                value={form.salary?.split(" - ")[0] || ""}
+                onChange={(e) => {
+                  const max = form.salary?.split(" - ")[1] || "";
+                  handleChange("salary", `${e.target.value}${max ? ` - ${max}` : ""}`);
+                }}
+                sx={{ flex: 1, boxShadow: "0px 0px 3px 1px #00000040", border: "none", padding: "18px 20px", borderRadius: "10px", fontSize: "16px", fontWeight: 300, lineHeight: "18px", color: "#222222", "&::placeholder": { color: "rgba(0,0,0,0.5)", fontSize: "16px", fontWeight: 400 } }}
+              />
+
+              <Box
+                component="input"
+                type="number"
+                min={0}
+                placeholder="Maximum Salary"
+                value={form.salary?.split(" - ")[1] || ""}
+                onChange={(e) => {
+                  const min = form.salary?.split(" - ")[0] || "";
+                  handleChange("salary", `${min ? min : ""} - ${e.target.value}`);
+                }}
+                sx={{ flex: 1, boxShadow: "0px 0px 3px 1px #00000040", border: "none", padding: "18px 20px", borderRadius: "10px", fontSize: "16px", fontWeight: 300, lineHeight: "18px", color: "#222222", "&::placeholder": { color: "rgba(0,0,0,0.5)", fontSize: "16px", fontWeight: 400 } }}
+              />
             </Box>
           )}
 
+          {/* Dropdowns */}
           {item.type === "dropdown" && item.name === "job_categories" && (
             <Box>
               <RalliDropdown

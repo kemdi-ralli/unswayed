@@ -86,7 +86,7 @@ const RealtimeCodingPreviews: React.FC = () => {
     Candidate Evaluation: Success ✅
   </p>
   <p>
-    <strong>Name:</strong> Jane Smith
+    <strong>Name:</strong> UCN 10050
   </p>
   <p style={{ margin: "2px 0" }}>
     <strong>Role Applied:</strong> Frontend Developer
@@ -95,7 +95,7 @@ const RealtimeCodingPreviews: React.FC = () => {
     <strong>Key Strengths:</strong> React, TypeScript, Scalable UI Design
   </p>
   <p style={{ margin: "2px 0" }}>
-    <strong>Assessment Result:</strong> 92/100 – Exceptional problem-solving and project delivery
+    <strong>Qualification Result:</strong> 92/100 – Exceptional problem-solving and project delivery
   </p>
   <p style={{ margin: "2px 0" }}>
     <strong>Recommendation:</strong> Proceed to final interview based on proven merit and portfolio excellence.

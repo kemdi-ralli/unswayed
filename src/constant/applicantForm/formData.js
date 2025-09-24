@@ -49,9 +49,9 @@ export const BASIC_INFO = {
             required: true,
         },
         {
-            label: 'State',
-            name:'state',
-            placeHolder: 'State',
+            label: 'Current Address',
+            name:'address',
+            placeHolder: 'Your address',
             required: true,
         },
         {
@@ -61,16 +61,19 @@ export const BASIC_INFO = {
             required: true,
         },
         {
+            label: 'State',
+            name:'state',
+            placeHolder: 'State',
+            required: true,
+        },
+        
+        {
             label: 'Zip Code',
             name:'zip_code',
             placeHolder: 'Zip code',
             required: true,
         },
-        {
-            label: 'Current Address',
-            name:'address',
-            placeHolder: 'Your address'
-        },
+        
         // {
         //     label: 'About',
         //     name:'about',
