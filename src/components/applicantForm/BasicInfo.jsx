@@ -365,18 +365,18 @@ const BasicInfo = ({
                       fontSize: "16px",
                     }}
                   >
-                    <p>
+                    <Typography>
                       <strong>Address:</strong> {details.address}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Lat:</strong> {details.location?.lat}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Lng:</strong> {details.location?.lng}
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                       <strong>Zip:</strong> {details.zipCode || "N/A"}
-                    </p>
+                    </Typography>
                   </Box>
                 )}
               </>

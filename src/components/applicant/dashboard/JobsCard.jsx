@@ -138,7 +138,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             }
           >
             <SendRoundedIcon sx={{ width: "18px" }} />
-            Easy Apply
+            StepIn Now
           </Button>
           {item?.deadline < today && (
             <Typography

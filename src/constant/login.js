@@ -1,6 +1,6 @@
 export const APPLICANT_LOGIN_DATA = {
   loginType: "Applicant Login",
-  logo: "/assets/images/Ralli_Dark_Logo.png",
+  logo: "/assets/images/logo-round.png",
   title: "A Place to share knowledge and better understand the world",
   // paragraph: 'By Continuing You Indicate That You Agree To RALLI <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Terms Of Service </span> And <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Privacy Policy</span>.',
   paragraph: `By Continuing You Indicate That You Agree To RALLI 
@@ -45,7 +45,7 @@ And
 };
 export const EMPLOYER_LOGIN_DATA = {
   loginType: "Employer Login",
-  logo: "/assets/images/Ralli_Dark_Logo.png",
+  logo: "/assets/images/logo-round.png",
   title: "A Place to share knowledge and better understand the world",
   paragraph: `By Continuing You Indicate That You Agree To RALLI 
 <a href="/terms-and-conditions" style="color: blue; text-decoration: underline;">Terms Of Service</a> 

@@ -48,7 +48,7 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
         }}
       >
         <Box sx={{ display: "flex", justifyContent: "center", py: "20px" }}>
-          <Image src={data?.logo} width={122} height={80.04} alt="logo" />
+          <Image src={data?.logo} width={100} height={100} alt="logo" sx={{ objectFit: "contain" }} />
         </Box>
         <Grid container spacing={6} sx={{ mt: "0px" }}>
           <Grid

@@ -7,7 +7,7 @@ export const EMPLOYER_JOBS_FOR_YOU_HOME_PAGE = {
       title: "Entry Level Software Specialist",
       location: "Charleston, South Carolina, United States",
       buttonJobTypeLable: "Full Time",
-      easyApplyLable: "Easy Apply",
+      easyApplyLable: "StepIn Now",
       description:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry",
 
@@ -20,7 +20,7 @@ export const EMPLOYER_JOBS_FOR_YOU_HOME_PAGE = {
       title: "Entry Level Software Specialist",
       location: "Charleston, South Carolina, United States",
       buttonJobTypeLable: "Full Time",
-      easyApplyLable: "Easy Apply",
+      easyApplyLable: "StepIn Now",
       description:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry",
 
@@ -33,7 +33,7 @@ export const EMPLOYER_JOBS_FOR_YOU_HOME_PAGE = {
       title: "Entry Level Software Specialist",
       location: "Charleston, South Carolina, United States",
       buttonJobTypeLable: "Full Time",
-      easyApplyLable: "Easy Apply",
+      easyApplyLable: "StepIn Now",
       description:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry",
 
@@ -46,7 +46,7 @@ export const EMPLOYER_JOBS_FOR_YOU_HOME_PAGE = {
       title: "Entry Level Software Specialist",
       location: "Charleston, South Carolina, United States",
       buttonJobTypeLable: "Full Time",
-      easyApplyLable: "Easy Apply",
+      easyApplyLable: "StepIn Now",
       description:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry",
 

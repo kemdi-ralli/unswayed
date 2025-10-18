@@ -29,7 +29,7 @@ const BackbuttonWithTitle = ({ title }) => {
         onClick={handleBack}
       >
         <Button onClick={() => console.log("Back")} sx={{ minWidth: 0, p: 0 }}>
-          <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
+          <ArrowCircleLeftRoundedIcon sx={{ color: "#0c8229ff", fontSize: 32 }} />
         </Button>
       </Box>
       <Typography

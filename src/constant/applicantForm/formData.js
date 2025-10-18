@@ -55,17 +55,18 @@ export const BASIC_INFO = {
             required: true,
         },
         {
-            label: 'City',
-            name:'city',
-            placeHolder: 'City',
-            required: true,
-        },
-        {
             label: 'State',
             name:'state',
             placeHolder: 'State',
             required: true,
         },
+        {
+            label: 'City',
+            name:'city',
+            placeHolder: 'City',
+            required: true,
+        },
+        
         
         {
             label: 'Zip Code',

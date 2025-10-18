@@ -13,6 +13,7 @@ import { EMPLOYER_NAVBAR_DATA } from "@/constant/employer/navbar";
 import { NAVBAR_DATA } from "@/constant/applicant/navbar";
 import Footer from "../applicant/dashboard/Footer";
 import { FOOTER_DATA } from "@/constant/applicant/footer";
+import Link from "next/link";
 
 const CookieConsent = dynamic(() => import("react-cookie-consent"), {
   ssr: false,
@@ -89,7 +90,7 @@ export default function CustomLayout({ children }) {
           <Navbar data={NAVBAR_DATA} />
         ))}
 
-      <Box sx={{ flex: 1}}>{children}</Box>
+      <Box sx={{ flex: 1 }}>{children}</Box>
 
       {!hiddenNavbarRoutes.includes(pathname) && isAuthenticated && (
         <Footer data={FOOTER_DATA} />
@@ -113,11 +114,27 @@ export default function CustomLayout({ children }) {
             location="bottom"
             buttonText="Accept"
             cookieName="ralliCookieConsent"
-            style={{ background: "#2B373B", color: "#ffffff" }}
+            style={{
+              background: "#0f172a",
+              color: "#ffffff",
+              borderTopRightRadius: 8,
+              borderTopLeftRadius: 8,
+              padding: "20px 20px",
+            }}
             buttonStyle={{
-              color: "#000",
-              background: "#ffcc00",
+              color: "#ffffff",
+              background: "#189e33ff",
               fontSize: "14px",
+              borderRadius: 8,
+              padding: "10px 20px",
+            }}
+            declineButtonStyle={{
+              color: "#ffffff",
+              background: "none",
+              fontSize: "14px",
+              borderRadius: 8,
+              padding: "10px 20px",
+              border: "1px solid #ffffff",
             }}
             expires={365}
             onAccept={handleAcceptCookies}
@@ -135,16 +152,15 @@ export default function CustomLayout({ children }) {
                 We use cookies to enhance your experience, analyze site traffic,
                 personalize content. You can manage your preferences anytime.
               </Typography>
-              <Button
-                onClick={() => router.push("/manage-cookies")}
+              <Link
+                href="/manage-cookies"
                 sx={{
-                  color: "#000",
-                  background: "#b2b2b2",
+                  color: "#ffffff",
                   fontSize: "10px",
                 }}
               >
                 Manage Preferences
-              </Button>
+              </Link>
             </Box>
           </CookieConsent>
         </Box>

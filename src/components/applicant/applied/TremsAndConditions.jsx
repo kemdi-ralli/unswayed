@@ -27,7 +27,7 @@ const TremsAndConditions = ({ data }) => {
             fontSize: { xs: "12px", sm: "16px", md: "16px" },
             fontWeight: 500,
             lineHeight: { xs: "25px", sm: "30px", md: "24px", lg: "34px" },
-            color: "#00305B",
+            color: "#0c8229ff",
           }}
         >
           Last updated: {data?.time}
@@ -48,7 +48,7 @@ const TremsAndConditions = ({ data }) => {
             fontSize: { xs: "18px", sm: "21px", md: "22px" },
             fontWeight: 800,
             lineHeight: { xs: "25px", sm: "30px", md: "25px", lg: "18px" },
-            color: "#00305B",
+            color: "#0c8229ff",
           }}
         >
           {data?.title}
@@ -61,7 +61,7 @@ const TremsAndConditions = ({ data }) => {
                 fontSize: { xs: "18px", sm: "21px", md: "19px" },
                 fontWeight: 800,
                 lineHeight: { xs: "25px", sm: "30px", md: "25px", lg: "28.5px" },
-                color: "#00305B",
+                color: "#0c8229ff",
                 pb: 1,
               }}
             >
@@ -72,7 +72,7 @@ const TremsAndConditions = ({ data }) => {
                 fontSize: { xs: "18px", sm: "21px", md: "19px" },
                 fontWeight: 600,
                 lineHeight: { xs: "25px", sm: "30px", md: "25px", lg: "28.5px" },
-                color: "#00305B",
+                color: "#0c8229ff",
               }}
             >
               {item?.title}

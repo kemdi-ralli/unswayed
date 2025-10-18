@@ -80,14 +80,15 @@ export function FooterSection() {
                   href="/chatbot"
                   sx={{
                     color: "hsl(var(--foreground))",
-                    fontSize: "0.875rem",
+                    fontSize: "0.2rem",
                     fontWeight: 400,
                     lineHeight: "20px",
                     textDecoration: "none",
                     "&:hover": { textDecoration: "underline" },
                   }}
                 >
-                  {link}
+                  <Typography sx={{ color: "hsl(var(--foreground)/0.7)", fontSize: "0.725rem" }}>{link}</Typography>
+                  
                 </MuiLink>
               ))}
             </Box>

@@ -16,6 +16,7 @@ import { EDU_INFO_CRUD } from "@/constant/ralliResume";
 import { DeleteForever, Edit } from "@mui/icons-material";
 import UserDetail from "./UserDetail";
 import { educationValidationSchema } from "@/schemas/addEducationSchema";
+import UserSyncButton from "@/components/button/UserSyncButton";
 
 const ProfileView = ({
   Profile,
@@ -181,6 +182,7 @@ const ProfileView = ({
             height: { xs: 120, sm: 150, md: 191 },
           }}
         />
+        {/* <UserSyncButton/> */}
         <Typography
           sx={{
             fontSize: { xs: "20px", sm: "22px", md: "26px" },
