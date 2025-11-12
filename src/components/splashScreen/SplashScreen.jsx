@@ -63,7 +63,7 @@ const SplashScreen = () => {
           <Box className={styles.container}>
             <Box
               component="img"
-              src="/assets/images/Ralli_White_Logo.png"
+              src="/assets/images/bootsplash_logo.png"
               width={200}
               height={140}
               alt="splash-img"
@@ -146,7 +146,7 @@ const SplashScreen = () => {
             >
               <Box
                 component="img"
-                src="/assets/images/Ralli_Dark_Logo.png"
+                src="/assets/images/bootsplash_logoo.png"
                 width={200}
                 height={160}
                 alt="splash-img"

@@ -1,5 +1,5 @@
 export const BASIC_REGISTRATION = {
-  logo: "/assets/images/Ralli_Dark_Vert_Logo.png",
+  logo: "/assets/images/bootsplash_logo.png",
   title: "Company Registration Continued",
   form: [
     {
@@ -41,7 +41,7 @@ export const BASIC_REGISTRATION = {
 };
 
 export const COMPANY_REGISTRATION = {
-  logo: "/assets/images/Ralli_Dark_Vert_Logo.png",
+  logo: "/assets/images/bootsplash_logo.png",
   title: "Company Information",
   form: [
     {
@@ -97,7 +97,7 @@ export const COMPANY_REGISTRATION = {
   ],
 };
 export const FINAL_REGISTRATION = {
-  logo: "/assets/images/Ralli_Dark_Vert_Logo.png",
+  logo: "/assets/images/bootsplash_logo.png",
   title: "Company Registration",
   form: [
     {
@@ -129,7 +129,7 @@ export const FINAL_REGISTRATION = {
 };
 
 export const EMPLOYER_EMAIL_VERIFICATIONS = {
-  logo: "/assets/images/Ralli_Dark_Vert_Logo.png",
+  logo: "/assets/images/bootsplash_logo.png",
   title: "Email Verification",
   description:
     "Please Check Your Email (Junk/SPAM), or Phone For The OTP Verification Code.",

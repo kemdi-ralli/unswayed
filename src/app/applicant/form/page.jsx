@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { Wizard } from "react-use-wizard";
 import { useRouter } from "next/navigation";
@@ -29,55 +30,24 @@ const ApplicantForm = () => {
   const [genders, setGenders] = useState([]);
   const [ethnicities, setEthnicities] = useState([]);
   const [apiErrors, setApiErrors] = useState({});
-  const [experienceLevel, setExperienceLevel] = useState([
-    { name: "Sr", id: 'sr' },
-    { name: "Jr", id: 'jr' },
-    { name: "III", id: 'III' },
-    { name: "IV", id: 'IV' },
-  ]);
-  const [agreeTerms, setAgreeTerms] = useState(false);
   const [errors, setErrors] = useState();
+
+  const [experienceLevel, setExperienceLevel] = useState([
+    { name: "Sr", id: "sr" },
+    { name: "Jr", id: "jr" },
+    { name: "III", id: "III" },
+    { name: "IV", id: "IV" },
+  ]);
+
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [dropdownStates, setDropdownStates] = useState({
     country: "",
     state: "",
     city: "",
     gender: "",
     ethnicities: "",
-    experienceLevel: ""
+    experienceLevel: "",
   });
-
-  const handleDropdownChange = (key, value) => {
-    setDropdownStates((prevState) => {
-      let updatedState = { ...prevState, [key]: value };
-      if (key === "country") {
-        updatedState = {
-          ...updatedState,
-          state: "",
-          city: ""
-        };
-        setStates([]);
-        setCities([]);
-      }
-
-      if (key === "state") {
-        updatedState = {
-          ...updatedState,
-          city: ""
-        };
-        setCities([]);
-      }
-
-      return updatedState;
-    });
-
-    setFormData((prevData) => ({
-      ...prevData,
-      basicInfo: {
-        ...prevData.basicInfo,
-        [key]: value,
-      },
-    }));
-  };
 
   const [formData, setFormData] = useState({
     basicInfo: {},
@@ -94,13 +64,42 @@ const ApplicantForm = () => {
         },
       ],
       skills: [],
-      experience_level: ""
+      experience_level: "",
     },
     registrationInfo: {},
   });
 
   const router = useRouter();
 
+  /** Handle dropdowns (country/state/city chaining) */
+  const handleDropdownChange = (key, value) => {
+    setDropdownStates((prevState) => {
+      let updatedState = { ...prevState, [key]: value };
+
+      if (key === "country") {
+        updatedState = { ...updatedState, state: "", city: "" };
+        setStates([]);
+        setCities([]);
+      }
+
+      if (key === "state") {
+        updatedState = { ...updatedState, city: "" };
+        setCities([]);
+      }
+
+      return updatedState;
+    });
+
+    setFormData((prevData) => ({
+      ...prevData,
+      basicInfo: {
+        ...prevData.basicInfo,
+        [key]: value,
+      },
+    }));
+  };
+
+  /** Generic field handler for each wizard step */
   const handleFieldChange = (step, fieldName, value) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -110,10 +109,12 @@ const ApplicantForm = () => {
       },
     }));
   };
+
+  /** Fetch Countries */
   useEffect(() => {
     const getCountries = async () => {
       try {
-        const response = await apiInstance?.get(COUNTRIES);
+        const response = await apiInstance.get(COUNTRIES);
         setCountries(response?.data?.data?.countries || []);
       } catch (error) {
         setErrors(error?.response?.data?.message || "Failed to load countries");
@@ -121,94 +122,102 @@ const ApplicantForm = () => {
     };
     getCountries();
   }, []);
+
+  /** Fetch Ethnicities */
   useEffect(() => {
     const getEthnicities = async () => {
       try {
-        const response = await apiInstance?.get(ETHNICITIES);
+        const response = await apiInstance.get(ETHNICITIES);
         setEthnicities(response?.data?.data?.Ethnicities || []);
       } catch (error) {
-        setErrors(error?.response?.data?.message || "Failed to load countries");
+        setErrors(error?.response?.data?.message || "Failed to load ethnicities");
       }
     };
     getEthnicities();
   }, []);
 
+  /** Fetch States */
   useEffect(() => {
-    if (dropdownStates?.country) {
+    if (dropdownStates.country) {
       const getStates = async (countryId) => {
         try {
-          const response = await apiInstance?.get(`${STATES}/${countryId}`);
+          const response = await apiInstance.get(`${STATES}/${countryId}`);
           setStates(response?.data?.data?.states || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load states");
         }
       };
-      getStates(dropdownStates?.country);
+      getStates(dropdownStates.country);
     }
-  }, [dropdownStates?.country]);
+  }, [dropdownStates.country]);
 
+  /** Fetch Cities */
   useEffect(() => {
-    if (dropdownStates?.state) {
+    if (dropdownStates.state) {
       const getCities = async (stateId) => {
         try {
-          const response = await apiInstance?.get(`${CITIES}/${stateId}`);
+          const response = await apiInstance.get(`${CITIES}/${stateId}`);
           setCities(response?.data?.data?.cities || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load cities");
         }
       };
-      getCities(dropdownStates?.state);
+      getCities(dropdownStates.state);
     }
-  }, [dropdownStates?.state]);
+  }, [dropdownStates.state]);
 
+  /** Fetch Genders */
   useEffect(() => {
     const getGenders = async () => {
       try {
         const response = await apiInstance.get(GENDERS);
         setGenders(response?.data?.data?.genders || []);
       } catch (error) {
-        setErrors(error?.response?.data?.message || "Failed to load countries");
+        setErrors(error?.response?.data?.message || "Failed to load genders");
       }
     };
     getGenders();
   }, []);
 
+  /** Handle final submit */
   const handleFinalSubmit = async () => {
     const { basicInfo, educationInfo, registrationInfo } = formData;
 
-    const formattedEducationData = educationInfo?.educations?.map(
-      (education) => ({
-        degree: education?.degree,
-        field_of_study: education?.field_of_study,
-        institution_name: education?.institution_name,
-        grade: education?.grade,
-        start_date: education?.start_date,
-        end_date: education?.end_date,
-        media: education?.media,
-      })
-    );
+    const formattedEducationData = educationInfo.educations.map((education) => ({
+      degree: education.degree,
+      field_of_study: education.field_of_study,
+      institution_name: education.institution_name,
+      grade: education.grade,
+      start_date: education.start_date,
+      end_date: education.end_date,
+      media: education.media,
+    }));
 
     const finalDataToSubmit = {
       ...basicInfo,
       ...registrationInfo,
       educations: formattedEducationData,
-      skills: Array.isArray(educationInfo?.skills)
-        ? educationInfo?.skills
-        : educationInfo?.skills?.split(" "),
-      experience_level: educationInfo?.experience_level || "",
+      skills: Array.isArray(educationInfo.skills)
+        ? educationInfo.skills
+        : educationInfo.skills?.split(" "),
+      experience_level: educationInfo.experience_level || "",
     };
+
     console.log(finalDataToSubmit, "finaldata applicant");
 
     try {
       const formDataToSubmit = new FormData();
-      Object.entries(finalDataToSubmit)?.forEach(([key, value]) => {
+
+      // Append basic fields
+      Object.entries(finalDataToSubmit).forEach(([key, value]) => {
         if (!Array.isArray(value)) {
-          formDataToSubmit?.append(key, value);
+          formDataToSubmit.append(key, value);
         }
       });
 
-      finalDataToSubmit?.educations?.forEach((education, index) => {
-        Object.entries(education)?.forEach(([field, value]) => {
+      // Append education data
+      finalDataToSubmit.educations.forEach((education, index) => {
+        Object.entries(education).forEach(([field, value]) => {
           if (field === "media" && value instanceof File) {
             formDataToSubmit.append(`educations[${index}][${field}]`, value);
           } else {
@@ -217,8 +226,9 @@ const ApplicantForm = () => {
         });
       });
 
-      finalDataToSubmit?.skills?.forEach((skill, index) => {
-        formDataToSubmit?.append(`skills[${index}]`, skill);
+      // Append skills
+      finalDataToSubmit.skills.forEach((skill, index) => {
+        formDataToSubmit.append(`skills[${index}]`, skill);
       });
 
       const response = await apiInstance.post(
@@ -228,11 +238,11 @@ const ApplicantForm = () => {
       );
 
       if (response?.data?.status === "success") {
-        Cookie.set("token", response?.data?.data?.token);
-        Cookie.set("isVerified", response?.data?.data?.is_verified);
+        Cookie.set("token", response.data.data.token);
+        Cookie.set("isVerified", response.data.data.is_verified);
         Cookie.set("userType", "applicant");
         router.push("/applicant/form/emailVerification");
-        Toast("success", response?.data?.message);
+        Toast("success", response.data.message);
       }
     } catch (error) {
       const errors = error.response?.data?.errors || {};
@@ -242,6 +252,7 @@ const ApplicantForm = () => {
       });
     }
   };
+
   const handleChangeExperience = (name, value) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -251,6 +262,7 @@ const ApplicantForm = () => {
       },
     }));
   };
+
   return (
     <Wizard>
       <RegistrationInfo
@@ -263,8 +275,8 @@ const ApplicantForm = () => {
         errors={apiErrors}
         agreeTerms={agreeTerms}
         setAgreeTerms={setAgreeTerms}
-
       />
+
       <BasicInfo
         data={BASIC_INFO}
         formData={formData.basicInfo}
@@ -280,6 +292,7 @@ const ApplicantForm = () => {
         handleDropdownChange={handleDropdownChange}
         errors={apiErrors}
       />
+
       <ApplicantEducationInfo
         data={EDU_INFO}
         formData={formData.educationInfo}

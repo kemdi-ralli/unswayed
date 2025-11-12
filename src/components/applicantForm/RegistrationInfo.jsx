@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Box, Button, Typography, IconButton } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
@@ -100,12 +99,14 @@ const RegistrationInfo = ({
           }}
         >
           <Button onClick={handleBack} sx={{ minWidth: 0, p: 0 }}>
-            <ArrowCircleLeftRoundedIcon
-              sx={{ color: "#00305B", fontSize: 32 }}
-            />
+            <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
           </Button>
-          <Image src={data?.logo} width={70} height={140} alt="logo" />
+          <Image src={data?.logo} width={70} height={70} alt="logo" style={{
+            border: "1px solid #fff", 
+            borderRadius: 40
+          }} />
         </Box>
+
         <FormTitle label={data?.title} />
 
         {data?.form?.map((item) => (
@@ -147,12 +148,11 @@ const RegistrationInfo = ({
                   width: "100%",
                   border: "none",
                   borderColor: errors[item.name] ? "red" : "transparent",
-                  "&::placeholder": {
-                    transform: "translateY(2px)",
-                  },
+                  "&::placeholder": { transform: "translateY(2px)" },
                 }}
                 placeholder={item?.placeHolder}
               />
+
               {item.name.toLowerCase().includes("password") && (
                 <IconButton
                   onClick={() => handleTogglePassword(item.name.toLowerCase())}
@@ -172,6 +172,7 @@ const RegistrationInfo = ({
                 </IconButton>
               )}
             </Box>
+
             {mergedErrors[item.name] && (
               <Typography sx={{ color: "red", fontSize: "12px", mt: "5px" }}>
                 {mergedErrors[item.name]}
@@ -179,6 +180,7 @@ const RegistrationInfo = ({
             )}
           </Box>
         ))}
+
         <TremsOfUse
           error={validationErrors.terms}
           agreeTerms={agreeTerms}

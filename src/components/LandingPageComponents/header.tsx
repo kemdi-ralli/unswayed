@@ -6,6 +6,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { Menu } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet" // keep your Sheet UI as-is
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export function Header() {
   const navItems = [
@@ -38,9 +39,20 @@ export function Header() {
       >
         {/* Left: Logo + Nav */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "#189e33ff" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Image
+              src="/assets/images/logo-round.png"
+              alt="Unswayed Logo"
+              width={40}
+              height={40}
+              style={{ objectFit: "contain" }}
+            />
+            <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "#189e33ff" }}>
             Unswayed
           </Typography>
+          </Box>
+
+          
 
           <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1 }}>
             {navItems.map((item) => (

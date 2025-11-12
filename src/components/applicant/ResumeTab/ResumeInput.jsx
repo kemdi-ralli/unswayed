@@ -23,7 +23,7 @@ const ResumeInput = ({
         >
             <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Image
-                    src="/assets/images/pdf.png"
+                    src="/assets/images/document.png"
                     width={53.09}
                     height={65.23}
                     alt="pdf"

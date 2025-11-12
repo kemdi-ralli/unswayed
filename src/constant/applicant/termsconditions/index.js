@@ -225,7 +225,7 @@ export const TERMS_CONDITIONS = {
           },
           {
             mainTitle: "United States Legal Compliance",
-            description: "You represent and warrant that (i) You are not located in a country that is subject to the United States government embargo, or that has been designated by the United States government as a \"terrorist supporting\" country, and (ii) You are not listed on any United States government list of prohibited or restricted parties."
+            description: "You represent and warrant that (i) You are not located in a country that is subject to The United States government embargo, or that has been designated by The United States government as a \"terrorist supporting\" country, and (ii) You are not listed on any United States government list of prohibited or restricted parties."
           },
           {
             mainTitle:"Severability and Waiver",

@@ -230,12 +230,22 @@ const AddAdditionalDoc = ({
                       justifyContent: "center",
                     }}
                   >
-                    <Image
+                    {fileInputRef.current.files[0]?.type === ".pdf" ? (
+                      <Image
                       src="/assets/images/pdf.png"
                       width={53.09}
                       height={65.23}
                       alt="pdf"
                     />
+                    ) : (
+                      <Image
+                      src="/assets/images/word.png"
+                      width={53.09}
+                      height={65.23}
+                      alt="word"
+                    />
+                    )}
+                    
                     <Box sx={{ px: 2, pt: "10px" }}>
                       <Typography
                         sx={{

@@ -227,7 +227,7 @@ export const CHANGE_EMAIL = [
   {
     label: "new email address",
     name: "newEamail",
-    placeholder: "Info@Xyzgmail.com",
+    placeholder: "example@company.com",
     required: true
   },
   {
@@ -251,7 +251,7 @@ export const ADD_NUMBER = [
 ];
 
 export const ADD_NUMBER_VERIFICATIONS = {
-  logo: "/assets/images/Ralli_Dark_Logo.png",
+  logo: "/assets/images/bootsplash_logo.png",
   title: "Email Verification",
   form: [
     {

@@ -2,7 +2,7 @@ export const FORGET_PASSWORD = [
     {
         label:'new email address*',
         name:'newEamail',
-        placeholder:'Info@Xyzgmail.com',
+        placeholder:'example@company.com',
   
     },
   ]

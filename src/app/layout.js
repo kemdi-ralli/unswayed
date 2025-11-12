@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import AppProviders from "@/components/AppProvider/app-provider";
+import { ExternalLinkProvider } from "@/hooks/useExternalLink";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <AppProviders >{children}</AppProviders>
+        <AppProviders>
+          <ExternalLinkProvider>{children}</ExternalLinkProvider>
+        </AppProviders>
       </body>
     </html>
   );

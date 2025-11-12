@@ -133,7 +133,7 @@ const TremsAndConditions = ({ data }) => {
             pl: { md: 3 },
           }}
         >
-          By visiting this page on our website: https://www.rallitechnologies.com/contact-6
+          By visiting this page on our website: https://www.rallitechnologies.com/contact
         </Typography>
       </Box>
 

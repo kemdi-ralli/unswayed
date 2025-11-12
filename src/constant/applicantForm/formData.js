@@ -1,5 +1,5 @@
 export const BASIC_INFO = {
-    logo: '/assets/images/Ralli_Dark_Vert_Logo.png',
+    logo: '/assets/images/logo-single.png',
     title : 'Basic Information',
     form : [
         {
@@ -84,7 +84,7 @@ export const BASIC_INFO = {
     ]
 }
 export const EDU_INFO = {
-    logo: '/assets/images/Ralli_Dark_Vert_Logo.png',
+    logo: '/assets/images/bootsplash_logo.png',
     title : 'Education Information',
     form : [
         {
@@ -135,7 +135,7 @@ export const EDU_INFO = {
     ]
 }
 export const REGISTRATION_INFO = {
-    logo: '/assets/images/Ralli_Dark_Vert_Logo.png',
+    logo: '/assets/images/logo-single.png',
     title : 'Registration',
     form : [
         {
@@ -165,7 +165,7 @@ export const REGISTRATION_INFO = {
     ]
 }
 export const EMAIL_VERIFICATIONS = {
-    logo: '/assets/images/Ralli_Dark_Vert_Logo.png',
+    logo: '/assets/images/bootsplash_logo.png',
     title : 'Email Verification',
     description: 'Please Check Your Email (Junk/SPAM), or Phone For The OTP Verification Code.',
     form : [
@@ -179,7 +179,7 @@ export const EMAIL_VERIFICATIONS = {
     ]
 }
 export const EMAIL_CORRECTION = {
-    logo: '/assets/images/Ralli_Dark_Vert_Logo.png',
+    logo: '/assets/images/bootsplash_logo.png',
     title : 'Correction Email',
     form : [
         {

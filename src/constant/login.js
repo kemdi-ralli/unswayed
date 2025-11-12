@@ -29,7 +29,7 @@ And
   inputType: [
     {
       label: "Email",
-      placeholder: "Info@Xyzgmail.com",
+      placeholder: "email.com",
     },
     {
       label: "Password",
@@ -74,7 +74,7 @@ And
   inputType: [
     {
       label: "Email",
-      placeholder: "Info@Xyzgmail.com",
+      placeholder: "example@company.com",
     },
     {
       label: "Password",

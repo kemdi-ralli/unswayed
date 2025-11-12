@@ -156,7 +156,7 @@ export function CTASection() {
           </Typography>
         </Box>
 
-        <Link href="https://vercel.com/home" target="_blank" rel="noopener noreferrer">
+        <Link href="/applicant/login" target="_blank" rel="noopener noreferrer">
           <Button
             variant="contained"
             sx={{

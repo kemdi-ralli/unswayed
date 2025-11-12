@@ -124,7 +124,7 @@ const AddResume = ({ nextStep, onNext, resumes, selectedResume, resumeId, id }) 
             onClick={handleBuildRalliResume}
           >
             <Image
-              src="/assets/images/pdf.png"
+              src="/assets/images/document.png"
               width={53.09}
               height={65.23}
               alt="img"

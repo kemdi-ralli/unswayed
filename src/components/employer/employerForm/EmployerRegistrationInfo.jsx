@@ -1,5 +1,5 @@
 //RegistrationInfo.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Typography, IconButton } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
 import Visibility from "@mui/icons-material/Visibility";
@@ -38,6 +38,8 @@ const EmployerRegistrationInfo = ({
   const handleChange = (name, value) => {
     onFieldChange(name, value);
   };
+
+  
 
   const handleBack = () => {
     if (pathName.includes("applicant")) {
@@ -100,6 +102,7 @@ const EmployerRegistrationInfo = ({
         }));
         return false;
       }
+      
 
       if (!agreeTerms) {
         throw new Error("You must agree to the terms of use.");
@@ -126,6 +129,63 @@ const EmployerRegistrationInfo = ({
       return false;
     }
   };
+
+  useEffect(()=>{
+    const validateEmail = async () => {
+      await ApplicantSignUpSchema.validate(formData, { abortEarly: false });
+
+      // Restricted personal domains
+      const restrictedDomains = [
+        "@gmail.com",
+        "@yahoo.com",
+        "@aol.com",
+        "@comcast.net",
+        "@onmicrosoft.com",
+        "@outlook.com",
+        "@hotmail.com",
+        "@live.com",
+        "@protonmail.com",
+        "@mail.com",
+        "@zoho.com",
+        "@icloud.com",
+      ];
+
+      // Whitelisted domains (allowed even if not company-standard)
+      const whitelistDomains = [
+        "@partner.org",
+        "@affiliate.net",
+      ];
+
+      const email = formData.email?.toLowerCase().trim();
+      if (!email) {
+        throw new Error("Email is required.");
+      }
+
+      const isWhitelisted = whitelistDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      const isRestricted = restrictedDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      if (!isWhitelisted && isRestricted) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          email: "Use your company email (e.g., @yourcompany.com).",
+        }));
+        return false;
+      }
+      
+
+      
+      return true;
+    
+    }
+
+    validateEmail();
+    
+  }, [formData.email])
 
   const handleNext = async () => {
     const isValid = await validateForm();

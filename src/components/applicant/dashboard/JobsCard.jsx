@@ -138,7 +138,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             }
           >
             <SendRoundedIcon sx={{ width: "18px" }} />
-            StepIn Now
+           { item?.title == "Data Scientist" ? "StepOut Now (External Job Link)" : "StepIn Now" }
           </Button>
           {item?.deadline < today && (
             <Typography

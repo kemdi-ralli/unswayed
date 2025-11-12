@@ -177,7 +177,7 @@ const addCommaToString = (num) => {
                 data?.is_applied || data?.is_closed || data?.deadline < today
               }
             >
-              Apply Now
+              { data?.title == "Data Scientist" ? "StepOut Now (External Job Link)" : "StepIn Now" }
             </Button>
             <Button
               onClick={() => OnSave(data?.id)}

@@ -107,7 +107,7 @@ const AppliedJobContainer = ({ id }) => {
       };
 
       const hasNoValue = Object.entries(updatedStates).some(
-        ([stateKey, value]) => stateKey !== "have_disability" && stateKey !== "is_veteran" && value === "no"
+        ([stateKey, value]) => stateKey !== "have_disability" && stateKey !== "is_veteran" && stateKey !== "have_visa" && value === "no"
       );
 
       setIsDisable(hasNoValue);

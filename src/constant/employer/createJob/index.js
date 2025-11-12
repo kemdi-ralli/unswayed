@@ -1,13 +1,13 @@
 export const CREATE_JOB_FORM = {
   form: [
-    {
-      title: "External Job Link (optional)",
-      name: "external_link",
-      placeHolder: "URL to personal job link from your website. Eg: https://company.com/careers/job",
-      type: "url",
-      ai: false,
-      required: false,
-    },
+    // {
+    //   title: "External Job Link (optional)",
+    //   name: "external_link",
+    //   placeHolder: "URL to personal job link from your website. Eg: https://company.com/careers/job",
+    //   type: "url",
+    //   ai: false,
+    //   required: false,
+    // },
     {
       title: "Job Title",
       name: "title",

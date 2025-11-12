@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // ✅ Added useEffect
 import { Box, Grid, Typography } from "@mui/material";
 import AppliedJobs from "../dashboard/AppliedJobs";
 import RalliButton from "@/components/button/RalliButton";
@@ -26,16 +26,56 @@ const CompleteApplication = ({
   agreeTerms,
   setAgreeTerms,
 }) => {
-  console.log(data, "dataaaa");
   const [inputData, setInputData] = useState({});
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState("");
-
+  const [disable, setDisable] = useState("");
   const router = useRouter();
+
+  const getApplied = useSelector((state) => state?.appliedJobs?.appliedData);
+  const getUserData = useSelector((state) => state?.auth?.userData);
+
+  // ✅ Define the fields that should be retained
+  const retainedFields = [
+    "is_adult",
+    "authorized_to_work",
+    "have_visa",
+    "meet_qualifications",
+    "meet_educations",
+    "have_disability",
+    "is_veteran",
+  ];
+
+  // ✅ On mount, load retained checkbox states (if any) from localStorage
+  useEffect(() => {
+    const savedResponses = JSON.parse(localStorage.getItem("ralli_retained_fields")) || {};
+    if (Object.keys(savedResponses).length > 0) {
+      retainedFields.forEach((field) => {
+        if (savedResponses[field]) {
+          handleCheckboxChange(field, savedResponses[field]);
+        }
+      });
+    }
+  }, []); // only on first render
+
+  // ✅ On submit, persist the retained responses to localStorage
+  const handleSubmitWithRetention = () => {
+    const responsesToSave = {};
+    retainedFields.forEach((field) => {
+      responsesToSave[field] = checkboxStates[field];
+    });
+
+    localStorage.setItem("ralli_retained_fields", JSON.stringify(responsesToSave));
+
+    // Continue with original submit
+    handleSubmit();
+  };
+
   const handleCloseModal = () => {
     setModalOpen(false);
     router.push("/applicant/career-areas");
   };
+
   const handleCancel = () => {
     router.push("/applicant/career-areas");
   };
@@ -43,37 +83,15 @@ const CompleteApplication = ({
   const handleModal = () => {
     handleCloseModal();
   };
-  const getApplied = useSelector((state) => state?.appliedJobs?.appliedData);
-  const getUserData = useSelector((state) => state?.auth?.userData);
+
   const collectData = [
-    {
-      title: getUserData?.user?.ucn,
-      name: "UCN",
-    },
-    {
-      title: getApplied?.title,
-      name: "Position Title",
-    },
-    {
-      title: getApplied?.requisition_number,
-      name: "Requisition Number",
-    },
-    {
-      title: getApplied?.job_types?.map((item) => item?.name).join(", "),
-      name: "Employment Type",
-    },
-    {
-      title: getApplied?.job_locations?.map((item) => item?.name).join(", "),
-      name: "Work Location",
-    },
-    {
-      title: getUserData?.user?.gender?.name,
-      name: "Gender",
-    },
-    {
-      title: getUserData?.user?.ethnicity?.name,
-      name: "Ethnicity",
-    },
+    { title: getUserData?.user?.ucn, name: "UCN" },
+    { title: getApplied?.title, name: "Position Title" },
+    { title: getApplied?.requisition_number, name: "Requisition Number" },
+    { title: getApplied?.job_types?.map((item) => item?.name).join(", "), name: "Employment Type" },
+    { title: getApplied?.job_locations?.map((item) => item?.name).join(", "), name: "Work Location" },
+    { title: getUserData?.user?.gender?.name, name: "Gender" },
+    { title: getUserData?.user?.ethnicity?.name, name: "Ethnicity" },
   ];
 
   const handleInputChange = (name, value) => {
@@ -84,21 +102,9 @@ const CompleteApplication = ({
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-      }}
-    >
+    <Box sx={{ minHeight: "100vh" }}>
       <Grid container spacing={2}>
-        <Grid
-          item
-          xs={12}
-          md={6}
-          sx={{
-            backgroundColor: "#FFFFFF",
-            pr: "25px",
-          }}
-        >
+        <Grid item xs={12} md={6} sx={{ backgroundColor: "#FFFFFF", pr: "25px" }}>
           <BackbuttonWithTitle title={data?.title} />
           <Box sx={{ pb: 4 }}>
             <BorderLinearProgress variant="determinate" value={100} />
@@ -106,20 +112,7 @@ const CompleteApplication = ({
 
           {collectData?.map((item) => (
             <Box key={item.name} sx={{ mb: "20px" }}>
-              <Typography
-                sx={{
-                  fontSize: { xs: "12px", sm: "14px", md: "16px" },
-                  fontWeight: 500,
-                  lineHeight: {
-                    xs: "25px",
-                    sm: "30px",
-                    md: "24px",
-                    lg: "18px",
-                  },
-                  color: "#222222",
-                  mb: "5px",
-                }}
-              >
+              <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "16px" }, fontWeight: 500, color: "#222", mb: "5px" }}>
                 {item?.name}
               </Typography>
               <Typography
@@ -131,7 +124,7 @@ const CompleteApplication = ({
                   fontSize: "16px",
                   fontWeight: 300,
                   lineHeight: "18px",
-                  color: "#222222",
+                  color: "#222",
                   backgroundColor: "#FFFFFF",
                   boxShadow: "0px 1px 5px #00000040",
                 }}
@@ -140,79 +133,42 @@ const CompleteApplication = ({
               </Typography>
             </Box>
           ))}
-          {/* <CompleteDropdown
-                        names={data?.employmentType}
-                        label="Employment Type"
-                        selectedValue={dropdownStates.employmentType}
-                        onChange={(value) => handleDropdownChange('employmentType', value)}
-                    /> */}
+
+          {/* --- Checkbox Section --- */}
           <FormCheckbox
             required
             selectedOption={checkboxStates.is_adult}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("is_adult", option)
-            }
+            handleCheckboxChange={(option) => handleCheckboxChange("is_adult", option)}
             label={"Are You 18 Years or Older?"}
           />
-          {formikErrors.is_adult && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.is_adult}
-            </Typography>
-          )}
+
           <FormCheckbox
-            required
             selectedOption={checkboxStates.authorized_to_work}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("authorized_to_work", option)
-            }
-            label={`Are You a US Citizen Authorized to Work in the ${getAppliedData?.country?.name}?`}
+            handleCheckboxChange={(option) => handleCheckboxChange("authorized_to_work", option)}
+            label={`Are You a US Citizen Authorized to Work in The ${getAppliedData?.country?.name}?`}
           />
-          {formikErrors.authorized_to_work && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.authorized_to_work}
-            </Typography>
-          )}
+
           <FormCheckbox
-            required
             selectedOption={checkboxStates.have_visa}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("have_visa", option)
-            }
-            label={
-              "Do you have a work Visa or will you require one in the future?"
-            }
+            handleCheckboxChange={(option) => handleCheckboxChange("have_visa", option)}
+            label={"Do you have a work Visa or will you require one in the future?"}
           />
-          {formikErrors.have_visa && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.have_visa}
-            </Typography>
-          )}
+
           <FormCheckbox
             required
             selectedOption={checkboxStates.meet_qualifications}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("meet_qualifications", option)
-            }
+            handleCheckboxChange={(option) => handleCheckboxChange("meet_qualifications", option)}
             label={"Do You Meet the Must Have Qualifications?"}
           />
-          {formikErrors.meet_qualifications && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.meet_qualifications}
-            </Typography>
-          )}
+
           <FormCheckbox
             required
             selectedOption={checkboxStates.meet_educations}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("meet_educations", option)
-            }
+            handleCheckboxChange={(option) => handleCheckboxChange("meet_educations", option)}
             label={"Do You Meet the Education Requirements?"}
           />
-          {formikErrors.meet_educations && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.meet_educations}
-            </Typography>
-          )}
+
+          {/* --- Disability --- */}
           <FormCheckbox
             required
             selectedOption={checkboxStates.have_disability}
@@ -303,120 +259,113 @@ const CompleteApplication = ({
             }
           />
           {checkboxStates.have_disability === "yes" && (
-            <SelectDropdown
-              disability={disability}
-              dropdownStates={dropdownStates}
-              handleDropdownChange={handleDropdownChange}
-            />
+            <>
+              <SelectDropdown
+                disability={disability}
+                dropdownStates={dropdownStates}
+                handleDropdownChange={handleDropdownChange}
+              />
+              <input
+                type="text"
+                name="other_disability"
+                placeholder="Please specify your disability"
+                value={dropdownStates.other_disability || ""}
+                onChange={(e) => handleDropdownChange("other_disability", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  marginTop: "10px",
+                  border: "1px solid #189e33ff",
+                  borderRadius: "8px",
+                  fontSize: "15px",
+                  outline: "none",
+                  transition: "border-color 0.2s ease",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#007bff")}
+                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+              />
+            </>
           )}
-          {formikErrors.have_disability && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.have_disability}
-            </Typography>
-          )}
+
           <FormCheckbox
-            required
-            selectedOption={checkboxStates.is_veteran}
-            handleCheckboxChange={(option) =>
-              handleCheckboxChange("is_veteran", option)
-            }
-            label={"Are you a Veteran?"}
-            NoAnswer={true}
-            tooltip={
-              <>
-                <strong>Please check all that apply:</strong>
-                <p>🔹 I am a Protected Veteran in the drop down.</p>
-                <p>🔹 I am a veteran of the U.S. Armed Forces</p>
-                <p>🔹 I am a disabled veteran.</p>
-                <p>
-                  🔹 I am a recently separated veteran (within the last 3
-                  years).
-                </p>
-                <p>🔹 I am an active-duty wartime or campaign badge veteran.</p>
-                <p>🔹 I am a veteran with a service-connected disability.</p>
-                <p>🔹 I am not a veteran.</p>
-                <strong>
-                  Voluntary Self-Identification of Veteran Status.
-                </strong>
-                <p>
-                  🔹 We are committed as an online recruiting platform to
-                  supporting and honoring veterans by providing equal
-                  opportunities to apply for employment opportunities. As part
-                  of our commitment, we invite you to voluntarily self-identify
-                  your veteran status to help us better serve you and improve
-                  hiring practices utilizing our platform. Information provided
-                  will not be used to discriminate against applicants and will
-                  not be disclosed to employers without applicants’ consent.
-                  This information is confidential and used only for tracking
-                  and monitoring to improve resources for veterans.
-                </p>
-                <strong>What is a Veteran?</strong>
-                <p>
-                  🔹 A veteran is a person who served their country, regardless
-                  of whether they participated in active combat or served during
-                  peacetime. Veterans include individuals who served in various
-                  branches of the military, such as the Army, Navy, Air Force,
-                  Marines, Coast Guard, or Space Force in the United States. The
-                  term veteran applies to those who were discharged, released,
-                  or have completed their service and were discharged under
-                  conditions other than dishonorable.
-                </p>
-              </>
-            }
-          />
-          {formikErrors.is_veteran && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-              {formikErrors.is_veteran}
-            </Typography>
-          )}
+                      required
+                      selectedOption={checkboxStates.is_veteran}
+                      handleCheckboxChange={(option) =>
+                        handleCheckboxChange("is_veteran", option)
+                      }
+                      label={"Are you a Veteran?"}
+                      NoAnswer={true}
+                      tooltip={
+                        <>
+                          <strong>Please check all that apply:</strong>
+                          <p>🔹 I am a Protected Veteran in the drop down.</p>
+                          <p>🔹 I am a veteran of the U.S. Armed Forces</p>
+                          <p>🔹 I am a disabled veteran.</p>
+                          <p>
+                            🔹 I am a recently separated veteran (within the last 3
+                            years).
+                          </p>
+                          <p>🔹 I am an active-duty wartime or campaign badge veteran.</p>
+                          <p>🔹 I am a veteran with a service-connected disability.</p>
+                          <p>🔹 I am not a veteran.</p>
+                          <strong>
+                            Voluntary Self-Identification of Veteran Status.
+                          </strong>
+                          <p>
+                            🔹 We are committed as an online recruiting platform to
+                            supporting and honoring veterans by providing equal
+                            opportunities to apply for employment opportunities. As part
+                            of our commitment, we invite you to voluntarily self-identify
+                            your veteran status to help us better serve you and improve
+                            hiring practices utilizing our platform. Information provided
+                            will not be used to discriminate against applicants and will
+                            not be disclosed to employers without applicants’ consent.
+                            This information is confidential and used only for tracking
+                            and monitoring to improve resources for veterans.
+                          </p>
+                          <strong>What is a Veteran?</strong>
+                          <p>
+                            🔹 A veteran is a person who served their country, regardless
+                            of whether they participated in active combat or served during
+                            peacetime. Veterans include individuals who served in various
+                            branches of the military, such as the Army, Navy, Air Force,
+                            Marines, Coast Guard, or Space Force in The United States. The
+                            term veteran applies to those who were discharged, released,
+                            or have completed their service and were discharged under
+                            conditions other than dishonorable.
+                          </p>
+                        </>
+                      }
+                    />
+
           {isDisable && (
             <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
               You are not eligible for this position
             </Typography>
           )}
-          <Box
-            sx={{
-              pt: 4,
-            }}
-          >
-            <RalliButton
-              disableValue={isDisable}
-              label="Submit Application"
-              onClick={handleSubmit}
-            />
+
+          {/* --- Submit with Retention --- */}
+          <Box sx={{ pt: 4 }}>
+            <RalliButton disableValue={isDisable} label="Submit Application" onClick={handleSubmitWithRetention} />
           </Box>
-          <Box
-            sx={{
-              py: 2,
-              pb: 2,
-            }}
-          >
+
+          <Box sx={{ py: 2, pb: 2 }}>
             <RalliButton label="Cancel" onClick={handleCancel} bg="#00305B" />
           </Box>
-          <TremsOfUse
-            error={formikErrors.terms}
-            agreeTerms={agreeTerms}
-            setAgreeTerms={setAgreeTerms}
-          />
+
+          <TremsOfUse error={formikErrors.terms} agreeTerms={agreeTerms} setAgreeTerms={setAgreeTerms} />
         </Grid>
+
         <RalliModal
           onClick={handleModal}
           open={isModalOpen}
           onClose={handleCloseModal}
-          para={
-            "Thank you! Your application has been successfully submitted. We’ll review it shortly and keep you updated on the next steps"
-          }
-          imageSrc={"/assets/images/confirmation.png"}
+          para="Thank you! Your application has been successfully submitted. We’ll review it shortly and keep you updated on the next steps."
+          imageSrc="/assets/images/confirmation.png"
           buttonLabel="Done"
         />
-        <Grid
-          item
-          xs={12}
-          md={6}
-          sx={{
-            backgroundColor: "#FAF9F8",
-          }}
-        >
+
+        <Grid item xs={12} md={6} sx={{ backgroundColor: "#FAF9F8" }}>
           <AppliedJobs data={getAppliedData} />
         </Grid>
       </Grid>

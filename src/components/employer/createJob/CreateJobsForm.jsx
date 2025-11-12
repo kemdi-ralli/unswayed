@@ -36,6 +36,7 @@ import { enhanceText } from "@/helper/aiEnhanceHelper";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
 import { useSelector } from "react-redux";
 import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
+import { useExternalLink } from "@/hooks/useExternalLink";
 
 const CreateJobsForm = ({
   data,
@@ -66,8 +67,10 @@ const CreateJobsForm = ({
     company_benefits: "", // string
     description: "",
     type: "internal",
-    external_link: "https://", // <- default prefix shown automatically
+    
   });
+
+  const {externalLink, setExternalLink} = useExternalLink()
 
   const [currencies, setCurrencies] = useState([]);
   const [jobCategories, setJobCategories] = useState([]);
@@ -455,11 +458,10 @@ const CreateJobsForm = ({
         description: jobDetail?.description,
         type: jobDetail?.type,
         company_benefits: jobDetail?.company_benefits || "",
-        salary: jobDetail?.salary || "",
+        salary: jobDetail?.salary,
         salary_period: jobDetail?.salary_period || "Per Month",
         salary_currency: jobDetail?.salary_currency || "",
         company_about: jobDetail?.company_about || "",
-        external_link: jobDetail?.external_link || "https://",
       });
       setSkills(jobDetail?.skills ?? []);
       previousCountryRef.current = jobDetail?.country?.id || jobDetail?.country || null;
@@ -494,7 +496,7 @@ const CreateJobsForm = ({
         company_benefits: jobEditDetail?.company_benefits || "",
         description: jobEditDetail?.description || "",
         type: jobEditDetail?.type || "internal",
-        external_link: jobEditDetail?.external_link || "https://",
+        
       });
       setSkills(jobEditDetail?.skills ?? []);
       previousCountryRef.current = jobEditDetail?.country?.id || jobEditDetail?.country || null;
@@ -543,7 +545,7 @@ const CreateJobsForm = ({
 
   const validateForm = async () => {
     // Validate external_link early (so user sees that suffix error below the field)
-    const extErr = validateExternalLink(form.external_link);
+    const extErr = validateExternalLink(externalLink);
     if (extErr) {
       setFormikErrors((prev) => ({ ...prev, external_link: extErr }));
       return false;
@@ -572,6 +574,7 @@ const CreateJobsForm = ({
   };
 
   const createJob = async () => {
+    setExternalLink(ensureProtocolPrefix(externalLink));
     const isValid = await validateForm();
     if (!isValid) return;
     setLoading(true);
@@ -696,7 +699,7 @@ const CreateJobsForm = ({
                     component="input"
                     type="text"
                     placeholder={item?.placeHolder || "https://example.com"}
-                    value={form.external_link ?? ""}
+                    value={externalLink ?? ""}
                     onChange={(e) => {
                       const v = e.target.value;
                       // update value but don't validate aggressively while typing
@@ -872,34 +875,80 @@ const CreateJobsForm = ({
 
           {/* Salary range (two inputs, stored as "min - max") */}
           {item.type === "number" && item.name === "salary" && (
-            <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
-              <Box
-                component="input"
-                type="number"
-                min={0}
-                placeholder="Minimum Salary"
-                value={form.salary?.split(" - ")[0] || ""}
-                onChange={(e) => {
-                  const max = form.salary?.split(" - ")[1] || "";
-                  handleChange("salary", `${e.target.value}${max ? ` - ${max}` : ""}`);
-                }}
-                sx={{ flex: 1, boxShadow: "0px 0px 3px 1px #00000040", border: "none", padding: "18px 20px", borderRadius: "10px", fontSize: "16px", fontWeight: 300, lineHeight: "18px", color: "#222222", "&::placeholder": { color: "rgba(0,0,0,0.5)", fontSize: "16px", fontWeight: 400 } }}
-              />
+  <>
+    <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
+      <Box
+        component="input"
+        type="number"
+        min={0}
+        placeholder="Minimum Salary"
+        value={form.salary || ""}
+        onChange={(e) => {
+          const max = form.salary?.split(" - ")[1] || "";
+          handleChange("salary", e.target.value);
+        }}
+        sx={{
+          flex: 1,
+          boxShadow: "0px 0px 3px 1px #00000040",
+          border: "none",
+          padding: "18px 20px",
+          borderRadius: "10px",
+          fontSize: "16px",
+          fontWeight: 300,
+          lineHeight: "18px",
+          color: "#222222",
+          "&::placeholder": {
+            color: "rgba(0,0,0,0.5)",
+            fontSize: "16px",
+            fontWeight: 400,
+          },
+        }}
+      />
+    </Box>
 
-              <Box
-                component="input"
-                type="number"
-                min={0}
-                placeholder="Maximum Salary"
-                value={form.salary?.split(" - ")[1] || ""}
-                onChange={(e) => {
-                  const min = form.salary?.split(" - ")[0] || "";
-                  handleChange("salary", `${min ? min : ""} - ${e.target.value}`);
-                }}
-                sx={{ flex: 1, boxShadow: "0px 0px 3px 1px #00000040", border: "none", padding: "18px 20px", borderRadius: "10px", fontSize: "16px", fontWeight: 300, lineHeight: "18px", color: "#222222", "&::placeholder": { color: "rgba(0,0,0,0.5)", fontSize: "16px", fontWeight: 400 } }}
-              />
-            </Box>
-          )}
+    {/* Pay Transparency Disclaimer */}
+    <Box
+      sx={{
+        mt: 2,
+        p: 2,
+        backgroundColor: "#f9f9f9",
+        borderLeft: "4px solid #1976d2",
+        borderRadius: "8px",
+        boxShadow: "0px 0px 4px rgba(0,0,0,0.1)",
+      }}
+    >
+      <Typography
+        variant="subtitle1"
+        sx={{ fontWeight: 600, mb: 1, color: "#222" }}
+      >
+        Pay Transparency Reminder: Stay Compliant in Your State
+      </Typography>
+      <Typography variant="body2" sx={{ color: "#444", lineHeight: 1.6 }}>
+        Heads up! Your state may require employers to disclose salary ranges and
+        benefits in job postings, promotions, or hiring communications.
+        <br />
+        <br />
+        <strong>State-Specific Compliance Alert:</strong> Depending on your
+        business location, you may be subject to pay transparency laws in
+        California, New York, Colorado, Illinois, and other states. These laws
+        often require:
+        <ul style={{ margin: "6px 0 0 20px", padding: 0 }}>
+          <li>Including salary ranges in job ads</li>
+          <li>Sharing pay scale information with applicants or employees</li>
+          <li>Avoiding salary history inquiries during hiring</li>
+        </ul>
+        Non-compliance may result in fines or penalties. Review your job
+        postings and internal promotion practices to ensure compliance.
+        <br />
+        <br />
+        <strong>States with Active Pay Transparency Laws include:</strong>{" "}
+        California, Colorado, Connecticut, Hawaii, Illinois, Maryland,
+        Massachusetts, Minnesota, Nevada, New Jersey, New York, Rhode Island,
+        Vermont, Washington, and Washington D.C.
+      </Typography>
+    </Box>
+  </>
+)}
 
           {/* Dropdowns */}
           {item.type === "dropdown" && item.name === "job_categories" && (
