@@ -61,14 +61,14 @@ const PostingTabs = ({
   setSelectItem,
   handleSend,
   handleClose,
-  loading
+  loading,
 }) => {
   return (
     <Box
       sx={{
         maxWidth: "1260px",
         margin: "25px auto",
-         minHeight:'100vh'
+        minHeight: "100vh",
       }}
     >
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -166,15 +166,21 @@ const PostingTabs = ({
 };
 const Loader = () => (
   <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <CircularProgress />
-    </Box>
+    sx={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+    }}
+  >
+    <Image
+      src={"/icons/bootsplash_logo.png"}
+      width={70}
+      height={70}
+      alt="resume"
+    />
+    <CircularProgress />
+  </Box>
 );
 
 const tabStyles = {

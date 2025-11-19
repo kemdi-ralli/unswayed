@@ -46,7 +46,7 @@ const Chatboot = () => {
 
     return (
         <>
-            <BackButtonWithTitle label="AI Assistant" />
+            <BackButtonWithTitle label="Lexi AI" />
             <Box sx={{
                 minHeight: "800px",
                 maxHeight: "800px",
@@ -86,7 +86,7 @@ const Chatboot = () => {
                         px: 1,
 
                     }}>
-                        AI Assistant
+                        Lexi AI
                     </Typography>
                 </Box>
                 <Box sx={{

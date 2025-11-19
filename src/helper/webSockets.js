@@ -22,3 +22,12 @@ export const echo = new Echo({
   //   },
   // },
 });
+
+
+const lok = `Underqualified: Not having the minimum skills, education, or experience required for the position.
+Overqualified: Having more experience than the role requires can make an employer question if the candidate will be engaged or if they will leave for a better opportunity.
+Insufficient experience: Not having enough experience to back up claims or perform the job effectively.
+Cannot meet applicant salary requirements
+Not considered after phone screen
+Not eligible to work in U.S.
+Other:`

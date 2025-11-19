@@ -81,6 +81,14 @@ const ApplicationDetail = ({ applicationId = null }) => {
       },
     },
     {
+      label: `Invite ${applicationDetail?.ucn} to Interview`,
+      icon: <GroupsIcon />,
+      onClick: () => {
+        handleApplicationAction("Interview");
+        handleMenuClose();
+      },
+    },
+    {
       label: "Offer Letter",
       icon: <EmailIcon />,
       onClick: () => {
@@ -89,21 +97,14 @@ const ApplicationDetail = ({ applicationId = null }) => {
       },
     },
     {
-      label: "Counter Offer Letter",
+      label: "Counteroffer Letter",
       icon: <DescriptionIcon />,
       onClick: () => {
         handleApplicationAction("CounterOfferLetter");
         handleMenuClose();
       },
     },
-    {
-      label: `Invite ${applicationDetail?.ucn} to Interview`,
-      icon: <GroupsIcon />,
-      onClick: () => {
-        handleApplicationAction("Interview");
-        handleMenuClose();
-      },
-    },
+    
   ];
 
   const pathName = usePathname();

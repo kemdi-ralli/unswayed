@@ -201,7 +201,7 @@ const ApplicantEducationInfo = ({
           <Button onClick={() => router.push("/applicant/login")} sx={{ minWidth: 0, p: 0 }}>
             <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
           </Button>
-          <Image src={data?.logo} width={70} height={140} alt="logo" />
+          <Image src={data?.logo} width={70} height={70} alt="logo" />
         </Box>
 
         <FormTitle label={data?.title} />

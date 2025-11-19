@@ -36,7 +36,27 @@ const UserDetail = ({ label, value, isAddEdu }) => {
       >
         {label}:
       </Typography>
-      <Typography
+      {label === "Skills" ? (
+        <Typography
+        sx={{
+          fontSize: { xs: "10px", sm: "14px", md: "16px" },
+          lineHeight: { xs: "19px", sm: "22px", md: "25px" },
+          fontWeight: 500,
+          color: "#fff",
+          backgroundColor: "#001C63",
+          borderRadius: "2px",
+          px: 2,
+          py: 1,
+          "@media (max-width: 340px)": {
+            fontSize: "9px",
+            lineHeight:  "19px",
+          },
+        }}
+      >
+        {value}
+      </Typography>
+      ) : (
+        <Typography
         sx={{
           fontSize: { xs: "10px", sm: "14px", md: "16px" },
           lineHeight: { xs: "19px", sm: "22px", md: "25px" },
@@ -50,6 +70,8 @@ const UserDetail = ({ label, value, isAddEdu }) => {
       >
         {value}
       </Typography>
+      )}
+      
     </Box>
   );
 };

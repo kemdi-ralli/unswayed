@@ -9,6 +9,7 @@ import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
+import Modal from "@mui/material/Modal";
 import MenuItem from "@mui/material/MenuItem";
 import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
@@ -34,6 +35,17 @@ import { echo } from "@/helper/webSockets";
 
 const iconStyle = { color: "#189e33ff", fontSize: "16px" };
 
+const overviewSlides = [
+  "/assets/slides/overview-employer/Slide1.jpg",
+  "/assets/slides/overview-employer/Slide2.jpg",
+  "/assets/slides/overview-employer/Slide3.jpg",
+  "/assets/slides/overview-employer/Slide4.jpg",
+  "/assets/slides/overview-employer/Slide5.jpg",
+  "/assets/slides/overview-employer/Slide6.jpg",
+  "/assets/slides/overview-employer/Slide7.jpg",
+  "/assets/slides/overview-employer/Slide8.jpg",
+];
+
 const profileMenuItems = [
   { heading: "Home", icon: <HomeIcon /> },
   {
@@ -54,8 +66,8 @@ const profileMenuItems = [
   { divider: true },
   { heading: "Help Center", icon: <HelpCenterIcon /> },
   {
-    name: "FAQ's",
-    link: "/employer/faqs",
+    name: "Lexi AI",
+    link: "/chatbot",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
@@ -64,7 +76,7 @@ const profileMenuItems = [
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
-    name: "Interview Tips",
+    name: "Unswayed Overview",
     link: "/employer/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
@@ -88,18 +100,18 @@ const profileMenuItems = [
     heading: "HR Insights",
     icon: <GroupsIcon />,
   },
+  // {
+  //   name: "Microaggressions",
+  //   link: "/employer/upcoming",
+  //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  // },
+  // {
+  //   name: "Personality Traits",
+  //   link: "/employer/upcoming",
+  //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  // },
   {
-    name: "Microaggressions",
-    link: "/employer/upcoming",
-    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
-  },
-  {
-    name: "Personality Traits",
-    link: "/employer/upcoming",
-    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
-  },
-  {
-    name: "Blog",
+    name: "Blog (Coming Soon)",
     link: "/blog",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
@@ -149,6 +161,29 @@ function EmployerNavbar({ data }) {
   const [error, setError] = React.useState(null);
   const [isProfilePic, setIsProfilePic] = React.useState(null);
   const { userData } = useSelector((state) => state.auth);
+    const [openOverviewModal, setOpenOverviewModal] = React.useState(false);
+    const [currentSlide, setCurrentSlide] = React.useState(0);
+  const handleOpenOverview = () => {
+  setCurrentSlide(0);
+  setOpenOverviewModal(true);
+};
+
+const handleNext = () => {
+  setCurrentSlide((prev) =>
+    prev === overviewSlides.length - 1 ? 0 : prev + 1
+  );
+};
+
+const handlePrev = () => {
+  setCurrentSlide((prev) =>
+    prev === 0 ? overviewSlides.length - 1 : prev - 1
+  );
+};
+
+const handleCloseOverview = () => {
+  setOpenOverviewModal(false);
+};
+
   useEffect(() => {
     setIsProfilePic(userData?.user?.photo);
   }, [userData]);
@@ -559,6 +594,11 @@ function EmployerNavbar({ data }) {
                       onClick={
                         item.name === "Sign Out"
                           ? handleSignOut
+                          : item.name === "Unswayed Overview"
+                          ? () => {
+                              handleCloseProfileMenu();
+                              handleOpenOverview();
+                            }
                           : () => handleMenuItemClick(item.link)
                       }
                       sx={{
@@ -592,6 +632,63 @@ function EmployerNavbar({ data }) {
           </Box>
         </Toolbar>
       </Container>
+      <Modal
+              open={openOverviewModal}
+              onClose={handleCloseOverview}
+              sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+            >
+              <Box
+                sx={{
+                  width: { xs: "90%", sm: "70%", md: "55%" },
+                  bgcolor: "#fff",
+                  borderRadius: "12px",
+                  boxShadow: 24,
+                  p: 2,
+                  position: "relative",
+                }}
+              >
+                {/* CLOSE BUTTON */}
+                <IconButton
+                  onClick={handleCloseOverview}
+                  sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
+                >
+                  ✕
+                </IconButton>
+      
+                {/* IMAGE */}
+                <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                  <Image
+                    src={overviewSlides[currentSlide]}
+                    width={800}
+                    height={500}
+                    alt="Overview Slide"
+                    style={{ width: "100%", height: "auto", borderRadius: "12px" }}
+                  />
+                </Box>
+      
+                {/* NAVIGATION */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mt: 2,
+                  }}
+                >
+                  <Button variant="contained" onClick={handlePrev}>
+                    Previous
+                  </Button>
+      
+                  <Typography>
+                    {currentSlide + 1}/{overviewSlides.length}
+                  </Typography>
+      
+                  <Button variant="contained" onClick={handleNext}>
+                    Next
+                  </Button>
+                </Box>
+              </Box>
+            </Modal>
     </AppBar>
   );
 }

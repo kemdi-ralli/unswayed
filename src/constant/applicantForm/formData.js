@@ -117,11 +117,11 @@ export const EDU_INFO = {
             name: 'grade',
             placeHolder: 'A'
         },
-        {
-            label: 'Degree/Certifications',
-            name: 'media',
-            placeHolder: 'Upload Degree/Certifications'
-        },
+        // {
+        //     label: 'Degree/Certifications',
+        //     name: 'media',
+        //     placeHolder: 'Upload Degree/Certifications'
+        // },
         {
             label: 'Skills',
             name: 'skills',

@@ -96,7 +96,7 @@ const DashboardTracking = () => {
                   Jobs Applied For
                 </StyledTableCell>
                 <StyledTableCell sx={{ fontSize: { xs: "12px", sm: "14px", md: "16px" }, fontWeight: 400, color: "#222222" }}>
-                  Contacted From Employer?
+                  Contacted By Employer?
                 </StyledTableCell>
                 <StyledTableCell sx={{ fontSize: { xs: "12px", sm: "14px", md: "16px" }, fontWeight: 400, color: "#222222" }}>
                   Interview?

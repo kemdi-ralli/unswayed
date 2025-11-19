@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, Box, Button, Typography } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./profile.module.css";
@@ -46,9 +46,9 @@ const ProfileView = ({
   console.log(pathName.includes("applicant"), "rout");
   const { userData } = useSelector((state) => state.auth);
   useEffect(() => {
-    const stored = localStorage.getItem('privacyOn');
+    const stored = localStorage.getItem("privacyOn");
     if (stored !== null) {
-      setPrivacyOn(stored === 'true');
+      setPrivacyOn(stored === "true");
     }
   }, []);
 
@@ -167,9 +167,7 @@ const ProfileView = ({
       }
     }
   };
-   const selectedResume = (id) => {
-
-  };
+  const selectedResume = (id) => {};
 
   return (
     <Box className={styles.profileContainer}>
@@ -215,10 +213,10 @@ const ProfileView = ({
                 width: { xs: "70%", sm: "130px", md: "200px" },
                 height: "60px",
                 borderRadius: "10px",
-                backgroundColor: Profile?.isFollowed ? "#fff" : "#189e33ff",
-                color: Profile?.isFollowed ? "#189e33ff" : "#fff",
+                backgroundColor: Profile?.isFollowed ? "#fff" : "##189e33ff",
+                color: Profile?.isFollowed ? "##189e33ff" : "#fff",
                 border: "2px solid",
-                borderColor: Profile?.isFollowed ? "#189e33ff" : null,
+                borderColor: Profile?.isFollowed ? "##189e33ff" : null,
               }}
               onClick={() => onPressFollow(Profile.id)}
             >
@@ -237,13 +235,13 @@ const ProfileView = ({
               Message
             </Button>
           </Box>
-        ) : ( 
+        ) : (
           <Button
             sx={{
               fontSize: { xs: "20px", sm: "20px", md: "22px" },
               fontWeight: 600,
               lineHeight: { xs: "25px", sm: "30px", md: "24px", lg: "18px" },
-              color: "#189e33ff",
+              color: "##189e33ff",
               textDecoration: "underline",
               "&:hover": {
                 textDecoration: "underline",
@@ -323,7 +321,12 @@ const ProfileView = ({
             value={Profile?.ethnicity?.name}
             isAddEdu={false}
           />
-          <UserDetail label="Skills" value={Profile?.skills} isAddEdu={false} />
+          <UserDetail
+            label="Skills"
+            value={
+              Array.isArray(Profile?.skills) ? Profile.skills.join(", ") : ""
+            }
+          />
         </>
       )}
 
@@ -422,7 +425,7 @@ const ProfileView = ({
           >
             Resume
           </Typography>
-          <ResumeTab selectedResume={selectedResume} resumeId={''} />
+          <ResumeTab selectedResume={selectedResume} resumeId={""} />
         </Box>
       )}
 

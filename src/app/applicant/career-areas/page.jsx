@@ -31,6 +31,8 @@ const RalliModal = lazy(() => import("@/components/Modal/RalliModal"));
  * - Uses NEXT_PUBLIC_RAPIDAPI_KEY from env
  * - Builds a query from search + filters
  * - Maps to the UI shape used by ApplicantJobDetails
+ * {name, salary, workhour, description}
+ * Emeka Limited is requesting for a frontend job. He needs 3 years of experience. Requirements inclunde.
  */
 const fetchJSearchJobs = async (search = "", filters = {}) => {
   const RAPID_API_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;

@@ -63,7 +63,7 @@ export default function Footer() {
 
               <MuiLink
                 component={NextLink}
-                href="/products#dot"
+                href="https://unswayed.com"
                 underline="none"
                 sx={{
                   color: "primary.contrastText",
@@ -90,11 +90,11 @@ export default function Footer() {
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
               {[
-                { label: "About Us", href: "/about" },
-                { label: "Team", href: "/team" },
-                { label: "Contact", href: "/contact" },
-                { label: "Privacy Policy", href: "/privacy-policy" },
-                { label: "Terms of Service", href: "/terms-of-use" },
+                { label: "About Us", href: "https://rallitechnologies.com/about" },
+                { label: "Team", href: "https://rallitechnologies.com/team" },
+                { label: "Contact", href: "https://rallitechnologies.com/contact" },
+                { label: "Privacy Policy", href: "https://www.unswayed.com/privacy-policy" },
+                { label: "Terms of Service", href: "https://www.unswayed.com/terms-of-use" },
               ].map((link) => (
                 <MuiLink
                   key={link.label}

@@ -219,7 +219,7 @@ const DashboardAppliedJobs = () => {
                   color: "#222222",
                 }}
               >
-                Contacted From Employer?
+                Contacted By Employer?
               </StyledTableCell>
               <StyledTableCell
                 sx={{
@@ -246,7 +246,7 @@ const DashboardAppliedJobs = () => {
                   color: "#222222",
                 }}
               >
-                Archive unarchived
+                Archive/Unarchive
               </StyledTableCell>
             </TableRow>
           </TableHead>

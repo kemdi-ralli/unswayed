@@ -4,15 +4,18 @@ import React, { useEffect, useState } from "react";
 import { Box, Grid, Skeleton, Typography } from "@mui/material";
 import Container from "@/components/common/Container";
 import apiInstance from "@/services/apiService/apiServiceInstance";
-import { GET_NETWORKS_JOBS } from "@/services/apiService/apiEndPoints";
+import { GET_NETWORKS_JOBS, EMPLOYER_GET_PROFILE } from "@/services/apiService/apiEndPoints";
 import { useRouter } from "next/navigation";
 import { encode } from "@/helper/GeneralHelpers";
 import EmployerJobCard from "@/components/employer/homePage/EmployerJobCard";
+import { fetchProfile } from "@/services/apiService/profileService";
+import { useSelector } from "react-redux";
 
 const Page = () => {
   const [networkJobs, setNetworkJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { userData } = useSelector((state) => state.auth);
 
   const fetchNetworkJobs = async (limit = 100, page = 1) => {
     try {
@@ -29,8 +32,27 @@ const Page = () => {
     }
   };
 
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadProfile = async () => {
+      const data = await fetchProfile();
+      if (!mounted) return;
+      setProfile(data);
+      (false);
+    };
+    loadProfile();
+    return () => { mounted = false; };
+  }, []);
+
+
   useEffect(() => {
     fetchNetworkJobs();
+    const getEmployerProfile = () =>{
+      console.log(profile)
+    }
+    getEmployerProfile();
   }, []);
 
   const onViewDetail = (id) => {
@@ -71,11 +93,18 @@ const Page = () => {
           </Box>
         ) : (
           <Grid container spacing={2}>
-            {networkJobs.map((job, index) => (
-              <Grid key={index} item xs={12} md={6}>
-                <EmployerJobCard data={job} onView={onViewDetail} onEmployerClick={onEmployerClick} />
-              </Grid>
-            ))}
+            {networkJobs.map(
+              (job, index) =>
+                job?.employer?.id === userData?.user?.id && (
+                  <Grid key={index} item xs={12} md={6}>
+                    <EmployerJobCard
+                      data={job}
+                      onView={onViewDetail}
+                      onEmployerClick={onEmployerClick}
+                    />
+                  </Grid>
+                )
+            )}
           </Grid>
         )}
       </Box>
