@@ -1,14 +1,14 @@
 // next.config.mjs
-import withPWA from 'next-pwa';
-import { join } from 'path';
-import runtimeCaching from 'next-pwa/cache.js';
+import withPWA from "next-pwa";
+import runtimeCaching from "next-pwa/cache.js";
 
 const url = "10.10.1.2";
 const port = "8000";
 
 const nextConfig = {
+  // Next.js webpack customizations belong here (NOT inside withPWA options).
   webpack: (config) => {
-    config.cache = false; 
+    config.cache = false;
     return config;
   },
 
@@ -39,17 +39,18 @@ const nextConfig = {
   },
 };
 
-export default withPWA({
-  ...nextConfig,
-
-  pwa: {
-    dest: "public",            // keeps your /sw.js at root
-    disable: process.env.NODE_ENV === "development",
-    register: true,
-    skipWaiting: true,
-    runtimeCaching,
-    fallbacks: {
-      document: "/offline.html",   // correct key
-    },
+// PWA options must be passed directly to withPWA(...)
+const pwaOptions = {
+  dest: "public", // keeps /sw.js at project root
+  disable: process.env.NODE_ENV === "development",
+  register: true,
+  skipWaiting: true,
+  runtimeCaching,
+  buildExcludes: [/middleware-manifest\.json$/], // recommended on Vercel
+  fallbacks: {
+    document: "/offline.html", // ensure this file exists in /public
   },
-});
+};
+
+// Export the wrapped config
+export default withPWA(pwaOptions)(nextConfig);
