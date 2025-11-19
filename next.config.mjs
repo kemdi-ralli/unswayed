@@ -7,10 +7,10 @@ const url = "10.10.1.2";
 const port = "8000";
 
 const nextConfig = {
-  webpack: (config) => {
-    config.cache = false; // disable webpack cache
-    return config;
-  },
+  // webpack: (config) => {
+  //   config.cache = false; // disable webpack cache
+  //   return config;
+  // },
   transpilePackages: ["mui-tel-input"],
   images: {
     domains: [url],
