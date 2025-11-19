@@ -8,10 +8,12 @@ const port = "8000";
 
 const nextConfig = {
   webpack: (config) => {
-    config.cache = false; // disable webpack cache
+    config.cache = false; 
     return config;
   },
+
   transpilePackages: ["mui-tel-input"],
+
   images: {
     domains: [url],
     remotePatterns: [
@@ -37,17 +39,17 @@ const nextConfig = {
   },
 };
 
-// Wrap the Next.js config with PWA settings
 export default withPWA({
   ...nextConfig,
+
   pwa: {
-    dest: 'public', // service worker will be generated here
-    register: true, // auto-register service worker
-    skipWaiting: true, // immediately activate new service worker
-    disable: process.env.NODE_ENV === 'development', // disable in dev
+    dest: "public",            // keeps your /sw.js at root
+    disable: process.env.NODE_ENV === "development",
+    register: true,
+    skipWaiting: true,
     runtimeCaching,
-    fallback: {
-      document: "/offline.html", // served when user is offline
+    fallbacks: {
+      document: "/offline.html",   // correct key
     },
   },
 });
