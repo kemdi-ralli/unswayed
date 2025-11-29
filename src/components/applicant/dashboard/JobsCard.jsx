@@ -8,53 +8,99 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useRouter } from "next/navigation";
 
 const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
   dayjs.extend(relativeTime);
   const maxLength = 220;
+  const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
 
-  const isRapid = Boolean(item?.isRapid || item?._source === "jsearch" || item?._source === "rapid");
+  /****************************************************************************************
+   * IDENTIFY RAPIDAPI JOBS CLEANLY
+   * --------------------------------------------------------------------------------------
+   *    - isRapid applies ONLY to JSearch jobs
+   *    - All backend jobs DO NOT have isRapid === true
+   *    - handleCard() must receive:
+   *          - backend jobs → backend ID (integer)
+   *          - RapidAPI jobs → encoded external ID (string)
+   *****************************************************************************************/
 
+  const isRapid =
+    item?.isRapid ||
+    item?._source === "jsearch" ||
+    item?._source === "rapid" ||
+    item?.job_id !== undefined; // JSearch jobs always have "job_id"
+
+  /****************************************************************************************
+   * EXTRACT A CLEAN EXTERNAL APPLY LINK FOR JSEARCH JOBS
+   *****************************************************************************************/
   const getExternalLink = () => {
-    // prefer explicit external_url
     if (item?.external_url) return item.external_url;
-    const raw = item?._raw || {};
+
+    const r = item?._raw || {};
+
     return (
-      raw.job_apply_link ||
-      raw.job_apply_url ||
-      raw.job_link ||
-      raw.apply_link ||
-      raw.url ||
-      raw.link ||
-      raw.applyUrl ||
+      item?.job_apply_link ||
+      item?.apply_link ||
+      item?.job_apply_url ||
+      r.job_apply_link ||
+      r.job_link ||
+      r.job_apply_url ||
+      r.applyUrl ||
+      r.url ||
       null
     );
   };
 
+  /****************************************************************************************
+   * STEP OUT / STEP IN BUTTON LOGIC
+   *****************************************************************************************/
   const handleButtonClick = (e) => {
     e.stopPropagation();
 
-    // RAPID API — STEP OUT: open external link in new tab
     if (isRapid) {
       const url = getExternalLink();
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
       } else {
-        // fallback: just notify user if no external link
-        // you can replace this with a toast or navigation to a details page
         window.open("", "_blank");
       }
       return;
     }
 
-    // INTERNAL JOB — STEP IN
     handleEasyApply(item);
   };
 
-  // Disable only for internal jobs based on existing flags
+  /****************************************************************************************
+   * DISABLE RULES FOR INTERNAL JOBS ONLY
+   *****************************************************************************************/
   const internalDisabled =
-    item?.is_applied || item?.is_Closed || (item?.deadline ? new Date(item.deadline) < new Date(today) : false);
+    item?.is_applied ||
+    item?.is_Closed ||
+    (item?.deadline ? new Date(item.deadline) < new Date(today) : false);
+
+  /****************************************************************************************
+   * CLICK ON CARD → OPEN DETAILS PAGE
+   * Backend:     /applicant/career-areas/job-details/{encodedID}
+   * RapidAPI:    /applicant/career-areas/job-details/rapid-{encodedJobID}
+   *****************************************************************************************/
+  const handleCardClick = () => {
+    if (isRapid) {
+      // must pass the unique RapidAPI job_id
+      // router.push(item.job)
+      const url = getExternalLink();
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        window.open("", "_blank");
+      }
+      return;
+    } else {
+      // backend job
+      handleCard(item?.id);
+    }
+  };
 
   return (
     <Box>
@@ -71,8 +117,9 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             border: "2px solid #189e33ff",
           },
         }}
-        onClick={() => handleCard(item?.id)}
+        onClick={handleCardClick}
       >
+        {/* TITLE + SAVE ICON */}
         <Box sx={{ display: "flex", justifyContent: "space-between", py: "10px" }}>
           <Typography
             sx={{
@@ -85,7 +132,6 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             {item?.title}
           </Typography>
 
-          {/* show bookmark only for internal/backend jobs */}
           {!isRapid && (
             <Box
               onClick={(e) => {
@@ -98,6 +144,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
           )}
         </Box>
 
+        {/* LOCATION */}
         <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap" }}>
           <LocationOnRoundedIcon sx={{ width: "18px" }} />
 
@@ -111,26 +158,41 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               pr: "5px",
             }}
           >
-            {item?.country},
+            {item?.country || item?.job_country || "—"},
           </Typography>
 
-          {item?.states?.map((stateObj, idx) => (
+          {Array.isArray(item?.states) &&
+            item?.states.map((stateObj, idx) => (
+              <Typography
+                key={idx}
+                sx={{
+                  fontSize: { md: "16px", sm: "14px", xs: "11px" },
+                  fontWeight: 500,
+                  color: "#00305B",
+                  pr: "3px",
+                }}
+              >
+                {stateObj?.name}
+                {idx < item.states.length - 1 ? "," : ""}
+              </Typography>
+            ))}
+
+          {/* RapidAPI sometimes gives city only */}
+          {isRapid && item?.job_city && (
             <Typography
-              key={idx}
               sx={{
                 fontSize: { md: "16px", sm: "14px", xs: "11px" },
                 fontWeight: 500,
-                lineHeight: { md: "20px", sm: "14px", xs: "12px" },
                 color: "#00305B",
-                pr: "3px",
+                pl: "3px",
               }}
             >
-              {stateObj?.name}
-              {idx < item.states.length - 1 ? "," : ""}
+              {item?.job_city}
             </Typography>
-          ))}
+          )}
         </Box>
 
+        {/* BUTTONS + DEADLINE */}
         <Box
           sx={{
             display: "flex",
@@ -147,15 +209,13 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               color: "#00305B",
               fontSize: { md: "16px", sm: "14px", xs: "11px" },
               fontWeight: 600,
-              lineHeight: { md: "20px", sm: "14px", xs: "12px" },
-              textAlign: "center",
               pl: "2px",
+              textTransform: "none",
             }}
             onClick={handleButtonClick}
             disabled={isRapid ? false : internalDisabled}
           >
-            <SendRoundedIcon sx={{ width: "18px" }} />
-            {" "}
+            <SendRoundedIcon sx={{ width: "18px", mr: 1 }} />
             {isRapid ? "Step Out Now (external job link)" : "Step In Now"}
           </Button>
 
@@ -165,7 +225,6 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
                 color: "red",
                 fontSize: { md: "16px", sm: "14px", xs: "11px" },
                 fontWeight: 500,
-                lineHeight: { md: "20px", sm: "14px", xs: "12px" },
               }}
             >
               No more applications accepted
@@ -173,6 +232,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
           )}
         </Box>
 
+        {/* DESCRIPTION */}
         {item?.description && (
           <Box
             sx={{
@@ -182,60 +242,53 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               "&::-webkit-scrollbar": { display: "none" },
             }}
           >
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-              <Typography
-                sx={{
-                  color: "#111111",
-                  fontSize: { md: "16px", sm: "14px", xs: "11px" },
-                  fontWeight: 400,
-                  lineHeight: { md: "20px", sm: "14px", xs: "12px" },
-                  py: "3px",
-                  pl: "2px",
-                  height: "80px",
-                }}
-              >
-                {item?.description?.substring(0, maxLength)}...
-              </Typography>
-            </Box>
-          </Box>
-        )}
-        
-          
             <Typography
               sx={{
-                color: "#189e33ff",
+                color: "#111111",
                 fontSize: { md: "16px", sm: "14px", xs: "11px" },
                 fontWeight: 400,
-                lineHeight: { md: "20px", sm: "14px", xs: "12px" },
-                pb: 1,
-                pt: 0.8,
+                lineHeight: "18px",
+                height: "80px",
               }}
             >
-              Posted: {!isRapid ? (dayjs(item?.created_at).format("MM-DD-YYYY")) : (dayjs(item?.job_posted_at_datetime_utc).format("MM-DD-YYYY"))}
+              {item?.description.substring(0, maxLength)}...
             </Typography>
+          </Box>
+        )}
 
-            {!isRapid && (
-              <Typography
-              sx={{
-                color: "#189e33ff",
-                fontSize: { md: "16px", sm: "14px", xs: "11px" },
-                fontWeight: 400,
-                lineHeight: { md: "20px", sm: "14px", xs: "12px" },
-                pb: 1,
-              }}
-            >
-              Deadline:{" "}
-              {item?.deadline && new Date(item.deadline) < new Date(today)
-                ? "Job Closed"
-                : item?.deadline
-                ? dayjs(item?.deadline).format("MM-DD-YYYY")
-                : "—"}
-            </Typography>
-            )}
+        {/* POSTED DATE */}
+        <Typography
+          sx={{
+            color: "#189e33ff",
+            fontSize: { md: "16px", sm: "14px", xs: "11px" },
+            fontWeight: 400,
+            pb: 1,
+          }}
+        >
+          Posted:{" "}
+          {!isRapid
+            ? dayjs(item?.created_at).format("MM-DD-YYYY")
+            : dayjs(item?.job_posted_at_datetime_utc).format("MM-DD-YYYY")}
+        </Typography>
 
-            
-          
-      
+        {/* DEADLINE FOR INTERNAL JOBS ONLY */}
+        {!isRapid && (
+          <Typography
+            sx={{
+              color: "#189e33ff",
+              fontSize: { md: "16px", sm: "14px", xs: "11px" },
+              fontWeight: 400,
+              pb: 1,
+            }}
+          >
+            Deadline:{" "}
+            {item?.deadline && new Date(item.deadline) < new Date(today)
+              ? "Job Closed"
+              : item?.deadline
+              ? dayjs(item?.deadline).format("MM-DD-YYYY")
+              : "—"}
+          </Typography>
+        )}
       </Box>
     </Box>
   );

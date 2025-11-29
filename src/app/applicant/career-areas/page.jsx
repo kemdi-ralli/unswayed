@@ -1,3 +1,4 @@
+// /mnt/data/page.jsx
 "use client";
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { Box, Button, CircularProgress } from "@mui/material";
@@ -28,13 +29,10 @@ const RalliModal = lazy(() => import("@/components/Modal/RalliModal"));
 
 /**
  * fetchJSearchJobs
- * - Uses NEXT_PUBLIC_RAPIDAPI_KEY from env
- * - Builds a query from search + filters
- * - Maps to the UI shape used by ApplicantJobDetails
- * {name, salary, workhour, description}
- * Emeka Limited is requesting for a frontend job. He needs 3 years of experience. Requirements inclunde.
+ * - now accepts a `page` param (1-indexed) and `pageSize` (num results per page)
+ * - returns one page worth of mapped jobs (empty array if none)
  */
-const fetchJSearchJobs = async (search = "", filters = {}) => {
+const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 10) => {
   const RAPID_API_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
   if (!RAPID_API_KEY) {
     throw new Error(
@@ -47,12 +45,10 @@ const fetchJSearchJobs = async (search = "", filters = {}) => {
 
   if (filters.city) parts.push(filters.city);
   else if (Array.isArray(filters.state) && filters.state.length > 0) {
-    // if state is an array of objects, try to use .name or .id
     const s = filters.state[0];
     if (typeof s === "object") parts.push(s.name || s.id || "");
     else parts.push(s);
   } else if (filters.country) {
-    // country might be id or name — try string
     parts.push(typeof filters.country === "string" ? filters.country : "");
   }
 
@@ -70,8 +66,12 @@ const fetchJSearchJobs = async (search = "", filters = {}) => {
 
   const url = new URL("https://jsearch.p.rapidapi.com/search");
   url.searchParams.append("query", query);
-  url.searchParams.append("page", "1");
+  // Request a single page of results:
+  url.searchParams.append("page", String(page));
+  // Keep num_pages = 1 so we get just one page
   url.searchParams.append("num_pages", "1");
+  // if the API supports page size param you could add it here; jsearch often returns ~10
+  // url.searchParams.append("page_size", String(pageSize));
 
   const headers = {
     "x-rapidapi-key": RAPID_API_KEY,
@@ -86,23 +86,21 @@ const fetchJSearchJobs = async (search = "", filters = {}) => {
   }
 
   const body = await res.json();
+  const items = body?.data || [];
 
-  const mapped = (body?.data || []).map((job) => ({
-    id: job?.job_id || `${job?.job_title}_${Math.random().toString(36).slice(2, 9)}`,
+  const mapped = items.map((job) => ({
+    id: job?.job_id ? `rapid-${job.job_id}` : `rapid-${Math.random().toString(36).slice(2, 9)}`,
     title: job?.job_title || "Untitled",
     country: job?.job_country || "N/A",
-    // UI expects states: [{ name: ... }]
     states: job?.job_city ? [{ name: job.job_city }] : [],
     description: job?.job_description || job?.job_highlights || "",
     created_at: job?.job_posted_at_datetime_utc || new Date().toISOString(),
-    // fallback 7 days ahead for deadline
     deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     is_applied: false,
     is_saved: false,
-    // preserve raw response so we can use apply links, etc.
     _raw: job,
-    // indicate external origin
-    _source: "jsearch",
+    _source: "rapid",
+    job_apply_link: job?.job_apply_link || job?.job_link || job?.url || "",
   }));
 
   return mapped;
@@ -114,7 +112,8 @@ const fetchJSearchJobs = async (search = "", filters = {}) => {
  * - Deduplicate by title|country|city (conservative)
  * - Prefer backend job object when duplicate found
  */
-const mergeAndDedupeJobs = (backendJobs = [], rapidJobs = []) => {
+const mergeAndDedupeJobs = (existingJobs = [], backendJobs = [], rapidJobs = []) => {
+  // Start with existing jobs to preserve order, but rebuild map to dedupe
   const map = new Map();
 
   const keyFor = (j) => {
@@ -124,9 +123,14 @@ const mergeAndDedupeJobs = (backendJobs = [], rapidJobs = []) => {
     return `${title}|${country}|${city}`;
   };
 
-  // put backend jobs first so they win on dupes
+  // add existing (to preserve previously shown)
+  existingJobs.forEach((j) => {
+    map.set(keyFor(j), j);
+  });
+
+  // put backend jobs next — prefer backend if duplicate
   backendJobs.forEach((j) => {
-    map.set(keyFor(j), { ...j, _source: "backend" });
+    map.set(keyFor(j), { ...j, _source: j._source || "backend" });
   });
 
   rapidJobs.forEach((j) => {
@@ -134,15 +138,14 @@ const mergeAndDedupeJobs = (backendJobs = [], rapidJobs = []) => {
     if (!map.has(k)) {
       map.set(k, j);
     }
-    // if map already has backend job, keep backend version
+    // if exists (likely backend), keep existing
   });
 
   return Array.from(map.values());
 };
 
 const Page = () => {
-  const [jobs, setJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [jobs, setJobs] = useState([]); // merged list (appended as we load more)
   const [isModalOpen, setModalOpen] = useState(false);
   const [errors, setErrors] = useState(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -167,149 +170,90 @@ const Page = () => {
     skills: [],
   });
 
+  // Pagination state:
+  const [backendPage, setBackendPage] = useState(1);
+  const [rapidPage, setRapidPage] = useState(1);
+  const pageSize = 10;
+  const [hasMore, setHasMore] = useState(true);
+
   const router = useRouter();
   const dispatch = useDispatch();
 
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
-  // ---------- Filters -> both sources ----------
-  const applyFilters = async (e, q = null) => {
+  // ---------- fetch one "page" from both sources and append ----------
+  const fetchAndAppendJobs = async ({ reset = false, searchQuery = null } = {}) => {
+    // If reset: clear jobs and reset pages to 1
+    const query = searchQuery !== null ? searchQuery : search;
+    let targetBackendPage = backendPage;
+    let targetRapidPage = rapidPage;
+
+    if (reset) {
+      targetBackendPage = 1;
+      targetRapidPage = 1;
+      setBackendPage(1);
+      setRapidPage(1);
+      setHasMore(true);
+    }
+
     setIsLoadingJobs(true);
     try {
-      const query = q === null ? search : q;
-
-      // 1) fetch backend jobs (CAREER_JOBS)
+      // 1) backend page
       let backendJobs = [];
       try {
-        const resp = await apiInstance.get(`${CAREER_JOBS}?limit=1000&page=1&search=${encodeURIComponent(query)}`);
+        const resp = await apiInstance.get(
+          `${CAREER_JOBS}?limit=${pageSize}&page=${targetBackendPage}&search=${encodeURIComponent(query)}`
+        );
+        // adapt to your API shape
         backendJobs = resp?.data?.data?.jobs || [];
       } catch (err) {
-        // non-fatal — continue to fetch RapidAPI results
         console.error("Backend CAREER_JOBS fetch failed:", err);
-        // Store error but continue
         setErrors(err?.response?.data?.message || err?.message || err);
       }
 
-      // 2) fetch RapidAPI jobs
+      // 2) rapidapi page
       let rapidJobs = [];
       try {
-        rapidJobs = await fetchJSearchJobs(query, dropdownStates);
+        rapidJobs = await fetchJSearchJobs(query, dropdownStates, targetRapidPage, pageSize);
       } catch (err) {
         console.error("RapidAPI fetch failed:", err);
-        // keep errors but continue with backend results
         setErrors((prev) => prev || (err?.message || err));
         Toast("info", "RapidAPI fetch failed — showing backend jobs only");
       }
 
-      // 3) merge & dedupe
-      const combined = mergeAndDedupeJobs(backendJobs, rapidJobs);
+      // 3) merge with existing jobs, dedupe
+      const newCombined = mergeAndDedupeJobs(reset ? [] : jobs, backendJobs, rapidJobs);
+      setJobs(newCombined);
 
-      setJobs(combined);
-      setFilteredJobs(combined);
-      Toast("success", "Filters applied");
+      // 4) compute hasMore:
+      const backendHasMore = backendJobs.length === pageSize;
+      const rapidHasMore = rapidJobs.length === pageSize;
+      // If either source returned a full page, we consider there's more to request
+      setHasMore(backendHasMore || rapidHasMore);
+
+      // If not reset, increment pages for next load
+      if (!reset) {
+        // increment each source page only if that source returned a full page (to avoid requesting empty pages)
+        if (backendHasMore) setBackendPage((p) => p + 1);
+        if (rapidHasMore) setRapidPage((p) => p + 1);
+      } else {
+        // if reset and there was more, set next page to 2
+        if (backendHasMore) setBackendPage(2);
+        if (rapidHasMore) setRapidPage(2);
+      }
+
+      // success toast suppressed on load more for less noise
+      if (reset) Toast("success", "Filters applied");
     } catch (err) {
-      console.error("Error applying filters (combined):", err);
+      console.error("Error fetching/merging jobs:", err);
       setErrors(err?.message || err);
-      Toast("error", "Failed to apply filters");
+      Toast("error", "Failed to load jobs");
     } finally {
       setIsLoadingJobs(false);
-      handleCloseModal();
+      if (reset) handleCloseModal();
     }
   };
-
-  // ---------- Clear filters ----------
-  const handleClearFilters = async () => {
-    setDropdownStates({
-      country: "",
-      state: [],
-      city: "",
-      job_category: [],
-      job_location: "",
-      job_type: "",
-      job_shift: "",
-      experience_level: "",
-      skills: [],
-    });
-    setSearch("");
-    await getJobs();
-    Toast("info", "Filters cleared");
-  };
-
-  // ---------- States / cities logic (preserve US special-case) ----------
-  useEffect(() => {
-    const US_STATES = [
-      "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
-      "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
-      "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
-      "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
-      "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-      "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-      "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
-      "Wisconsin", "Wyoming"
-    ];
-
-    const US_INHABITED_TERRITORIES = [
-      "American Samoa", "Guam", "Northern Mariana Islands", "Puerto Rico", "U.S. Virgin Islands"
-    ];
-
-    const US_UNINHABITED_TERRITORIES = [
-      "Baker Island", "Howland Island", "Jarvis Island", "Johnston Atoll",
-      "Kingman Reef", "Midway Atoll", "Navassa Island", "Palmyra Atoll", "Wake Island"
-    ];
-
-    const fetchStates = async () => {
-      try {
-        if (dropdownStates?.country === 233) {
-          const allStrings = [
-            ...US_STATES.sort(),
-            ...US_INHABITED_TERRITORIES.sort(),
-            ...US_UNINHABITED_TERRITORIES.sort(),
-          ];
-          const allStatesObjects = allStrings.map((s) => ({ id: s, name: s }));
-          setStates(allStatesObjects);
-        } else if (dropdownStates?.country && dropdownStates?.country !== 233) {
-          const countryStates = await getStates(dropdownStates.country);
-          setStates(countryStates || []);
-        } else {
-          setStates([]);
-        }
-      } catch (error) {
-        console.error("Error fetching states:", error);
-        setErrors(error);
-      } finally {
-        handleDropdownChange("state", []);
-      }
-    };
-
-    fetchStates();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dropdownStates?.country]);
-
-
-  useEffect(() => {
-    if (dropdownStates?.state && dropdownStates?.state.length > 0) {
-      const fetchCities = async () => {
-        try {
-          const payload = Array.isArray(dropdownStates.state)
-            ? `[${dropdownStates.state.map(s => typeof s === "object" ? s.id || s.name : s).join(",")}]`
-            : `[${dropdownStates.state}]`;
-          const fetchedCities = await getCities(payload);
-          setCities(fetchedCities || []);
-        } catch (err) {
-          console.error("Error fetching cities:", err);
-          setErrors(err);
-        }
-      };
-
-      fetchCities();
-    } else {
-      setCities([]);
-    }
-
-    handleDropdownChange("city", "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dropdownStates?.state]);
 
   // ---------- initial master data ----------
   useEffect(() => {
@@ -328,66 +272,50 @@ const Page = () => {
     fetchData();
   }, []);
 
-  // ---------- fetch both sources on initial load ----------
-  const getJobs = async () => {
-    setIsLoadingJobs(true);
-    try {
-      // backend
-      let backendJobs = [];
-      try {
-        const resp = await apiInstance.get(CAREER_JOBS);
-        backendJobs = resp?.data?.data?.jobs || [];
-      } catch (err) {
-        console.error("Error fetching CAREER_JOBS:", err);
-        setErrors(err?.response?.data?.message || err?.message || err);
-      }
-
-      // RapidAPI
-      let rapidJobs = [];
-      try {
-        rapidJobs = await fetchJSearchJobs(search, dropdownStates);
-      } catch (err) {
-        console.error("JSearch fetch failed:", err);
-        // don't block UI; use backend results if available
-        setErrors((prev) => prev || (err?.message || err));
-      }
-
-      const combined = mergeAndDedupeJobs(backendJobs, rapidJobs);
-      setJobs(combined);
-      setFilteredJobs(combined);
-    } catch (err) {
-      console.error("Failed to load jobs (combined):", err);
-      setErrors(err?.message || err);
-      Toast("error", "Failed to load jobs");
-    } finally {
-      setIsLoadingJobs(false);
-    }
-  };
-
+  // ---------- initial load ----------
   useEffect(() => {
-    getJobs();
+    // reset = true to ensure pages start from 1
+    fetchAndAppendJobs({ reset: true, searchQuery: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- Save handler: backend vs external ----------
+  // ---------- Apply filters (reset listing) ----------
+  const applyFilters = async (e, q = null) => {
+    // When filters/search are applied we reset pages and jobs
+    setSearch(q === null ? search : q);
+    setBackendPage(1);
+    setRapidPage(1);
+    await fetchAndAppendJobs({ reset: true, searchQuery: q === null ? search : q });
+  };
+
+  const handleClearFilters = async () => {
+    setDropdownStates({
+      country: "",
+      state: [],
+      city: "",
+      job_category: [],
+      job_location: "",
+      job_type: "",
+      job_shift: "",
+      experience_level: "",
+      skills: [],
+    });
+    setSearch("");
+    setBackendPage(1);
+    setRapidPage(1);
+    await fetchAndAppendJobs({ reset: true, searchQuery: "" });
+    Toast("info", "Filters cleared");
+  };
+
+  // ---------- Save / Apply / Card handlers (same as before) ----------
   const handleJobSaved = async (id) => {
-    // Find job by id
     const job = jobs.find((j) => j.id === id);
     if (!job) {
       Toast("error", "Job not found");
       return;
     }
-
-    // If backend-sourced, call SAVE_JOB endpoint (existing behavior)
     if (!job._source || job._source === "backend") {
-      // optimistic toggle
-      setJobs((prev) =>
-        prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j))
-      );
-      setFilteredJobs((prev) =>
-        prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j))
-      );
-
+      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j)));
       try {
         const response = await apiInstance.post(`${SAVE_JOB}/${id}`);
         if (response?.data?.status !== "success") {
@@ -401,34 +329,16 @@ const Page = () => {
       }
       return;
     }
-
-    // External (RapidAPI) jobs: toggle locally only and notify user
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j))
-    );
-    setFilteredJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j))
-    );
+    setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j)));
     Toast("success", "Saved locally (external job)");
   };
 
-  // ---------- Apply handler: backend vs external ----------
   const handleEasyApply = (item) => {
     dispatch(setAppliedData(item));
-
-    // Data Scientist special-case preserved
-    if (item?.title === "Data Scientist") {
-      window.open("https://www.apple.com/careers/us/", "_blank");
-      return;
-    }
-
-    // If backend-sourced, use internal easy-apply route
     if (!item._source || item._source === "backend") {
       router.push(`/applicant/career-areas/easy-apply/${item?.id}`);
       return;
     }
-
-    // External job: try to open an apply link from RapidAPI raw payload
     const raw = item._raw || {};
     const possibleLinks = [
       raw.job_apply_link,
@@ -437,25 +347,29 @@ const Page = () => {
       raw.apply_link,
       raw.url,
     ].filter(Boolean);
-
     if (possibleLinks.length > 0) {
-      // open first valid link in a new tab
       window.open(possibleLinks[0], "_blank");
       return;
     }
-
-    // fallback: still open a new tab to the job detail page if available
     Toast("info", "Opening external job (no direct apply link found)");
-    // if job has a raw JSON page or link attempt to open one
     if (raw?.job_id) {
-      // no standard external link available; show notification
       Toast("info", "No direct external apply link available for this job.");
     }
   };
 
   const handleCard = (id) => {
-    const encodeId = encode(id);
-    router.push(`/applicant/job/${encodeId}`);
+    if (typeof id === "string" && id.startsWith("rapid-")) {
+      router.push(`/applicant/job/${id}`);
+    } else {
+      const encodeId = encode(id);
+      router.push(`/applicant/job/${encodeId}`);
+    }
+  };
+
+  // ---------- Load more (called by child) ----------
+  const loadMore = async () => {
+    // fetch next "page" and append
+    await fetchAndAppendJobs({ reset: false, searchQuery: search });
   };
 
   const handleSearchChange = (q) => {
@@ -544,11 +458,13 @@ const Page = () => {
             />
 
             <ApplicantJobDetails
-              data={filteredJobs}
+              data={jobs}
               isLoading={isLoadingJobs}
               OnSave={handleJobSaved}
               onPressCard={handleCard}
               OnApply={handleEasyApply}
+              onLoadMore={loadMore}
+              hasMore={hasMore}
             />
           </Container>
         </Suspense>

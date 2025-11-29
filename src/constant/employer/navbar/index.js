@@ -32,7 +32,7 @@ export const EMPLOYER_NAVBAR_DATA = {
             path: '/employer/mark-as-notifications', 
         },
         {
-            navImg:'/assets/images/navbar/profile.png'
+            navImg:'/assets/images/profile.png'
         },
     ]
 }

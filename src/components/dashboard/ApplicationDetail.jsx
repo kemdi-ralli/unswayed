@@ -14,6 +14,7 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import ApplicationDetailModal from "../Modal/ApplicationDetailModal";
 import ApplicationActionModal from "../Modal/ApplicationActionModal";
 import ApplicationActionDetailModal from "../Modal/ApplicationActionDetailModal";
+import RejectionReasonModal from "../Modal/RejectionReasonModal";
 import { encode } from "@/helper/GeneralHelpers";
 
 const ApplicationDetail = ({ applicationId = null }) => {
@@ -30,10 +31,21 @@ const ApplicationDetail = ({ applicationId = null }) => {
     isApplicationActionDetailModalOpen,
     setIsApplicationActionDetailModalOpen,
   ] = useState(false);
+  const [isRejectionReasonModalOpen, setIsRejectionReasonModalOpen] =
+    useState(false);
   const [actionType, setActionType] = useState("");
   const [historyData, setHistoryData] = useState({});
 
   const menuId = "primary-search-account-menu";
+
+  const rejectionReasons = [
+    "Underqualified: Not having the minimum skills, education, or experience required for the position.",
+    "Overqualified: Having more experience than the role requires can make an employer question if the candidate will be engaged or if they will leave for a better opportunity.",
+    "Insufficient experience: Not having enough experience to back up claims or perform the job effectively.",
+    "Cannot meet applicant salary requirements",
+    "Not eligible to work in U.S.",
+    "Other",
+  ];
 
   const fetchApplicationDetail = async () => {
     const response = await apiInstance.get(
@@ -76,7 +88,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
       label: "Candidate Is Not A Match",
       icon: <AccountCircleIcon />,
       onClick: () => {
-        handleApplicationAction("Reject");
+        setIsRejectionReasonModalOpen(true);
         handleMenuClose();
       },
     },
@@ -96,15 +108,6 @@ const ApplicationDetail = ({ applicationId = null }) => {
         handleMenuClose();
       },
     },
-    {
-      label: "Counteroffer Letter",
-      icon: <DescriptionIcon />,
-      onClick: () => {
-        handleApplicationAction("CounterOfferLetter");
-        handleMenuClose();
-      },
-    },
-    
   ];
 
   const pathName = usePathname();
@@ -116,6 +119,17 @@ const ApplicationDetail = ({ applicationId = null }) => {
 
   const handleCloseApplicationActionModal = () => {
     setIsApplicationActionModalOpen(false);
+  };
+
+  const handleCloseRejectionReasonModal = () => {
+    setIsRejectionReasonModalOpen(false);
+  };
+
+  const handleRejectWithReason = (reason) => {
+    setActionType("Reject");
+    setIsRejectionReasonModalOpen(false);
+    // Pass the selected reason to the action modal or handle rejection directly
+    setIsApplicationActionModalOpen(true);
   };
 
   const handleApplicationActionDetail = (item) => {
@@ -176,7 +190,6 @@ const ApplicationDetail = ({ applicationId = null }) => {
           </Button>
           {pathName.includes("/employer") &&
             type === "employer" &&
-            // applicationDetail?.status !== "position_filled" &&
             applicationDetail?.status !== "archive" && (
               <>
                 <Box>
@@ -232,10 +245,10 @@ const ApplicationDetail = ({ applicationId = null }) => {
           <Box
             sx={{
               display: "flex",
-              gap:{xs:2, sm:4}
+              gap: { xs: 2, sm: 4 },
             }}
           >
-            <Box sx={{ display: "flex",gap: {xs:.2, sm:1} }}>
+            <Box sx={{ display: "flex", gap: { xs: 0.2, sm: 1 } }}>
               <Typography
                 sx={{
                   fontWeight: 300,
@@ -257,7 +270,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
                 {date}
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", gap: {xs:.2, sm:1} }}>
+            <Box sx={{ display: "flex", gap: { xs: 0.2, sm: 1 } }}>
               <Typography
                 sx={{
                   fontWeight: 300,
@@ -340,10 +353,15 @@ const ApplicationDetail = ({ applicationId = null }) => {
               disabled={item?.type === "application_submitted" ? true : false}
               onClick={() => handleApplicationActionDetail(item)}
             >
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems:'center' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Box
                   sx={{
-                    //   display: "flex",
                     alignContent: "center",
                     alignItems: "center",
                   }}
@@ -351,7 +369,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
                   <Typography
                     sx={{
                       fontSize: { xs: "15px", sm: "20px", md: "26px" },
-                      lineHeight: {xs:"24px", sm: "28px", md: "24px" },
+                      lineHeight: { xs: "24px", sm: "28px", md: "24px" },
                       fontWeight: 700,
                       color: id === item?.user_id ? "#FFFFFF" : "#00305B",
                       py: 1,
@@ -393,10 +411,10 @@ const ApplicationDetail = ({ applicationId = null }) => {
               <Box
                 sx={{
                   display: "flex",
-                  gap:{xs:2, sm:4}
+                  gap: { xs: 2, sm: 4 },
                 }}
               >
-                <Box sx={{ display: "flex", gap:{xs:0.2, sm:1} }}>
+                <Box sx={{ display: "flex", gap: { xs: 0.2, sm: 1 } }}>
                   <Typography
                     sx={{
                       fontWeight: 300,
@@ -418,7 +436,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
                     {date}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", gap:{xs:0.2, sm:1} }}>
+                <Box sx={{ display: "flex", gap: { xs: 0.2, sm: 1 } }}>
                   <Typography
                     sx={{
                       fontWeight: 300,
@@ -461,6 +479,12 @@ const ApplicationDetail = ({ applicationId = null }) => {
             title="Application Details"
             data={applicationDetail}
             buttonLabel="Done"
+          />
+          <RejectionReasonModal
+            open={isRejectionReasonModalOpen}
+            onClose={handleCloseRejectionReasonModal}
+            reasons={rejectionReasons}
+            onReasonSelect={handleRejectWithReason}
           />
         </>
       )}

@@ -1,13 +1,13 @@
 export const CREATE_JOB_FORM = {
   form: [
-    // {
-    //   title: "External Job Link (optional)",
-    //   name: "external_link",
-    //   placeHolder: "URL to personal job link from your website. Eg: https://company.com/careers/job",
-    //   type: "url",
-    //   ai: false,
-    //   required: false,
-    // },
+    {
+      title: "External Job Link (optional)",
+      name: "job_apply_link",
+      placeHolder: "URL to personal job link from your website. Eg: https://company.com/careers/job",
+      type: "url",
+      ai: false,
+      required: false,
+    },
     {
       title: "Job Title",
       name: "title",
@@ -100,9 +100,16 @@ export const CREATE_JOB_FORM = {
       required: true,
     },
     {
-      title: "Salary",
+      title: "Minimum Salary",
       name: "salary",
-      placeHolder: "Salary",
+      placeHolder: "Minimum Salary",
+      type: "number",
+      required: true,
+    },
+    {
+      title: "Maximum Salary",
+      name: "salary_max",
+      placeHolder: "Maximum Salary",
       type: "number",
       required: true,
     },

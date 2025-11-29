@@ -47,6 +47,48 @@ const overviewSlides = [
   "/assets/slides/overview/Slide8.jpg",
 ];
 
+const bodyLanguageSlides = [
+  "/assets/slides/body-language/Slide1.jpg",
+  "/assets/slides/body-language/Slide2.jpg",
+  "/assets/slides/body-language/Slide3.jpg",
+  "/assets/slides/body-language/Slide4.jpg",
+  "/assets/slides/body-language/Slide5.jpg",
+];
+
+const preparationSlides = [
+  "/assets/slides/preparation/Slide1.jpg",
+  "/assets/slides/preparation/Slide2.jpg",
+  "/assets/slides/preparation/Slide3.jpg",
+  "/assets/slides/preparation/Slide4.jpg",
+  "/assets/slides/preparation/Slide5.jpg",
+  "/assets/slides/preparation/Slide6.jpg",
+];
+
+const virtualSlides = [
+  "/assets/slides/virtual/Slide1.jpg",
+  "/assets/slides/virtual/Slide2.jpg",
+  "/assets/slides/virtual/Slide3.jpg",
+  "/assets/slides/virtual/Slide4.jpg",
+  "/assets/slides/virtual/Slide5.jpg",
+  "/assets/slides/virtual/Slide6.jpg",
+  "/assets/slides/virtual/Slide7.jpg",
+  "/assets/slides/virtual/Slide8.jpg",
+  "/assets/slides/virtual/Slide9.jpg",
+];
+
+const starSlides = [
+  "/assets/slides/star/Slide1.jpg",
+  "/assets/slides/star/Slide2.jpg",
+  "/assets/slides/star/Slide3.jpg",
+  "/assets/slides/star/Slide4.jpg",
+  "/assets/slides/star/Slide5.jpg",
+  "/assets/slides/star/Slide6.jpg",
+  "/assets/slides/star/Slide7.jpg",
+  "/assets/slides/star/Slide8.jpg",
+  "/assets/slides/star/Slide9.jpg",
+  "/assets/slides/star/Slide10.jpg",
+];
+
 const profileMenuItems = [
   { heading: "Home", icon: <HomeIcon /> },
   {
@@ -88,12 +130,12 @@ const profileMenuItems = [
   },
   {
     name: "Privacy Policy",
-    link: "/privacy-and-policy",
+    link: "/privacy-policy",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
     name: "Terms & Conditions",
-    link: "/terms-and-conditions",
+    link: "/terms-of-use",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
@@ -118,41 +160,41 @@ const profileMenuItems = [
   // },
   {
     name: "Blog (Coming Soon)",
-    link: "/blog",
+    link: "/applicant/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   { divider: true },
   { heading: "Toolkits", icon: <SettingsIcon /> },
   {
-    name: "Effective Communication",
+    name: "Master Body Language",
     link: "/applicant/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
-    name: "How to prepare and ask for a promotion or raise",
+    name: "Interview Preparation",
     link: "/applicant/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
-    name: "Handling Work Stress",
+    name: "Virtual Interview",
     link: "/applicant/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
-    name: "Work Life Balance",
+    name: "Star Method Interview",
     link: "/applicant/upcoming",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
-  {
-    name: "How to: Shortcuts & Tips",
-    link: "/applicant/upcoming",
-    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
-  },
-  {
-    name: "Career Transition - When is it time for a new job?",
-    link: "/applicant/upcoming",
-    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
-  },
+  // {
+  //   name: "How to: Shortcuts & Tips",
+  //   link: "/applicant/upcoming",
+  //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  // },
+  // {
+  //   name: "Career Transition - When is it time for a new job?",
+  //   link: "/applicant/upcoming",
+  //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  // },
   {
     name: "Sign Out",
     link: "/applicant/login",
@@ -169,6 +211,11 @@ function Navbar({ data }) {
   const { userData } = useSelector((state) => state.auth);
   const type = useSelector((state) => state?.notificationTye);
   const [openOverviewModal, setOpenOverviewModal] = React.useState(false);
+  const [openBodyLanguageModal, setOpenBodyLanguageModal] =
+    React.useState(false);
+  const [openPreparationModal, setOpenPreparationModal] = React.useState(false);
+  const [openVirtualModal, setOpenVirtualModal] = React.useState(false);
+  const [openStarModal, setOpenStarModal] = React.useState(false);
   const [currentSlide, setCurrentSlide] = React.useState(0);
 
   const handleOpenOverview = () => {
@@ -190,6 +237,82 @@ function Navbar({ data }) {
 
   const handleCloseOverview = () => {
     setOpenOverviewModal(false);
+  };
+
+  const handleNextLang = () => {
+    setCurrentSlide((prev) =>
+      prev === bodyLanguageSlides.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handlePrevLang = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? bodyLanguageSlides.length - 1 : prev - 1
+    );
+  };
+
+  const handleOpenBodyLanguage = () => {
+    setCurrentSlide(0);
+    setOpenBodyLanguageModal(true);
+  };
+  const handleCloseBodyLanguage = () => {
+    setOpenBodyLanguageModal(false);
+  };
+
+  const handleNextPreparation = () => {
+    setCurrentSlide((prev) =>
+      prev === preparationSlides.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handlePrevPreparation = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? preparationSlides.length - 1 : prev - 1
+    );
+  };
+
+  const handleOpenPreparation = () => {
+    setCurrentSlide(0);
+    setOpenPreparationModal(true);
+  };
+  const handleClosePreparation = () => {
+    setOpenPreparationModal(false);
+  };
+
+  const handleNextVirtual = () => {
+    setCurrentSlide((prev) =>
+      prev === virtualSlides.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handlePrevVirtual = () => {
+    setCurrentSlide((prev) =>
+      prev === 0 ? virtualSlides.length - 1 : prev - 1
+    );
+  };
+
+  const handleOpenVirtual = () => {
+    setCurrentSlide(0);
+    setOpenVirtualModal(true);
+  };
+  const handleCloseVirtual = () => {
+    setOpenVirtualModal(false);
+  };
+
+  const handleNextStar = () => {
+    setCurrentSlide((prev) => (prev === starSlides.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrevStar = () => {
+    setCurrentSlide((prev) => (prev === 0 ? starSlides.length - 1 : prev - 1));
+  };
+
+  const handleOpenStar = () => {
+    setCurrentSlide(0);
+    setOpenStarModal(true);
+  };
+  const handleCloseStar = () => {
+    setOpenStarModal(false);
   };
 
   const showChatDot = type?.isChat;
@@ -607,6 +730,26 @@ function Navbar({ data }) {
                               handleCloseProfileMenu();
                               handleOpenOverview();
                             }
+                          : item.name === "Master Body Language"
+                          ? () => {
+                              handleCloseProfileMenu();
+                              handleOpenBodyLanguage();
+                            }
+                          : item.name === "Interview Preparation"
+                          ? () => {
+                              handleCloseProfileMenu();
+                              handleOpenPreparation();
+                            }
+                          : item.name === "Virtual Interview"
+                          ? () => {
+                              handleCloseProfileMenu();
+                              handleOpenVirtual();
+                            }
+                          : item.name === "Star Method Interview"
+                          ? () => {
+                              handleCloseProfileMenu();
+                              handleOpenStar();
+                            }
                           : () => handleMenuItemClick(item.link)
                       }
                       sx={{
@@ -692,6 +835,234 @@ function Navbar({ data }) {
             </Typography>
 
             <Button variant="contained" onClick={handleNext}>
+              Next
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        open={openBodyLanguageModal}
+        onClose={handleCloseBodyLanguage}
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+      >
+        <Box
+          sx={{
+            width: { xs: "90%", sm: "70%", md: "55%" },
+            bgcolor: "#fff",
+            borderRadius: "12px",
+            boxShadow: 24,
+            p: 2,
+            position: "relative",
+          }}
+        >
+          {/* CLOSE BUTTON */}
+          <IconButton
+            onClick={handleCloseBodyLanguage}
+            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
+          >
+            ✕
+          </IconButton>
+
+          {/* IMAGE */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Image
+              src={bodyLanguageSlides[currentSlide]}
+              width={800}
+              height={500}
+              alt="Overview Slide"
+              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
+            />
+          </Box>
+
+          {/* NAVIGATION */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Button variant="contained" onClick={handlePrevLang}>
+              Previous
+            </Button>
+
+            <Typography>
+              {currentSlide + 1}/{bodyLanguageSlides.length}
+            </Typography>
+
+            <Button variant="contained" onClick={handleNextLang}>
+              Next
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        open={openPreparationModal}
+        onClose={handleClosePreparation}
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+      >
+        <Box
+          sx={{
+            width: { xs: "90%", sm: "70%", md: "55%" },
+            bgcolor: "#fff",
+            borderRadius: "12px",
+            boxShadow: 24,
+            p: 2,
+            position: "relative",
+          }}
+        >
+          {/* CLOSE BUTTON */}
+          <IconButton
+            onClick={handleClosePreparation}
+            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
+          >
+            ✕
+          </IconButton>
+
+          {/* IMAGE */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Image
+              src={preparationSlides[currentSlide]}
+              width={800}
+              height={500}
+              alt="Overview Slide"
+              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
+            />
+          </Box>
+
+          {/* NAVIGATION */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Button variant="contained" onClick={handlePrevPreparation}>
+              Previous
+            </Button>
+
+            <Typography>
+              {currentSlide + 1}/{preparationSlides.length}
+            </Typography>
+
+            <Button variant="contained" onClick={handleNextPreparation}>
+              Next
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        open={openVirtualModal}
+        onClose={handleCloseVirtual}
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+      >
+        <Box
+          sx={{
+            width: { xs: "90%", sm: "70%", md: "55%" },
+            bgcolor: "#fff",
+            borderRadius: "12px",
+            boxShadow: 24,
+            p: 2,
+            position: "relative",
+          }}
+        >
+          {/* CLOSE BUTTON */}
+          <IconButton
+            onClick={handleCloseVirtual}
+            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
+          >
+            ✕
+          </IconButton>
+
+          {/* IMAGE */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Image
+              src={virtualSlides[currentSlide]}
+              width={800}
+              height={500}
+              alt="Overview Slide"
+              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
+            />
+          </Box>
+
+          {/* NAVIGATION */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Button variant="contained" onClick={handlePrevVirtual}>
+              Previous
+            </Button>
+
+            <Typography>
+              {currentSlide + 1}/{virtualSlides.length}
+            </Typography>
+
+            <Button variant="contained" onClick={handleNextVirtual}>
+              Next
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+      <Modal
+        open={openStarModal}
+        onClose={handleCloseStar}
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+      >
+        <Box
+          sx={{
+            width: { xs: "90%", sm: "70%", md: "55%" },
+            bgcolor: "#fff",
+            borderRadius: "12px",
+            boxShadow: 24,
+            p: 2,
+            position: "relative",
+          }}
+        >
+          {/* CLOSE BUTTON */}
+          <IconButton
+            onClick={handleCloseStar}
+            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
+          >
+            ✕
+          </IconButton>
+
+          {/* IMAGE */}
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Image
+              src={starSlides[currentSlide]}
+              width={800}
+              height={500}
+              alt="Overview Slide"
+              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
+            />
+          </Box>
+
+          {/* NAVIGATION */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+            }}
+          >
+            <Button variant="contained" onClick={handlePrevStar}>
+              Previous
+            </Button>
+
+            <Typography>
+              {currentSlide + 1}/{starSlides.length}
+            </Typography>
+
+            <Button variant="contained" onClick={handleNextStar}>
               Next
             </Button>
           </Box>

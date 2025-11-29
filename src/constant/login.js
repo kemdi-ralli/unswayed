@@ -4,9 +4,9 @@ export const APPLICANT_LOGIN_DATA = {
   title: "A Place to share knowledge and better understand the world",
   // paragraph: 'By Continuing You Indicate That You Agree To RALLI <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Terms Of Service </span> And <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Privacy Policy</span>.',
   paragraph: `By Continuing You Indicate That You Agree To RALLI 
-<a href="/terms-and-conditions" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
+<a href="/terms-of-use" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
 And 
-<a href="/privacy-and-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
+<a href="/privacy-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
   loginWidth: [
     //     {
     //     img: '/assets/images/google.png',
@@ -48,9 +48,9 @@ export const EMPLOYER_LOGIN_DATA = {
   logo: "/assets/images/logo-round.png",
   title: "A Place to share knowledge and better understand the world",
   paragraph: `By Continuing You Indicate That You Agree To RALLI 
-<a href="/terms-and-conditions" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
+<a href="/terms-of-use" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
 And 
-<a href="/privacy-and-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
+<a href="/privacy-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
 
   loginWidth: [
     //     {

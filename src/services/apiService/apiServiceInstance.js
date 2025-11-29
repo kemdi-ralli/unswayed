@@ -3,6 +3,9 @@ import Cookies from "js-cookie";
 
 // const BASE_URL = "http://10.10.1.2:8000/api/";
 const BASE_URL = "https://ralli.logodesignagency.co/api/";
+// const BASE_URL = "http://localhost:8000/api/";
+// const BASE_URL = "https://unswayed.onrender.com/api/";
+
 
 const apiInstance = axios.create({
   baseURL: BASE_URL,

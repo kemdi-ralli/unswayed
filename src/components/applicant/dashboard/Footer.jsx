@@ -93,8 +93,8 @@ export default function Footer() {
                 { label: "About Us", href: "https://rallitechnologies.com/about" },
                 { label: "Team", href: "https://rallitechnologies.com/team" },
                 { label: "Contact", href: "https://rallitechnologies.com/contact" },
-                { label: "Privacy Policy", href: "https://www.unswayed.com/privacy-policy" },
-                { label: "Terms of Service", href: "https://www.unswayed.com/terms-of-use" },
+                { label: "Privacy Policy", href: "/privacy-policy" },
+                { label: "Terms of Service", href: "/terms-of-use" },
               ].map((link) => (
                 <MuiLink
                   key={link.label}

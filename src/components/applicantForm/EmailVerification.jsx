@@ -37,7 +37,7 @@ const EmailVerification = ({
         <Button onClick={handleBack} sx={{ minWidth: 0, p: 0 }}>
           <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
         </Button>
-        <Image src={data?.logo} width={70} height={100} alt="logo" />
+        <Image src={data?.logo} width={70} height={70} alt="logo" />
       </Box>
       <FormTitle label={data?.title} />
       <Typography

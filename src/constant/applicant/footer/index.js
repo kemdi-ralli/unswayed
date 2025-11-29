@@ -9,11 +9,11 @@ export const FOOTER_DATA = [
     },
     {
         title: 'Privacy Policy',
-        link: '/privacy-and-policy'
+        link: '/privacy-policy'
     },
     {
         title: 'Terms And Conditions',
-        link: '/terms-and-conditions'
+        link: '/terms-of-use'
     },
     {
         title: 'Contact',

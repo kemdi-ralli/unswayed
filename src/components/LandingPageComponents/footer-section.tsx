@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { Box, Typography, Link as MuiLink, Grid } from "@mui/material"
-import { Twitter, Github, Linkedin } from "lucide-react"
+import { Box, Typography, Link as MuiLink, Grid, IconButton } from "@mui/material";
+import { Twitter, Github, Linkedin, Instagram } from "lucide-react";
 import NextLink from "next/link";
 
 export function FooterSection() {
@@ -9,182 +9,183 @@ export function FooterSection() {
     <Box
       component="footer"
       sx={{
-        
-        maxWidth: "1320px",
-        mx: "auto",
-        px: { xs: 2, md: 5 },
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        justifyContent: "space-between",
-        alignItems: { xs: "start", md: "flex-start" },
-        gap: { xs: 2, md: 0 },
-        py: { xs: 10, md: "70px" },
+        width: "100%",
+        py: { xs: 10, md: 14 },
+        backdropFilter: "blur(10px)",
+        borderTop: "1px solid rgba(255,255,255,0.1)",
       }}
     >
-      {/* Left Section */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, p: { xs: 1, md: 2 } }}>
-        <Box sx={{ display: "flex", gap: 1, alignItems: "stretch", justifyContent: "center" }}>
-          <Typography
-            sx={{ textAlign: "center", color: "hsl(var(--foreground))", fontSize: "1.25rem", fontWeight: 600, lineHeight: 1 }}
-          >
-            Ralli Technoloigies
-          </Typography>
-        </Box>
-        <Typography sx={{ color: "hsl(var(--foreground)/0.9)", fontSize: "0.875rem", fontWeight: 500, lineHeight: "18px", textAlign: "left" }}>
-          A Different Kind of Disruptive
-        </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {/* Products */}
-                    <Grid item xs={12} md={3}>
-                      <Typography
-                        variant="h6"
-                        fontWeight="600"
-                        
-                      >
-                        Products
-                      </Typography>
-          
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        <MuiLink
-                          component={NextLink}
-                          href="https://unswayed.com"
-                          underline="none"
-                          sx={{
-                            color: "primary.contrastText",
-                            opacity: 0.8,
-                            transition: "color 0.2s",
-                            "&:hover": { opacity: 1 },
-                            ontFamily: "var(--font-heading)",
-                          }}
-                        >
-                          Unswayed
-                        </MuiLink>
-          
-                        <MuiLink
-                          component={NextLink}
-                          href="https://unswayed.com"
-                          underline="none"
-                          sx={{
-                            color: "primary.contrastText",
-                            opacity: 0.8,
-                            transition: "color 0.2s",
-                            "&:hover": { opacity: 1 },
-                            ontFamily: "var(--font-heading)",
-                          }}
-                        >
-                          DOT
-                        </MuiLink>
-                      </Box>
-                    </Grid>
-          
-                    {/* Company */}
-                    <Grid item xs={12} md={3}>
-                      <Typography
-                        variant="h6"
-                        fontWeight="600"
-                        
-                      >
-                        Company
-                      </Typography>
-          
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {[
-                          { label: "About Us", href: "https://rallitechnologies.com/about" },
-                          { label: "Team", href: "https://rallitechnologies.com/team" },
-                          { label: "Contact", href: "https://rallitechnologies.com/contact" },
-                          { label: "Privacy Policy", href: "https://www.unswayed.com/privacy-policy" },
-                          { label: "Terms of Service", href: "https://www.unswayed.com/terms-of-use" },
-                        ].map((link) => (
-                          <MuiLink
-                            key={link.label}
-                            component={NextLink}
-                            href={link.href}
-                            underline="none"
-                            sx={{
-                              color: "primary.contrastText",
-                              opacity: 0.8,
-                              transition: "color 0.2s",
-                              "&:hover": { opacity: 1 },
-                              fontFamily: "var(--font-heading)",
-                            }}
-                          >
-                            {link.label}
-                          </MuiLink>
-                        ))}
-                      </Box>
-                    </Grid>
-          
-                    {/* Contact Info */}
-                    <Grid item xs={12} md={3}>
-                      <Typography
-                        variant="h6"
-                        fontWeight="600"
-                        
-                      >
-                        Connect
-                      </Typography>
-          
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography sx={{ opacity: 0.8 }} variant="body2">
-                          contact@rallitechnologies.online
-                        </Typography>
-                        <Typography sx={{ opacity: 0.8 }} variant="body2">+1-888-832-7448</Typography>
-                        <Typography sx={{ opacity: 0.8 }} variant="body2">Mon–Fri, 9AM–6PM EST</Typography>
-                      </Box>
-                    </Grid>
-        </Box>
-      </Box>
-
-      {/* Right Section */}
-      {/* <Box
+      <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(3, auto)" },
-          gap: { xs: 2, md: 3 },
-          p: { xs: 1, md: 2 },
-          width: { xs: "100%", md: "auto" },
+          maxWidth: "1320px",
+          mx: "auto",
+          px: { xs: 3, md: 5 },
         }}
       >
-        {[
-          {
-            title: "Product",
-            links: ["Features", "Pricing", "Integrations", "Real-time Previews", "Multi-Agent Coding"],
-          },
-          {
-            title: "Company",
-            links: ["About us", "Our team", "Careers", "Brand", "Contact"],
-          },
-          {
-            title: "Resources",
-            links: ["Terms of use", "API Reference", "Documentation", "Community", "Support"],
-          },
-        ].map((section) => (
-          <Box key={section.title} sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography sx={{ color: "hsl(var(--muted-foreground))", fontSize: "0.875rem", fontWeight: 500, lineHeight: "20px" }}>
-              {section.title}
+        <Grid
+          container
+          spacing={6}
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
+          {/* BRAND */}
+          <Grid item xs={12} md={4}>
+            <Typography
+              sx={{
+                fontSize: "1.7rem",
+                fontWeight: 700,
+                mb: 1,
+                color: "hsl(var(--foreground))",
+                letterSpacing: "-0.5px",
+              }}
+            >
+              Ralli Technologies
             </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-              {section.links.map((link) => (
-                <MuiLink
-                  key={link}
-                  href="/chatbot"
+
+            <Typography
+              sx={{
+                fontSize: "1rem",
+                opacity: 0.8,
+                maxWidth: "280px",
+                lineHeight: 1.6,
+              }}
+            >
+              A Different Kind of Disruptive.
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 1.5, mt: 3 }}>
+              {[Twitter, Instagram, Linkedin].map((Icon, i) => (
+                <IconButton
+                  key={i}
                   sx={{
-                    color: "hsl(var(--foreground))",
-                    fontSize: "0.2rem",
-                    fontWeight: 400,
-                    lineHeight: "20px",
-                    textDecoration: "none",
-                    "&:hover": { textDecoration: "underline" },
+                    p: 1,
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: "12px",
+                    transition: "0.25s",
+                    "&:hover": {
+                      background: "rgba(255,255,255,0.08)",
+                      transform: "translateY(-3px)",
+                    },
                   }}
                 >
-                  <Typography sx={{ color: "hsl(var(--foreground)/0.7)", fontSize: "0.725rem" }}>{link}</Typography>
+                  <Icon size={20} />
+                </IconButton>
+              ))}
+            </Box>
+          </Grid>
+
+          {/* PRODUCTS */}
+          <Grid item xs={12} sm={6} md={2}>
+            <Typography
+              sx={{
+                fontSize: "1.05rem",
+                fontWeight: 600,
+                mb: 2,
+                letterSpacing: "-0.3px",
+              }}
+            >
+              Products
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {[
+                { label: "Unswayed", href: "https://unswayed.com" },
+                { label: "DOT", href: "https://unswayed.com" },
+              ].map((item) => (
+                <MuiLink
+                  key={item.label}
+                  component={NextLink}
+                  href={item.href}
+                  underline="none"
+                  sx={{
+                    color: "hsl(var(--foreground))",
+                    opacity: 0.7,
+                    fontSize: "0.6rem",
+                    transition: "0.25s",
+                    "&:hover": { opacity: 1, pl: 0.5 },
+                  }}
+                >
+                  
+                  <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>{item.label}</Typography>
+                </MuiLink>
+              ))}
+            </Box>
+          </Grid>
+
+          {/* COMPANY */}
+          <Grid item xs={12} sm={6} md={2}>
+            <Typography
+              sx={{
+                fontSize: "1.05rem",
+                fontWeight: 600,
+                mb: 2,
+              }}
+            >
+              Company
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {[
+                { label: "About Us", href: "https://rallitechnologies.com/about" },
+                { label: "Team", href: "https://rallitechnologies.com/team" },
+                { label: "Contact", href: "https://rallitechnologies.com/contact" },
+                { label: "Privacy Policy", href: "https://www.unswayed.com/privacy-policy" },
+                { label: "Terms of Service", href: "https://www.unswayed.com/terms-of-use" },
+              ].map((link) => (
+                <MuiLink
+                  key={link.label}
+                  component={NextLink}
+                  href={link.href}
+                  underline="none"
+                  sx={{
+                    color: "hsl(var(--foreground))",
+                    opacity: 0.7,
+                    fontSize: "0.95rem",
+                    transition: "0.25s",
+                    "&:hover": { opacity: 1, pl: 0.5 },
+                  }}
+                >
+                  <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>{link.label}</Typography>
                   
                 </MuiLink>
               ))}
             </Box>
-          </Box>
-        ))}
-      </Box> */}
+          </Grid>
+
+          {/* CONNECT */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography
+              sx={{
+                fontSize: "1.05rem",
+                fontWeight: 600,
+                mb: 2,
+              }}
+            >
+              Connect
+            </Typography>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>contact@rallitechnologies.online</Typography>
+              <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>+1-888-832-7448</Typography>
+              <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>Mon–Fri, 9AM–6PM EST</Typography>
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Bottom Divider */}
+        <Box
+          sx={{
+            mt: 10,
+            pt: 3,
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            textAlign: "center",
+            opacity: 0.7,
+            fontSize: "0.85rem",
+          }}
+        >
+          © {new Date().getFullYear()} RALLi Technologies. All rights reserved.
+        </Box>
+      </Box>
     </Box>
-  )
+  );
 }

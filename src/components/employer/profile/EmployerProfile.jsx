@@ -10,7 +10,7 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { encode } from "@/helper/GeneralHelpers";
-import UserSyncButton from "@/components/button/UserSyncButton";
+
 
 const EmployerProfile = ({
   data,
@@ -54,7 +54,7 @@ const EmployerProfile = ({
     <Box>
       <Box sx={styles.userDetail}>
         <Avatar alt="Profile" src={data?.photo} sx={styles.avatar} />
-        <UserSyncButton/>
+        {/* <UserSyncButton/> */}
         <Typography sx={styles.name}>
           {data?.first_name ?? ""} {data?.middle_name ?? ""}{" "}
           {data?.last_name ?? ""}

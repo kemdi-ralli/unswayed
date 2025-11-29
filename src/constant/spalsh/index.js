@@ -26,11 +26,11 @@ export const SPLASH_SCREEN_DATA = {
     },
     {
       label: "Privacy Policy",
-      link: "/privacy-and-policy",
+      link: "/privacy-policy",
     },
     {
       label: "Terms & Conditions",
-      link: "/terms-and-conditions",
+      link: "/terms-of-use",
     },
     {
       label: "Contact Us: Contact@Rallitechnologies.online",

@@ -44,7 +44,7 @@ const CreateJobsForm = ({
   jobEditDetail,
   isEdit = false,
 }) => {
-  // --- form default: external_link default to https:// ---
+  // --- form default: job_apply_link default to https:// ---
   const [form, setForm] = useState({
     title: "",
     no_of_positions: "",
@@ -60,6 +60,7 @@ const CreateJobsForm = ({
     skills: [],
     experience_level: "",
     salary: "",
+    salary_max: "",
     salary_period: "Per Month", // default
     requirements: "",
     salary_currency: "",
@@ -67,10 +68,10 @@ const CreateJobsForm = ({
     company_benefits: "", // string
     description: "",
     type: "internal",
-    
+    job_apply_link: "",
   });
 
-  const {externalLink, setExternalLink} = useExternalLink()
+  const { externalLink, setExternalLink } = useExternalLink();
 
   const [currencies, setCurrencies] = useState([]);
   const [jobCategories, setJobCategories] = useState([]);
@@ -100,7 +101,7 @@ const CreateJobsForm = ({
     { name: "Advanced", id: "advanced" },
   ]);
 
-  const [disabled, setdisabled] = useState("")
+  const [disabled, setdisabled] = useState("");
 
   // Salary period options
   const salaryPeriods = [
@@ -222,7 +223,7 @@ const CreateJobsForm = ({
     "Life & Disability Insurance",
     "Commuter Benefits / Transportation Allowance",
     "Stock Options / Equity",
-    "Per Diem"
+    "Per Diem",
   ].map((benefit, index) => ({
     id: index + 1,
     name: benefit,
@@ -295,8 +296,10 @@ const CreateJobsForm = ({
       if (k == null) return null;
       const ks = String(k);
       if (countryToCurrency[ks]) return countryToCurrency[ks];
-      if (countryToCurrency[ks.toUpperCase()]) return countryToCurrency[ks.toUpperCase()];
-      if (countryToCurrency[ks.toLowerCase()]) return countryToCurrency[ks.toLowerCase()];
+      if (countryToCurrency[ks.toUpperCase()])
+        return countryToCurrency[ks.toUpperCase()];
+      if (countryToCurrency[ks.toLowerCase()])
+        return countryToCurrency[ks.toLowerCase()];
       return null;
     };
 
@@ -314,7 +317,8 @@ const CreateJobsForm = ({
           c?.code === countryValue ||
           c?.cca2 === countryValue ||
           c?.country_code === countryValue ||
-          (c?.name && (c.name.common === countryValue || c.name === countryValue))
+          (c?.name &&
+            (c.name.common === countryValue || c.name === countryValue))
       );
       if (found) {
         return (
@@ -353,7 +357,9 @@ const CreateJobsForm = ({
       if (countryValue.name) {
         const foundByName = countries.find(
           (c) =>
-            (c?.name && (c.name.common === countryValue.name || c.name === countryValue.name)) ||
+            (c?.name &&
+              (c.name.common === countryValue.name ||
+                c.name === countryValue.name)) ||
             c?.label === countryValue.name ||
             c?.displayName === countryValue.name
         );
@@ -459,12 +465,15 @@ const CreateJobsForm = ({
         type: jobDetail?.type,
         company_benefits: jobDetail?.company_benefits || "",
         salary: jobDetail?.salary,
+        salary_max: jobDetail?.salary_max,
         salary_period: jobDetail?.salary_period || "Per Month",
         salary_currency: jobDetail?.salary_currency || "",
         company_about: jobDetail?.company_about || "",
+        job_apply_link: jobDetail?.job_apply_link || "",
       });
       setSkills(jobDetail?.skills ?? []);
-      previousCountryRef.current = jobDetail?.country?.id || jobDetail?.country || null;
+      previousCountryRef.current =
+        jobDetail?.country?.id || jobDetail?.country || null;
     }
   }, [jobDetail]);
 
@@ -489,6 +498,7 @@ const CreateJobsForm = ({
         experience_level: jobEditDetail?.experience_level || "",
         skills: jobEditDetail?.skills || [],
         salary: jobEditDetail?.salary || "",
+        salary_max: jobEditDetail?.salary_max || "",
         salary_period: jobEditDetail?.salary_period || "Per Month",
         requirements: jobEditDetail?.requirements || "",
         salary_currency: jobEditDetail?.salary_currency || "",
@@ -496,16 +506,17 @@ const CreateJobsForm = ({
         company_benefits: jobEditDetail?.company_benefits || "",
         description: jobEditDetail?.description || "",
         type: jobEditDetail?.type || "internal",
-        
+        job_apply_link: jobEditDetail?.job_apply_link || "",
       });
       setSkills(jobEditDetail?.skills ?? []);
-      previousCountryRef.current = jobEditDetail?.country?.id || jobEditDetail?.country || null;
+      previousCountryRef.current =
+        jobEditDetail?.country?.id || jobEditDetail?.country || null;
     }
   }, [jobEditDetail]);
 
   const router = useRouter();
 
-  // --- URL helpers for external_link field ---
+  // --- URL helpers for job_apply_link field ---
   const ensureProtocolPrefix = (val) => {
     if (!val || val.trim() === "") return "https://";
     // if already has a scheme like http:// or https:// return as-is
@@ -544,10 +555,10 @@ const CreateJobsForm = ({
   };
 
   const validateForm = async () => {
-    // Validate external_link early (so user sees that suffix error below the field)
+    // Validate job_apply_link early (so user sees that suffix error below the field)
     const extErr = validateExternalLink(externalLink);
     if (extErr) {
-      setFormikErrors((prev) => ({ ...prev, external_link: extErr }));
+      setFormikErrors((prev) => ({ ...prev, job_apply_link: extErr }));
       return false;
     }
 
@@ -693,7 +704,7 @@ const CreateJobsForm = ({
               {/* ---------------------------
                   EXTERNAL LINK (SEPARATE)
                   --------------------------- */}
-              {item.type === "text" && item.name === "external_link" && (
+              {item.type === "text" && item.name === "job_apply_link" && (
                 <Box>
                   <Box
                     component="input"
@@ -703,8 +714,11 @@ const CreateJobsForm = ({
                     onChange={(e) => {
                       const v = e.target.value;
                       // update value but don't validate aggressively while typing
-                      handleChange("external_link", v);
-                      setFormikErrors((prev) => ({ ...prev, external_link: "" }));
+                      handleChange("job_apply_link", v);
+                      setFormikErrors((prev) => ({
+                        ...prev,
+                        job_apply_link: "",
+                      }));
                     }}
                     onBlur={(e) => {
                       // Ensure protocol present (so URL parsing works reliably)
@@ -714,9 +728,12 @@ const CreateJobsForm = ({
                       } else {
                         v = ensureProtocolPrefix(v);
                       }
-                      handleChange("external_link", v);
+                      handleChange("job_apply_link", v);
                       const err = validateExternalLink(v);
-                      setFormikErrors((prev) => ({ ...prev, external_link: err }));
+                      setFormikErrors((prev) => ({
+                        ...prev,
+                        job_apply_link: err,
+                      }));
                     }}
                     sx={{
                       width: "100%",
@@ -735,9 +752,12 @@ const CreateJobsForm = ({
                       },
                     }}
                   />
-                  {formikErrors.external_link && (
-                    <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-                      {formikErrors.external_link}
+                  {formikErrors.job_apply_link && (
+                    <Typography
+                      color="error"
+                      sx={{ fontSize: "12px", mt: "5px" }}
+                    >
+                      {formikErrors.job_apply_link}
                     </Typography>
                   )}
                 </Box>
@@ -746,8 +766,9 @@ const CreateJobsForm = ({
               {/* ---------------------------
                   GENERIC TEXT / NUMBER (non-salary)
                   --------------------------- */}
-              {(item.type === "text" && item.name !== "external_link") ||
+              {(item.type === "text" && item.name !== "job_apply_link") ||
               (item.type === "number" && item.name !== "salary") ||
+              (item.type === "number" && item.name !== "salary_max") ||
               item.type === "url" ? (
                 <Box
                   component="input"
@@ -874,81 +895,125 @@ const CreateJobsForm = ({
           )}
 
           {/* Salary range (two inputs, stored as "min - max") */}
-          {item.type === "number" && item.name === "salary" && (
-  <>
-    <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
-      <Box
-        component="input"
-        type="number"
-        min={0}
-        placeholder="Minimum Salary"
-        value={form.salary || ""}
-        onChange={(e) => {
-          const max = form.salary?.split(" - ")[1] || "";
-          handleChange("salary", e.target.value);
-        }}
-        sx={{
-          flex: 1,
-          boxShadow: "0px 0px 3px 1px #00000040",
-          border: "none",
-          padding: "18px 20px",
-          borderRadius: "10px",
-          fontSize: "16px",
-          fontWeight: 300,
-          lineHeight: "18px",
-          color: "#222222",
-          "&::placeholder": {
-            color: "rgba(0,0,0,0.5)",
-            fontSize: "16px",
-            fontWeight: 400,
-          },
-        }}
-      />
-    </Box>
+          {/* {item.type === "number" && item.name === "salary" && (
+            <>
+              <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
+                <Box
+                  component="input"
+                  type="number"
+                  min={0}
+                  placeholder="Minimum Salary"
+                  value={form.salary || ""}
+                  onChange={(e) => {
+                    const max = form.salary || "";
+                    handleChange("salary", e.target.value);
+                  }}
+                  sx={{
+                    flex: 1,
+                    boxShadow: "0px 0px 3px 1px #00000040",
+                    border: "none",
+                    padding: "18px 20px",
+                    borderRadius: "10px",
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    lineHeight: "18px",
+                    color: "#222222",
+                    "&::placeholder": {
+                      color: "rgba(0,0,0,0.5)",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    },
+                  }}
+                />
+              </Box>
+              
+            </>
+          )} */}
+          {item.type === "number" && item.name === "salary_max" && (
+            <>
+              {/* <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
+                <Box
+                  component="input"
+                  type="number"
+                  min={0}
+                  placeholder="Maximum Salary"
+                  value={form.salary_max || ""}
+                  onChange={(e) => {
+                    const max = form.salary_max || "";
+                    handleChange("salary", e.target.value);
+                  }}
+                  sx={{
+                    flex: 1,
+                    boxShadow: "0px 0px 3px 1px #00000040",
+                    border: "none",
+                    padding: "18px 20px",
+                    borderRadius: "10px",
+                    fontSize: "16px",
+                    fontWeight: 300,
+                    lineHeight: "18px",
+                    color: "#222222",
+                    "&::placeholder": {
+                      color: "rgba(0,0,0,0.5)",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    },
+                  }}
+                />
+              </Box> */}
+              <Box
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  backgroundColor: "#f9f9f9",
+                  borderLeft: "4px solid #1976d2",
+                  borderRadius: "8px",
+                  boxShadow: "0px 0px 4px rgba(0,0,0,0.1)",
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, mb: 1, color: "#222" }}
+                >
+                  Pay Transparency Reminder: Stay Compliant in Your State
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#444", lineHeight: 1.6 }}
+                >
+                  Heads up! Your state may require employers to disclose salary
+                  ranges and benefits in job postings, promotions, or hiring
+                  communications.
+                  <br />
+                  <br />
+                  <strong>State-Specific Compliance Alert:</strong> Depending on
+                  your business location, you may be subject to pay transparency
+                  laws in California, New York, Colorado, Illinois, and other
+                  states. These laws often require:
+                  <ul style={{ margin: "6px 0 0 20px", padding: 0 }}>
+                    <li>Including salary ranges in job ads</li>
+                    <li>
+                      Sharing pay scale information with applicants or employees
+                    </li>
+                    <li>Avoiding salary history inquiries during hiring</li>
+                  </ul>
+                  Non-compliance may result in fines or penalties. Review your
+                  job postings and internal promotion practices to ensure
+                  compliance.
+                  <br />
+                  <br />
+                  <strong>
+                    States with Active Pay Transparency Laws include:
+                  </strong>{" "}
+                  California, Colorado, Connecticut, Hawaii, Illinois, Maryland,
+                  Massachusetts, Minnesota, Nevada, New Jersey, New York, Rhode
+                  Island, Vermont, Washington, and Washington D.C.
+                </Typography>
+              </Box>
+              
+            </>
+          )}
 
-    {/* Pay Transparency Disclaimer */}
-    <Box
-      sx={{
-        mt: 2,
-        p: 2,
-        backgroundColor: "#f9f9f9",
-        borderLeft: "4px solid #1976d2",
-        borderRadius: "8px",
-        boxShadow: "0px 0px 4px rgba(0,0,0,0.1)",
-      }}
-    >
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, mb: 1, color: "#222" }}
-      >
-        Pay Transparency Reminder: Stay Compliant in Your State
-      </Typography>
-      <Typography variant="body2" sx={{ color: "#444", lineHeight: 1.6 }}>
-        Heads up! Your state may require employers to disclose salary ranges and
-        benefits in job postings, promotions, or hiring communications.
-        <br />
-        <br />
-        <strong>State-Specific Compliance Alert:</strong> Depending on your
-        business location, you may be subject to pay transparency laws in
-        California, New York, Colorado, Illinois, and other states. These laws
-        often require:
-        <ul style={{ margin: "6px 0 0 20px", padding: 0 }}>
-          <li>Including salary ranges in job ads</li>
-          <li>Sharing pay scale information with applicants or employees</li>
-          <li>Avoiding salary history inquiries during hiring</li>
-        </ul>
-        Non-compliance may result in fines or penalties. Review your job
-        postings and internal promotion practices to ensure compliance.
-        <br />
-        <br />
-        <strong>States with Active Pay Transparency Laws include:</strong>{" "}
-        California, Colorado, Connecticut, Hawaii, Illinois, Maryland,
-        Massachusetts, Minnesota, Nevada, New Jersey, New York, Rhode Island,
-        Vermont, Washington, and Washington D.C.
-      </Typography>
-    </Box>
-  </>
-)}
+          
 
           {/* Dropdowns */}
           {item.type === "dropdown" && item.name === "job_categories" && (
