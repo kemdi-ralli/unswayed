@@ -24,13 +24,8 @@ const JobsDetails = ({ params }) => {
   };
 
   const handleApplyNow = (data) => {
-    dispatch(setAppliedData(data));
-    if(data?.title === "Data Scientist"){
-      router.push(`https://www.apple.com/careers/us/`);
-    }
-    else{
+    
       router.push(`/applicant/career-areas/job-details/${id}/apply`);
-    }
     
   };
   const getJobsDetails = async () => {
