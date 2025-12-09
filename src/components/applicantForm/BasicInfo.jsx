@@ -537,7 +537,7 @@ const BasicInfo = ({
   const [address, setAddress] = useState("");
   const [details, setDetails] = useState(null);
 
-  const GOOGLE_MAPS_API_KEY = "AIzaSyANustHLajHU4YAtA3PnAs9rhzt7YResIg";
+  const GOOGLE_MAPS_API_KEY = "AIzaSyBEREiN-vfh4N5pGUgAsY2nRYNQARP-oUI";
 
   // 🔑 Extract postal code
   const extractZipCode = (components) => {
