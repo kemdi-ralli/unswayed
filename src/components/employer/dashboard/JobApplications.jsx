@@ -243,7 +243,7 @@ const JobApplications = ({ jobId = null }) => {
               color: "#777",
             }}
           >
-            No data found.
+            Nothing Here To See Yet. Get Started!.
           </Typography>
         </Box>
       )}

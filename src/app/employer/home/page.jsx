@@ -88,7 +88,7 @@ const Page = () => {
             }}
           >
               <Typography variant="h4" color="#666">
-                No data found
+                Nothing Here To See Yet. Get Started!
               </Typography>
           </Box>
         ) : (

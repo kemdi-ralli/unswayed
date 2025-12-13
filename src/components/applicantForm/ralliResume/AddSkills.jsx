@@ -69,7 +69,7 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
             pb: 2,
           }}
         >
-          Add A Skills
+          Add A Skill
         </Typography>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", textAlign: "center" }}>

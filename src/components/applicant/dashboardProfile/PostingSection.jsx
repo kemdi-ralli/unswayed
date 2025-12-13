@@ -226,7 +226,7 @@ const PostingSection = ({
           textAlign="center"
           sx={{ mt: 3, fontSize: "18px", fontWeight: 500, color: "#666" }}
         >
-          No Data Found
+          Nothing Here To See Yet. Get Started!
         </Typography>
       )}
       {getPosts?.map((item, index) => {

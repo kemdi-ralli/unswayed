@@ -8,7 +8,9 @@ import {
   Button,
 } from "@mui/material";
 import AssistantIcon from "@mui/icons-material/Assistant";
-import { CircularProgress } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close";
+import { CircularProgress, Modal, IconButton } from "@mui/material";
 
 import RalliDropdown from "@/components/applicant/applied/RalliDropdown";
 import RalliButton from "@/components/button/RalliButton";
@@ -37,6 +39,76 @@ import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
 import { useSelector } from "react-redux";
 import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
 import { useExternalLink } from "@/hooks/useExternalLink";
+
+const PayTransparencyModal = ({ open, onClose }) => (
+  <Modal open={open} onClose={onClose}>
+    <Box sx={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: { xs: '90%', sm: '600px' },
+      maxHeight: '80vh',
+      overflow: 'auto',
+      bgcolor: 'background.paper',
+      boxShadow: 24,
+      borderRadius: '12px',
+      p: 4
+    }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
+          Pay Transparency Terms
+        </Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      
+      <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8, color: '#333' }}>
+        By posting a job opportunity on UNSWAYED, you agree to the following requirements:
+      </Typography>
+
+      <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+        <Box component="li" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
+            <strong>Salary Disclosure</strong> – Employers are required to provide a salary range or compensation details AND BENEFITS for all job postings on UNSWAYED.
+          </Typography>
+        </Box>
+        
+        <Box component="li" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
+            <strong>Compliance Alignment</strong> – EMPLOYERS ARE ALSO REQUIRED TO COMPLY WITH ALL STATE LAWS IN WHICH THEY DO BUSINESS. This requirement ensures adherence to applicable pay transparency laws where disclosure is mandated.
+          </Typography>
+        </Box>
+        
+        <Box component="li" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
+            <strong>Right to Decline Use</strong> – EMPLOYERS UNDERSTAND THE UNSWAYED PLATFORM OPERATES AS AN INDEPENDENT CONTRACTOR AND MAY REFUSE SERVICE. Employers who do not wish to disclose compensation ARE NOT AUTHORIZED TO use the UNSWAYED platform.
+          </Typography>
+        </Box>
+        
+        <Box component="li" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ lineHeight: 1.8 }}>
+            <strong>Commitment to Fairness</strong> – UNSWAYED is committed to building trust and transparency between employers and job seekers. Requiring compensation information demonstrates fairness, supports equity, and enables informed decision-making for all parties.
+          </Typography>
+        </Box>
+      </Box>
+
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={onClose}
+        sx={{
+          mt: 2,
+          backgroundColor: '#1976d2',
+          '&:hover': { backgroundColor: '#1565c0' }
+        }}
+      >
+        I Understand
+      </Button>
+    </Box>
+  </Modal>
+);
 
 const CreateJobsForm = ({
   data,
@@ -90,6 +162,9 @@ const CreateJobsForm = ({
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedBenefits, setSelectedBenefits] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(false);
+const [loadingCities, setLoadingCities] = useState(false);
+const [showPayTransparencyModal, setShowPayTransparencyModal] = useState(false);
 
   const { userData } = useSelector((state) => state.auth);
   const [userCountry, setUserCountry] = useState("");
@@ -255,30 +330,33 @@ const CreateJobsForm = ({
 
   // --- Dependent dropdowns: states by country ---
   useEffect(() => {
-    if (form?.country) {
-      const getStates = async () => {
-        try {
-          const response = await apiInstance.get(`${STATES}/${form?.country}`);
-          const _states = response?.data?.data?.states || [];
-          const exist = form.states.filter((stateId) =>
-            _states.some((_state) => _state.id === stateId)
-          );
-          if (exist?.length > 0) {
-            handleChange("states", exist);
-          } else {
-            handleChange("states", []);
-          }
-          setStates(_states);
-        } catch (error) {
-          setErrors(error?.response?.data?.message || "Failed to load states");
+  if (form?.country) {
+    const getStates = async () => {
+      setLoadingStates(true); // Add this
+      try {
+        const response = await apiInstance.get(`${STATES}/${form?.country}`);
+        const _states = response?.data?.data?.states || [];
+        const exist = form.states.filter((stateId) =>
+          _states.some((_state) => _state.id === stateId)
+        );
+        if (exist?.length > 0) {
+          handleChange("states", exist);
+        } else {
+          handleChange("states", []);
         }
-      };
-      getStates();
-    } else {
-      handleChange("states", []);
-      setStates([]);
-    }
-  }, [form?.country]);
+        setStates(_states);
+      } catch (error) {
+        setErrors(error?.response?.data?.message || "Failed to load states");
+      } finally {
+        setLoadingStates(false); // Add this
+      }
+    };
+    getStates();
+  } else {
+    handleChange("states", []);
+    setStates([]);
+  }
+}, [form?.country]);
 
   // --- Build CURRENCIES list from countryToCurrency once (unique) ---
   useEffect(() => {
@@ -417,31 +495,34 @@ const CreateJobsForm = ({
   };
 
   // --- Dependent dropdowns: cities by states ---
-  useEffect(() => {
-    if (form?.states?.length > 0) {
-      const getCities = async () => {
-        try {
-          const response = await apiInstance.get(`${CITIES}/[${form?.states}]`);
-          const _cities = response?.data?.data?.cities || [];
-          const exist = form.cities.filter((cityId) =>
-            _cities.some((_city) => _city.id === cityId)
-          );
-          if (exist?.length > 0) {
-            handleChange("cities", exist);
-          } else {
-            handleChange("cities", []);
-          }
-          setCities(_cities);
-        } catch (error) {
-          setErrors(error?.response?.data?.message || "Failed to load cities");
+ useEffect(() => {
+  if (form?.states?.length > 0) {
+    const getCities = async () => {
+      setLoadingCities(true); // Add this
+      try {
+        const response = await apiInstance.get(`${CITIES}/[${form?.states}]`);
+        const _cities = response?.data?.data?.cities || [];
+        const exist = form.cities.filter((cityId) =>
+          _cities.some((_city) => _city.id === cityId)
+        );
+        if (exist?.length > 0) {
+          handleChange("cities", exist);
+        } else {
+          handleChange("cities", []);
         }
-      };
-      getCities();
-    } else {
-      handleChange("cities", []);
-      setCities([]);
-    }
-  }, [form?.states]);
+        setCities(_cities);
+      } catch (error) {
+        setErrors(error?.response?.data?.message || "Failed to load cities");
+      } finally {
+        setLoadingCities(false); // Add this
+      }
+    };
+    getCities();
+  } else {
+    handleChange("cities", []);
+    setCities([]);
+  }
+}, [form?.states]);
 
   // --- Pre-fill when viewing a single job (detail) ---
   useEffect(() => {
@@ -711,6 +792,7 @@ const CreateJobsForm = ({
                     type="text"
                     placeholder={item?.placeHolder || "https://example.com"}
                     value={externalLink ?? ""}
+                    required={item.required}
                     onChange={(e) => {
                       const v = e.target.value;
                       // update value but don't validate aggressively while typing
@@ -853,6 +935,7 @@ const CreateJobsForm = ({
                   sx={{
                     width: "100%",
                     borderRadius: "10px",
+                    marginTop: 2,
                     boxShadow: "0px 0px 3px 1px #00000040",
                     color: "#222222",
                     outline: "none",
@@ -929,90 +1012,45 @@ const CreateJobsForm = ({
               
             </>
           )} */}
-          {item.type === "number" && item.name === "salary_max" && (
-            <>
-              {/* <Box sx={{ display: "flex", gap: 2, mb: "20px" }}>
-                <Box
-                  component="input"
-                  type="number"
-                  min={0}
-                  placeholder="Maximum Salary"
-                  value={form.salary_max || ""}
-                  onChange={(e) => {
-                    const max = form.salary_max || "";
-                    handleChange("salary", e.target.value);
-                  }}
-                  sx={{
-                    flex: 1,
-                    boxShadow: "0px 0px 3px 1px #00000040",
-                    border: "none",
-                    padding: "18px 20px",
-                    borderRadius: "10px",
-                    fontSize: "16px",
-                    fontWeight: 300,
-                    lineHeight: "18px",
-                    color: "#222222",
-                    "&::placeholder": {
-                      color: "rgba(0,0,0,0.5)",
-                      fontSize: "16px",
-                      fontWeight: 400,
-                    },
-                  }}
-                />
-              </Box> */}
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  backgroundColor: "#f9f9f9",
-                  borderLeft: "4px solid #1976d2",
-                  borderRadius: "8px",
-                  boxShadow: "0px 0px 4px rgba(0,0,0,0.1)",
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={{ fontWeight: 600, mb: 1, color: "#222" }}
-                >
-                  Pay Transparency Reminder: Stay Compliant in Your State
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "#444", lineHeight: 1.6 }}
-                >
-                  Heads up! Your state may require employers to disclose salary
-                  ranges and benefits in job postings, promotions, or hiring
-                  communications.
-                  <br />
-                  <br />
-                  <strong>State-Specific Compliance Alert:</strong> Depending on
-                  your business location, you may be subject to pay transparency
-                  laws in California, New York, Colorado, Illinois, and other
-                  states. These laws often require:
-                  <ul style={{ margin: "6px 0 0 20px", padding: 0 }}>
-                    <li>Including salary ranges in job ads</li>
-                    <li>
-                      Sharing pay scale information with applicants or employees
-                    </li>
-                    <li>Avoiding salary history inquiries during hiring</li>
-                  </ul>
-                  Non-compliance may result in fines or penalties. Review your
-                  job postings and internal promotion practices to ensure
-                  compliance.
-                  <br />
-                  <br />
-                  <strong>
-                    States with Active Pay Transparency Laws include:
-                  </strong>{" "}
-                  California, Colorado, Connecticut, Hawaii, Illinois, Maryland,
-                  Massachusetts, Minnesota, Nevada, New Jersey, New York, Rhode
-                  Island, Vermont, Washington, and Washington D.C.
-                </Typography>
-              </Box>
-              
-            </>
-          )}
-
+          <Box
+  sx={{
+    mt: 2,
+    p: 2,
+    backgroundColor: '#e3f2fd',
+    borderLeft: '4px solid #1976d2',
+    borderRadius: '8px',
+    boxShadow: '0px 0px 4px rgba(0,0,0,0.1)',
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 1
+  }}
+>
+  <IconButton
+    onClick={() => setShowPayTransparencyModal(true)}
+    sx={{
+      color: '#1976d2',
+      p: 0.5,
+      '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
+    }}
+  >
+    <InfoIcon />
+  </IconButton>
+  <Box sx={{ flex: 1 }}>
+    <Typography
+      variant="subtitle1"
+      sx={{ fontWeight: 600, mb: 0.5, color: '#1976d2', fontSize: '14px' }}
+    >
+      Pay Transparency Reminder
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{ color: '#555', fontSize: '13px', lineHeight: 1.5 }}
+    >
+      By posting on UNSWAYED, you agree to provide salary ranges and benefits. 
+      Click the info icon to view full terms.
+    </Typography>
+  </Box>
+</Box>
           
 
           {/* Dropdowns */}
@@ -1169,40 +1207,42 @@ const CreateJobsForm = ({
           )}
 
           {item.type === "dropdown" && item.name === "states" && (
-            <Box>
-              <RalliDropdown
-                names={states}
-                multiple={true}
-                label={item.title}
-                required={item.required}
-                selectedValue={form.states || ""}
-                onChange={(value) => handleChange("states", value)}
-              />
-              {formikErrors[item.name] && (
-                <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-                  {formikErrors[item.name]}
-                </Typography>
-              )}
-            </Box>
-          )}
+  <Box>
+    <RalliDropdown
+      names={states}
+      multiple={true}
+      label={item.title}
+      required={item.required}
+      selectedValue={form.states || ""}
+      onChange={(value) => handleChange("states", value)}
+      loading={loadingStates} // Add this prop
+    />
+    {formikErrors[item.name] && (
+      <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+        {formikErrors[item.name]}
+      </Typography>
+    )}
+  </Box>
+)}
 
           {item.type === "dropdown" && item.name === "cities" && (
-            <Box>
-              <RalliDropdown
-                names={cities}
-                multiple={true}
-                label={item?.title}
-                required={item.required}
-                selectedValue={form?.cities || ""}
-                onChange={(value) => handleChange("cities", value)}
-              />
-              {formikErrors[item.name] && (
-                <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
-                  {formikErrors[item.name]}
-                </Typography>
-              )}
-            </Box>
-          )}
+  <Box>
+    <RalliDropdown
+      names={cities}
+      multiple={true}
+      label={item?.title}
+      required={item.required}
+      selectedValue={form?.cities || ""}
+      onChange={(value) => handleChange("cities", value)}
+      loading={loadingCities} // Add this prop
+    />
+    {formikErrors[item.name] && (
+      <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+        {formikErrors[item.name]}
+      </Typography>
+    )}
+  </Box>
+)}
 
           {item.type === "dropdown" && item.name === "company_benefits" && (
             <Box>
@@ -1259,6 +1299,11 @@ const CreateJobsForm = ({
           <RalliButton label="Submit" onClick={createJob} loading={loading} />
         </Box>
       )}
+
+      <PayTransparencyModal
+  open={showPayTransparencyModal}
+  onClose={() => setShowPayTransparencyModal(false)}
+/>
     </Box>
   );
 };

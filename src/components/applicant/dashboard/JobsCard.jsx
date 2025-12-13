@@ -54,7 +54,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
   };
 
   /****************************************************************************************
-   * STEP OUT / STEP IN BUTTON LOGIC
+   * StepOut / StepIn BUTTON LOGIC
    *****************************************************************************************/
   const handleButtonClick = (e) => {
     e.stopPropagation();
@@ -216,7 +216,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             disabled={isRapid ? false : internalDisabled}
           >
             <SendRoundedIcon sx={{ width: "18px", mr: 1 }} />
-            {isRapid ? "Step Out Now (external job link)" : "Step In Now"}
+            {isRapid ? "StepOut Now (external job link)" : "StepIn Now"}
           </Button>
 
           {!isRapid && item?.deadline && new Date(item.deadline) < new Date(today) && (

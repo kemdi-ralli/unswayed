@@ -132,7 +132,7 @@ const MyPosting = ({
 
       {!loading && data?.length === 0 && (
         <Typography textAlign="center" sx={{ mt: 3, fontSize: "18px", fontWeight: 500, color: "#666" }}>
-          No Data Found
+          Nothing Here To See Yet. Get Started!
         </Typography>
       )}
       {data?.map((item, index) => (

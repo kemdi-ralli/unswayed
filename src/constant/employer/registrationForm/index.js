@@ -132,7 +132,7 @@ export const EMPLOYER_EMAIL_VERIFICATIONS = {
   logo: "/assets/images/bootsplash_logo.png",
   title: "Email Verification",
   description:
-    "Please Check Your Email (Junk/SPAM), or Phone For The OTP Verification Code.",
+    "Please Check Your Email (Junk/SPAM) For The OTP Verification Code.",
   form: [
     {
       name: "verification",

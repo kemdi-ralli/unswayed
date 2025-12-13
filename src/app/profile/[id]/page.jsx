@@ -16,23 +16,25 @@ import { useRouter } from "next/navigation";
 import BackButton from "@/components/common/BackButton/BackButton";
 
 const Page = ({ params }) => {
-  const { user: { id = null, type = null } = {} } = useSelector(
-    (state) => state?.auth?.userData || {}
-  );
+  const {
+    user: { id = null, type = null } = {},
+  } = useSelector((state) => state?.auth?.userData || {});
   const { userData } = useSelector((state) => state.auth);
+
   const [Profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const router = useRouter();
   const userId = decode(params?.id);
   const notUser = Object.keys(userData).length === 0;
+
+  const isEmployerViewer = type === "employer";
 
   const FetchApplicantProfile = async () => {
     try {
       const response = await apiInstance.get(`${USER_PROFILE}/${userId}`);
       if (response.status === 200 || response.status === 201) {
         setProfile(response?.data?.data?.user);
-      } else {
-        console.log("Failed to Get Your Profile");
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -77,12 +79,13 @@ const Page = ({ params }) => {
   const onPressFollow = async (_userId) => {
     const formData = new FormData();
     formData.append("following_user_id", _userId);
+
     try {
       const response = await apiInstance.post(FOLLOW_USER, formData);
       if (response.status === 200 || response.status === 201) {
-        setProfile((prevProfile) => ({
-          ...prevProfile,
-          isFollowed: !prevProfile.isFollowed,
+        setProfile((prev) => ({
+          ...prev,
+          isFollowed: !prev.isFollowed,
         }));
         Toast("success", response?.data?.message);
       }
@@ -92,19 +95,15 @@ const Page = ({ params }) => {
   };
 
   const onPressMessage = async (_userId) => {
-    const rawData = {
-      participants: [_userId],
-    };
     try {
-      const response = await apiInstance.post("chats", rawData);
+      const response = await apiInstance.post("chats", {
+        participants: [_userId],
+      });
+
       if (response?.data?.status === "success") {
         const chatId = response?.data?.data?.chat?.id;
         if (chatId) {
-          if (type === "employer") {
-            router.push(`/employer/chat?chatId=${encode(chatId)}`);
-          } else if (type === "applicant") {
-            router.push(`/applicant/chat?chatId=${encode(chatId)}`);
-          }
+          router.push(`/${type}/chat?chatId=${encode(chatId)}`);
         }
       }
     } catch (err) {
@@ -135,7 +134,6 @@ const Page = ({ params }) => {
               <BackButton />
               <EmployerProfile
                 data={Profile}
-                onPressFollow={onPressFollow}
                 onPressMessage={onPressMessage}
               />
             </Container>
@@ -144,8 +142,8 @@ const Page = ({ params }) => {
               <BackButton />
               <ProfileView
                 Profile={Profile}
-                onPressFollow={onPressFollow}
                 onPressMessage={onPressMessage}
+                {...(!isEmployerViewer && { onPressFollow })}
               />
             </>
           )}

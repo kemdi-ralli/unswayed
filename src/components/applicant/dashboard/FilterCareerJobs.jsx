@@ -22,8 +22,8 @@ const FilterCareerJobs = ({
   ]);
 
   const setSkills = (_skills) => {
-    handleDropdownChange("skills", _skills)
-  }
+    handleDropdownChange("skills", _skills);
+  };
 
   return (
     <Box>
@@ -81,11 +81,92 @@ const FilterCareerJobs = ({
         onChange={(value) => handleDropdownChange("experience_level", value)}
       />
 
+      {/* Salary Range Fields */}
       <FormControl
         sx={{
           width: "100%",
           mb: 2,
-          mt: 2,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: 1 }}>
+          Salary Range
+        </Typography>
+        <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontSize: "14px", mb: 0.5, color: "#666" }}>
+              Minimum Salary
+            </Typography>
+            <Box
+              component="input"
+              type="number"
+              min={0}
+              placeholder="Min Salary"
+              value={dropdownStates.salary || ""}
+              onChange={(e) => handleDropdownChange("salary", e.target.value)}
+              sx={{
+                width: "100%",
+                boxShadow: "0px 0px 3px 1px #00000040",
+                border: "none",
+                padding: "14px 16px",
+                borderRadius: "10px",
+                fontSize: "16px",
+                fontWeight: 300,
+                lineHeight: "18px",
+                color: "#222222",
+                "&::placeholder": {
+                  color: "rgba(0, 0, 0, 0.5)",
+                  fontSize: "14px",
+                  fontWeight: 400,
+                },
+                "&:focus": {
+                  outline: "2px solid #00305B",
+                  outlineOffset: "1px",
+                },
+              }}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontSize: "14px", mb: 0.5, color: "#666" }}>
+              Maximum Salary
+            </Typography>
+            <Box
+              component="input"
+              type="number"
+              min={0}
+              placeholder="Max Salary"
+              value={dropdownStates.salary_max || ""}
+              onChange={(e) => handleDropdownChange("salary_max", e.target.value)}
+              sx={{
+                width: "100%",
+                boxShadow: "0px 0px 3px 1px #00000040",
+                border: "none",
+                padding: "14px 16px",
+                borderRadius: "10px",
+                fontSize: "16px",
+                fontWeight: 300,
+                lineHeight: "18px",
+                color: "#222222",
+                "&::placeholder": {
+                  color: "rgba(0, 0, 0, 0.5)",
+                  fontSize: "14px",
+                  fontWeight: 400,
+                },
+                "&:focus": {
+                  outline: "2px solid #00305B",
+                  outlineOffset: "1px",
+                },
+              }}
+            />
+          </Box>
+        </Box>
+      </FormControl>
+
+      <FormControl
+        sx={{
+          width: "100%",
+          mb: 2,
           display: "flex",
           flexDirection: "column",
         }}

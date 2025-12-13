@@ -100,7 +100,7 @@ const ProjectWorked = ({ data, onNext, projects }) => {
         </Box>
       ))}
 
-      <AddAnotherButton onClick={handleAddProjects} label={"Projects"} />
+      <AddAnotherButton onClick={handleAddProjects} label={"Project"} />
       <Box sx={{ pt: 2 }}>
         <RalliButton label="Save & Continue" onClick={handleNext} />
       </Box>

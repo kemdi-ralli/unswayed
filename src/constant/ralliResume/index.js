@@ -48,8 +48,8 @@ export const EDU_INFO_CRUD = {
   ],
 };
 export const EDU_INFO_BY_RALLI = {
-  pages: "Build Your Resume (1 Of 5)",
-  title: "Do You Want To Add Any Education Details",
+  pages: "Build Your Resume (1 of 5)",
+  title: "Do You Want To Add Any Education Details?",
 
   form: [
     {
@@ -94,7 +94,7 @@ export const EDU_INFO_BY_RALLI = {
   ],
 };
 export const ADD_A_RECENT = {
-  pages: "Build Your Resume (2 Of 5)",
+  pages: "Build Your Resume (2 of 5)",
   title: "Do You Want To Add A Recent Job?",
 
   form: [
@@ -118,7 +118,7 @@ export const ADD_A_RECENT = {
     },
     {
       name: "years_of_experience",
-      title: "Years of experience",
+      title: "Years of Experience",
       placeHolder: "experience",
       type: "dropdown",
     },
@@ -165,7 +165,7 @@ export const ADD_A_RECENT = {
   ],
 };
 export const ADD_A_CERTIFICATIONS = {
-  pages: "Build Your Resume (3 Of 5)",
+  pages: "Build Your Resume (3 of 5)",
   title: "Do You Want To Add Certification?",
 
   form: [
@@ -224,8 +224,8 @@ export const ADD_A_CERTIFICATIONS = {
   ],
 };
 export const PROJECT_WORKED = {
-  pages: "Build Your Resume (4 Of 5)",
-  title: "What Poject You Have Worked On ?",
+  pages: "Build Your Resume (4 of 5)",
+  title: "What Projects Have You Worked On?",
 
   form: [
     {
@@ -257,9 +257,9 @@ export const SEARCHABLE_RALLI = {
   ],
 };
 export const ADD_SKILLS = {
-  pages: "Build Your Resume (5 Of 5)",
+  pages: "Build Your Resume (5 of 5)",
   title: "Feel Free to add these skills to get started.",
-  para: "We Recommend Adding At Least 6 Skills",
+  para: "We Recommend Adding At Least 6 Skills.",
 
   skillsBox: {
     title: "do you want to add any of these skills?",

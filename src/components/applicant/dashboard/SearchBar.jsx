@@ -35,17 +35,18 @@ const SearchBar = ({ value = null, onChange = () => { }, onClick = () => { } }) 
                         disableUnderline: true,
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon sx={{ color: "#757575" }} />
+                                <SearchIcon sx={{ color: "#000000" }} />
                             </InputAdornment>
                         ),
                         sx: {
                             color: "#222222",
                             fontSize: "16px",
                             lineHeight: "18px",
-                            fontWeight: 250,
+                            fontWeight: 300,
                             "&::placeholder": {
-                                color: "#757575",
+                                color: "#222222",
                                 fontSize: "14px",
+                                fontWeight: 300,
                                 opacity: 1,
                             },
                         },

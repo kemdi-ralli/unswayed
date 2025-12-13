@@ -66,12 +66,8 @@ const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 
 
   const url = new URL("https://jsearch.p.rapidapi.com/search");
   url.searchParams.append("query", query);
-  // Request a single page of results:
   url.searchParams.append("page", String(page));
-  // Keep num_pages = 1 so we get just one page
   url.searchParams.append("num_pages", "1");
-  // if the API supports page size param you could add it here; jsearch often returns ~10
-  // url.searchParams.append("page_size", String(pageSize));
 
   const headers = {
     "x-rapidapi-key": RAPID_API_KEY,
@@ -113,7 +109,6 @@ const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 
  * - Prefer backend job object when duplicate found
  */
 const mergeAndDedupeJobs = (existingJobs = [], backendJobs = [], rapidJobs = []) => {
-  // Start with existing jobs to preserve order, but rebuild map to dedupe
   const map = new Map();
 
   const keyFor = (j) => {
@@ -123,12 +118,10 @@ const mergeAndDedupeJobs = (existingJobs = [], backendJobs = [], rapidJobs = [])
     return `${title}|${country}|${city}`;
   };
 
-  // add existing (to preserve previously shown)
   existingJobs.forEach((j) => {
     map.set(keyFor(j), j);
   });
 
-  // put backend jobs next — prefer backend if duplicate
   backendJobs.forEach((j) => {
     map.set(keyFor(j), { ...j, _source: j._source || "backend" });
   });
@@ -138,14 +131,13 @@ const mergeAndDedupeJobs = (existingJobs = [], backendJobs = [], rapidJobs = [])
     if (!map.has(k)) {
       map.set(k, j);
     }
-    // if exists (likely backend), keep existing
   });
 
   return Array.from(map.values());
 };
 
 const Page = () => {
-  const [jobs, setJobs] = useState([]); // merged list (appended as we load more)
+  const [jobs, setJobs] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [errors, setErrors] = useState(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
@@ -158,6 +150,8 @@ const Page = () => {
   const [jobShifts, setJobShifts] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [search, setSearch] = useState("");
+  
+  // Updated dropdownStates with salary fields
   const [dropdownStates, setDropdownStates] = useState({
     country: "",
     state: [],
@@ -168,6 +162,8 @@ const Page = () => {
     job_shift: "",
     experience_level: "",
     skills: [],
+    salary: "",
+    salary_max: "",
   });
 
   // Pagination state:
@@ -184,7 +180,6 @@ const Page = () => {
 
   // ---------- fetch one "page" from both sources and append ----------
   const fetchAndAppendJobs = async ({ reset = false, searchQuery = null } = {}) => {
-    // If reset: clear jobs and reset pages to 1
     const query = searchQuery !== null ? searchQuery : search;
     let targetBackendPage = backendPage;
     let targetRapidPage = rapidPage;
@@ -199,13 +194,53 @@ const Page = () => {
 
     setIsLoadingJobs(true);
     try {
-      // 1) backend page
+      // 1) backend page - build query params with filters including salary
+      const params = new URLSearchParams({
+        limit: pageSize.toString(),
+        page: targetBackendPage.toString(),
+        search: encodeURIComponent(query),
+      });
+
+      // Add salary filters if present
+      if (dropdownStates.salary) {
+        params.append("salary", dropdownStates.salary);
+      }
+      if (dropdownStates.salary_max) {
+        params.append("salary_max", dropdownStates.salary_max);
+      }
+
+      // Add other filters as needed
+      if (dropdownStates.country) {
+        params.append("country", dropdownStates.country);
+      }
+      if (Array.isArray(dropdownStates.state) && dropdownStates.state.length > 0) {
+        params.append("state", dropdownStates.state.join(","));
+      }
+      if (dropdownStates.city) {
+        params.append("city", dropdownStates.city);
+      }
+      if (Array.isArray(dropdownStates.job_category) && dropdownStates.job_category.length > 0) {
+        params.append("job_category", dropdownStates.job_category.join(","));
+      }
+      if (dropdownStates.job_location) {
+        params.append("job_location", dropdownStates.job_location);
+      }
+      if (dropdownStates.job_type) {
+        params.append("job_type", dropdownStates.job_type);
+      }
+      if (dropdownStates.job_shift) {
+        params.append("job_shift", dropdownStates.job_shift);
+      }
+      if (dropdownStates.experience_level) {
+        params.append("experience_level", dropdownStates.experience_level);
+      }
+      if (Array.isArray(dropdownStates.skills) && dropdownStates.skills.length > 0) {
+        params.append("skills", dropdownStates.skills.join(","));
+      }
+
       let backendJobs = [];
       try {
-        const resp = await apiInstance.get(
-          `${CAREER_JOBS}?limit=${pageSize}&page=${targetBackendPage}&search=${encodeURIComponent(query)}`
-        );
-        // adapt to your API shape
+        const resp = await apiInstance.get(`${CAREER_JOBS}?${params.toString()}`);
         backendJobs = resp?.data?.data?.jobs || [];
       } catch (err) {
         console.error("Backend CAREER_JOBS fetch failed:", err);
@@ -219,7 +254,7 @@ const Page = () => {
       } catch (err) {
         console.error("RapidAPI fetch failed:", err);
         setErrors((prev) => prev || (err?.message || err));
-        Toast("info", "RapidAPI fetch failed — showing backend jobs only");
+        Toast("info", "RapidAPI fetch failed – showing backend jobs only");
       }
 
       // 3) merge with existing jobs, dedupe
@@ -229,21 +264,16 @@ const Page = () => {
       // 4) compute hasMore:
       const backendHasMore = backendJobs.length === pageSize;
       const rapidHasMore = rapidJobs.length === pageSize;
-      // If either source returned a full page, we consider there's more to request
       setHasMore(backendHasMore || rapidHasMore);
 
-      // If not reset, increment pages for next load
       if (!reset) {
-        // increment each source page only if that source returned a full page (to avoid requesting empty pages)
         if (backendHasMore) setBackendPage((p) => p + 1);
         if (rapidHasMore) setRapidPage((p) => p + 1);
       } else {
-        // if reset and there was more, set next page to 2
         if (backendHasMore) setBackendPage(2);
         if (rapidHasMore) setRapidPage(2);
       }
 
-      // success toast suppressed on load more for less noise
       if (reset) Toast("success", "Filters applied");
     } catch (err) {
       console.error("Error fetching/merging jobs:", err);
@@ -274,14 +304,12 @@ const Page = () => {
 
   // ---------- initial load ----------
   useEffect(() => {
-    // reset = true to ensure pages start from 1
     fetchAndAppendJobs({ reset: true, searchQuery: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ---------- Apply filters (reset listing) ----------
   const applyFilters = async (e, q = null) => {
-    // When filters/search are applied we reset pages and jobs
     setSearch(q === null ? search : q);
     setBackendPage(1);
     setRapidPage(1);
@@ -299,6 +327,8 @@ const Page = () => {
       job_shift: "",
       experience_level: "",
       skills: [],
+      salary: "",
+      salary_max: "",
     });
     setSearch("");
     setBackendPage(1);
@@ -307,7 +337,7 @@ const Page = () => {
     Toast("info", "Filters cleared");
   };
 
-  // ---------- Save / Apply / Card handlers (same as before) ----------
+  // ---------- Save / Apply / Card handlers ----------
   const handleJobSaved = async (id) => {
     const job = jobs.find((j) => j.id === id);
     if (!job) {
@@ -368,7 +398,6 @@ const Page = () => {
 
   // ---------- Load more (called by child) ----------
   const loadMore = async () => {
-    // fetch next "page" and append
     await fetchAndAppendJobs({ reset: false, searchQuery: search });
   };
 

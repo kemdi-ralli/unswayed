@@ -807,14 +807,33 @@ function Navbar({ data }) {
           </IconButton>
 
           {/* IMAGE */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <Image
-              src={overviewSlides[currentSlide]}
-              width={800}
-              height={500}
-              alt="Overview Slide"
-              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "800px", // matches your original width
+                aspectRatio: "800 / 500", // preserves original shape perfectly
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={overviewSlides[currentSlide]}
+                alt="Overview Slide"
+                fill
+                style={{
+                  objectFit: "contain", // prevents elongation
+                }}
+              />
+            </Box>
           </Box>
 
           {/* NAVIGATION */}
@@ -864,14 +883,34 @@ function Navbar({ data }) {
           </IconButton>
 
           {/* IMAGE */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <Image
-              src={bodyLanguageSlides[currentSlide]}
-              width={800}
-              height={500}
-              alt="Overview Slide"
-              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
-            />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "800px", // matches your original width
+                aspectRatio: "800 / 500", // preserves original shape perfectly
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={bodyLanguageSlides[currentSlide]}
+                alt="Overview Slide"
+                fill
+                style={{
+                  objectFit: "contain", // prevents elongation
+                }}
+              />
+            </Box>
           </Box>
 
           {/* NAVIGATION */}
@@ -921,14 +960,33 @@ function Navbar({ data }) {
           </IconButton>
 
           {/* IMAGE */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <Image
-              src={preparationSlides[currentSlide]}
-              width={800}
-              height={500}
-              alt="Overview Slide"
-              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "800px", // matches your original width
+                aspectRatio: "800 / 500", // preserves original shape perfectly
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={preparationSlides[currentSlide]}
+                alt="Overview Slide"
+                fill
+                style={{
+                  objectFit: "contain", // prevents elongation
+                }}
+              />
+            </Box>
           </Box>
 
           {/* NAVIGATION */}
@@ -978,14 +1036,34 @@ function Navbar({ data }) {
           </IconButton>
 
           {/* IMAGE */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <Image
-              src={virtualSlides[currentSlide]}
-              width={800}
-              height={500}
-              alt="Overview Slide"
-              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
-            />
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "800px", // matches your original width
+                aspectRatio: "800 / 500", // preserves original shape perfectly
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={virtualSlides[currentSlide]}
+                alt="Overview Slide"
+                fill
+                style={{
+                  objectFit: "contain", // prevents elongation
+                }}
+              />
+            </Box>
           </Box>
 
           {/* NAVIGATION */}
@@ -1035,14 +1113,35 @@ function Navbar({ data }) {
           </IconButton>
 
           {/* IMAGE */}
-          <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-            <Image
-              src={starSlides[currentSlide]}
-              width={800}
-              height={500}
-              alt="Overview Slide"
-              style={{ width: "100%", height: "auto", borderRadius: "12px" }}
-            />
+          
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "800px", // matches your original width
+                aspectRatio: "800 / 500", // preserves original shape perfectly
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                src={starSlides[currentSlide]}
+                alt="Overview Slide"
+                fill
+                style={{
+                  objectFit: "contain", // prevents elongation
+                }}
+              />
+            </Box>
           </Box>
 
           {/* NAVIGATION */}

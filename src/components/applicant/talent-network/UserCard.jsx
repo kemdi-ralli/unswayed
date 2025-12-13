@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Avatar, Box, Button, Grid, Skeleton, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Grid,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import TalentNetworkTitleSearchable from "./TalentNetworkTitleSearchable";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
@@ -11,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { encode } from "@/helper/GeneralHelpers";
 import { Toast } from "@/components/Toast/Toast";
 import FormTitle from "../dashboard/FormTitle";
+import { useSelector } from "react-redux";
 
 const UserCard = () => {
   const [TalentNetwork, setTalentNetwork] = useState([]);
@@ -18,6 +26,12 @@ const UserCard = () => {
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
+
+  const {
+    user: { type = null } = {},
+  } = useSelector((state) => state?.auth?.userData || {});
+
+  const isEmployer = type === "employer";
 
   const fetchTalent = async () => {
     try {
@@ -59,7 +73,8 @@ const UserCard = () => {
   const onFollow = async (id) => {
     const formData = new FormData();
     formData.append("following_user_id", id);
-    if (formData) {
+
+    try {
       const response = await apiInstance.post(FOLLOW_USER, formData);
       if (response.status === 200 || response.status === 201) {
         setTalentNetwork((prevData) =>
@@ -69,6 +84,8 @@ const UserCard = () => {
         );
         Toast("success", response?.data?.message);
       }
+    } catch (error) {
+      Toast("error", "Failed to update follow status");
     }
   };
 
@@ -80,16 +97,18 @@ const UserCard = () => {
   return (
     <Box>
       <TalentNetworkTitleSearchable
-        label={"Talent Network"}
+        label="Talent Network"
         value={Search}
         setValue={setSearch}
         onSearch={onSearch}
       />
+
       <FormTitle label="Recommended" />
+
       {loading ? (
         <Grid container spacing={2} mt={2}>
           {Array.from(new Array(10)).map((_, index) => (
-            <Grid item xs={12} sm={12} md={4} lg={4} xl={3} key={index}>
+            <Grid item xs={12} md={4} key={index}>
               <Box
                 sx={{
                   display: "flex",
@@ -128,7 +147,7 @@ const UserCard = () => {
       ) : (
         <Grid container spacing={2} mt={2}>
           {TalentNetwork.map((item, index) => (
-            <Grid item xs={12} sm={12} md={4} lg={4} xl={3} key={index}>
+            <Grid item xs={12} md={4} key={index}>
               <Box
                 sx={{
                   display: "flex",
@@ -137,49 +156,36 @@ const UserCard = () => {
                   borderRadius: "5px",
                   boxShadow: "0px 1px 3px #00000040",
                   width: "280px",
-                  cursor: "pointer",
                   height: "300px",
                   mx: "auto",
-                  "@media (min-width: 780px) and (max-width: 995px)": {
-                    width: "230.16px",
-                    height: "270px",
-                  },
-                  "@media (max-width: 340px)": {
-                    width: "235.16px",
-                    height: "270px",
-                  },
+                  cursor: "pointer",
                 }}
-                onClick={() => onClickNetwork(item?.id)}
+                onClick={() => onClickNetwork(item.id)}
               >
-                <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center",my:2 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
                   <Avatar
-                    src={item?.photo ? item.photo : "/assets/images/profile.png"}
+                    src={item?.photo || "/assets/images/profile.png"}
                     sx={{
-                      width: 90, height: 90,
-                      "& img": {
-                        objectFit: "contain",
-                      },
+                      width: 90,
+                      height: 90,
                       border: "1px solid rgba(0, 0, 0, 0.06)",
                     }}
-                    alt="user"
                   />
                 </Box>
+
                 <Typography
                   sx={{
-                    fontSize: { xs: "14px", md: "16px", lg: "18px" },
+                    fontSize: "16px",
                     fontWeight: 600,
-                    lineHeight: "18px",
                     textAlign: "center",
-                    color: "#222222",
                   }}
                 >
-                  {item?.first_name + " " + item?.middle_name + " " + item?.last_name}
+                  {item?.first_name} {item?.middle_name} {item?.last_name}
                 </Typography>
+
                 <Typography
                   sx={{
-                    fontSize: { xs: "12px", md: "14px" },
-                    fontWeight: 400,
-                    lineHeight: "19px",
+                    fontSize: "14px",
                     textAlign: "center",
                     color: "#00305B",
                     textDecoration: "underline",
@@ -187,36 +193,33 @@ const UserCard = () => {
                 >
                   Follower {item?.followers_count}
                 </Typography>
-                <Box sx={{ py: 1 }}>
-                  <Button
-                    sx={{
-                      backgroundColor: !item.isFollowed && "#189e33ff",
-                      minWidth: "151.16px",
-                      height: "46px",
-                      margin: "0px auto",
-                      borderRadius: "6px",
-                      border: "1px solid",
-                      borderColor: !item.isFollowed ? "#189e33ff" : "#00305B",
-                      color: !item.isFollowed ? "#FFFFFF" : "#00305B",
-                      alignItems: "center",
-                      display: "flex",
-                      justifyContent: "center",
-                      mb: 1,
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      lineHeight: "21px",
-                      "@media (min-width: 780px) and (max-width: 880px)": {
-                        minWidth: "111.16px",
-                      },
-                    }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onFollow(item.id);
-                    }}
-                  >
-                    {item.isFollowed ? "UnFollow" : "Follow"}
-                  </Button>
-                </Box>
+
+                {!isEmployer && (
+                  <Box sx={{ py: 1 }}>
+                    <Button
+                      sx={{
+                        backgroundColor: !item.isFollowed && "#189e33ff",
+                        minWidth: "151px",
+                        height: "46px",
+                        mx: "auto",
+                        borderRadius: "6px",
+                        border: "1px solid",
+                        borderColor: !item.isFollowed
+                          ? "#189e33ff"
+                          : "#00305B",
+                        color: !item.isFollowed ? "#FFFFFF" : "#00305B",
+                        fontSize: "14px",
+                        fontWeight: 700,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onFollow(item.id);
+                      }}
+                    >
+                      {item.isFollowed ? "UnFollow" : "Follow"}
+                    </Button>
+                  </Box>
+                )}
               </Box>
             </Grid>
           ))}
