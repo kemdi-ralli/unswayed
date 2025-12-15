@@ -1,12 +1,23 @@
-import React, { useState } from "react";
+"use client"
+
+import React, { useState, useEffect } from "react";
 import { Avatar, Box, Button, Divider, Typography } from "@mui/material";
 import MarkunreadIcon from "@mui/icons-material/Markunread";
 import CallIcon from "@mui/icons-material/Call";
 
-const AboutSection = ({ 
-  data,
-  authUser
- }) => {
+const AboutSection = ({ data, authUser }) => {
+  useEffect(() => {
+  let url;
+
+  if (authUser?.photo instanceof Blob) {
+    url = URL.createObjectURL(authUser.photo);
+  }
+
+  return () => {
+    if (url) URL.revokeObjectURL(url);
+  };
+}, [authUser?.photo]);
+
   const [showFullAbout, setShowFullAbout] = useState(false);
 
   const handleToggleAbout = () => {
@@ -15,8 +26,23 @@ const AboutSection = ({
 
   const getTruncatedAbout = (text, wordLimit) => {
     const words = text.split(" ");
-    return words.length > wordLimit ? words.slice(0, wordLimit).join(" ") + "..." : text;
+    return words.length > wordLimit
+      ? words.slice(0, wordLimit).join(" ") + "..."
+      : text;
   };
+
+  const getSafeImageSrc = (value) => {
+    if (!value) return undefined;
+    if (typeof value === "string") return value;
+
+    // Handle File / Blob safely
+    if (value instanceof Blob) {
+      return URL.createObjectURL(value);
+    }
+
+    return undefined;
+  };
+
   return (
     <>
       <Box
@@ -28,7 +54,10 @@ const AboutSection = ({
       >
         <Box
           sx={{
-            backgroundImage: `url(${data.backgroundImage})`,
+            backgroundImage:
+              typeof data?.backgroundImage === "string"
+                ? `url(${data.backgroundImage})`
+                : "none",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
@@ -46,8 +75,8 @@ const AboutSection = ({
           }}
         >
           <Avatar
-            alt="Remy Sharp"
-            src={authUser?.photo}
+            alt="Profile"
+            src={getSafeImageSrc(authUser?.photo)}
             sx={{
               width: 95,
               height: 95,
@@ -80,17 +109,17 @@ const AboutSection = ({
           >
             {/* {data?.userDetails} */}
             <Typography
-            sx={{
-              fontSize: { xs: "10px", sm: "12px", lg: "16px" },
-              lineHeight: { md: "17px", lg: "22px" },
-              fontWeight: 300,
-              py: 1,
-            }}
-          >
-            {showFullAbout
-              ? authUser?.about
-              : getTruncatedAbout(authUser?.about || "", 50)}
-          </Typography>
+              sx={{
+                fontSize: { xs: "10px", sm: "12px", lg: "16px" },
+                lineHeight: { md: "17px", lg: "22px" },
+                fontWeight: 300,
+                py: 1,
+              }}
+            >
+              {showFullAbout
+                ? authUser?.about
+                : getTruncatedAbout(authUser?.about || "", 50)}
+            </Typography>
           </Typography>
         </Box>
         <Divider />
@@ -157,7 +186,7 @@ const AboutSection = ({
         </Box>
         <Divider />
         <Box sx={{ py: 2 }}>
-          <Box sx={{ mb: "20px", mx:{xs:1, lg:2} }}>
+          <Box sx={{ mb: "20px", mx: { xs: 1, lg: 2 } }}>
             <Box
               sx={{
                 width: "100%",
@@ -212,7 +241,7 @@ const AboutSection = ({
               </Box>
             </Box>
           </Box>
-          <Box sx={{ mb: "20px", mx:{xs:1, lg:2} }}>
+          <Box sx={{ mb: "20px", mx: { xs: 1, lg: 2 } }}>
             <Box
               sx={{
                 width: "100%",
@@ -270,51 +299,51 @@ const AboutSection = ({
         </Box>
       </Box>
       <Box
+        sx={{
+          borderRadius: "15px",
+          backgroundColor: "#FDF7F7",
+          overflow: "hidden",
+          px: 1.7,
+          my: 3,
+          py: 2,
+        }}
+      >
+        <Typography
           sx={{
-            borderRadius: "15px",
-            backgroundColor: "#FDF7F7",
-            overflow: "hidden",
-            px: 1.7,
-            my: 3,
-            py: 2,
+            fontSize: { xs: "16px", sm: "18px", lg: "26px" },
+            lineHeight: { xs: "18px", sm: "18px", md: "18px" },
+            fontWeight: 700,
+            py: 1,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: { xs: "16px", sm: "18px", lg: "26px" },
-              lineHeight: { xs: "18px", sm: "18px", md: "18px" },
-              fontWeight: 700,
-              py: 1,
-            }}
-          >
-            About
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: { xs: "10px", sm: "12px", lg: "16px" },
-              lineHeight: { md: "17px", lg: "22px" },
-              fontWeight: 300,
-              py: 1,
-            }}
-          >
-            {showFullAbout
-              ? authUser?.about
-              : getTruncatedAbout(authUser?.about || "", 50)}
-          </Typography>
-          <Button
-            onClick={handleToggleAbout}
-            variant="text"
-            sx={{
-              fontSize: { xs: "12px", sm: "16px" },
-              lineHeight: { xs: "18px", sm: "18px", md: "18px" },
-              fontWeight: 700,
-              color: "#00305B",
-              pl: -2,
-            }}
-          >
-            {showFullAbout ? "Show Less" : "View Details"}
-          </Button>
-        </Box>
+          About
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: { xs: "10px", sm: "12px", lg: "16px" },
+            lineHeight: { md: "17px", lg: "22px" },
+            fontWeight: 300,
+            py: 1,
+          }}
+        >
+          {showFullAbout
+            ? authUser?.about
+            : getTruncatedAbout(authUser?.about || "", 50)}
+        </Typography>
+        <Button
+          onClick={handleToggleAbout}
+          variant="text"
+          sx={{
+            fontSize: { xs: "12px", sm: "16px" },
+            lineHeight: { xs: "18px", sm: "18px", md: "18px" },
+            fontWeight: 700,
+            color: "#00305B",
+            pl: -2,
+          }}
+        >
+          {showFullAbout ? "Show Less" : "View Details"}
+        </Button>
+      </Box>
     </>
   );
 };
