@@ -45,15 +45,14 @@ const RalliResumeContainer = ({ id }) => {
   const [cities, setCities] = useState([]);
   const [errors, setErrors] = useState(null);
 
-  const [selectedCountry, setSelectedCountry] = useState(null)
-  const [selectedState, setSelectedState] = useState(null)
-  const [selectedCity, setSelectedCity] = useState(null)
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
 
-
-  const [selectedCertifcateCountry, setSelectedCertifcateCountry] = useState(null)
-  const [selectedCertifcateState, setSelectedCertifcateState] = useState(null)
-  const [selectedCertifcateCity, setSelectedCertifcateCity] = useState(null)
-
+  const [selectedCertifcateCountry, setSelectedCertifcateCountry] =
+    useState(null);
+  const [selectedCertifcateState, setSelectedCertifcateState] = useState(null);
+  const [selectedCertifcateCity, setSelectedCertifcateCity] = useState(null);
 
   const [dropdownStates, setDropdownStates] = useState({
     state: "",
@@ -84,8 +83,7 @@ const RalliResumeContainer = ({ id }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-
-console.log(selectedCountry, 'seleltnc count')
+  console.log(selectedCountry, "seleltnc count");
   useEffect(() => {
     const getStates = async () => {
       try {
@@ -100,7 +98,9 @@ console.log(selectedCountry, 'seleltnc count')
   useEffect(() => {
     const getStates = async () => {
       try {
-      const response = await apiInstance?.get(`${COUNTRY_STATES_NAME}/${selectedCountry}`);
+        const response = await apiInstance?.get(
+          `${COUNTRY_STATES_NAME}/${selectedCountry}`
+        );
         setStates(response?.data?.data?.states || []);
       } catch (error) {
         setErrors(error?.response?.data?.message || "Failed to load countries");
@@ -112,7 +112,9 @@ console.log(selectedCountry, 'seleltnc count')
   useEffect(() => {
     const getCities = async () => {
       try {
-        const response = await apiInstance?.get(`${CITIES_STATES_NAME}/${selectedState}`);
+        const response = await apiInstance?.get(
+          `${CITIES_STATES_NAME}/${selectedState}`
+        );
         setCities(response?.data?.data?.cities || []);
       } catch (error) {
         setErrors(error?.response?.data?.message || "Failed to load countries");
@@ -133,16 +135,15 @@ console.log(selectedCountry, 'seleltnc count')
       if (!getEditResumes) {
         setWizardData((prev) => ({
           ...prev,
-          educationDetails: userProfile?.educations?.length
-            ? userProfile.educations.map((edu) => ({
-                grade: edu.grade,
-                degree: edu.degree,
-                end_date: edu.end_date,
-                start_date: edu.start_date,
-                field_of_study: edu.field_of_study,
-                institution_name: edu.institution_name,
-              }))
-            : [{}],
+          educationDetails: userProfile?.educations?.map((edu) => ({
+            grade: edu.grade,
+            degree: edu.degree,
+            end_date: edu.end_date,
+            start_date: edu.start_date,
+            field_of_study: edu.field_of_study,
+            institution_name: edu.institution_name,
+            is_continue: edu.is_continue ?? null,
+          })) || [{}],
         }));
       }
     };
@@ -276,6 +277,7 @@ console.log(selectedCountry, 'seleltnc count')
           start_date: edu.start_date,
           field_of_study: edu.field_of_study,
           institution_name: edu.institution_name,
+          is_continue: edu.is_continue ?? null,
         })) || [{}],
 
         recentJobs: getEditResumes?.meta_data?.experiences?.map((exp) => ({
@@ -334,7 +336,6 @@ console.log(selectedCountry, 'seleltnc count')
         setStates={setStates}
         setCities={setCities}
         totalExperience={totalExperience}
-
       />
       <Certifications
         data={ADD_A_CERTIFICATIONS}

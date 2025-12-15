@@ -10,7 +10,7 @@ import { Toast } from "@/components/Toast/Toast";
 import { CHANGE_EMAIL } from "@/services/apiService/apiEndPoints";
 import { useRouter } from "next/navigation";
 
-const ChangeEmail = () => {
+const ChangeEmail = ({ type }) => {
   const { nextStep } = useWizard();
   const [Email, setEmail] = useState("");
   const [CurrentPassword, setCurrentPassword] = useState("");
@@ -19,21 +19,76 @@ const ChangeEmail = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+  // Restricted domains for employers (personal email providers)
+  const restrictedDomains = [
+    "@gmail.com",
+    "@yahoo.com",
+    "@aol.com",
+    "@comcast.net",
+    "@onmicrosoft.com",
+    "@outlook.com",
+    "@hotmail.com",
+    "@live.com",
+    "@protonmail.com",
+    "@mail.com",
+    "@zoho.com",
+    "@icloud.com",
+  ];
+
+  // Whitelisted domains (allowed even for employers)
+  const whitelistDomains = [
+    "@partner.org",
+    "@affiliate.net",
+  ];
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    if (!emailRegex.test(email)) {
+      return { valid: false, message: "Please enter a valid email address." };
+    }
+
+    // Additional validation for employers
+    if (type === "employer") {
+      const emailLower = email.toLowerCase();
+      
+      // Check if email is in whitelist
+      const isWhitelisted = whitelistDomains.some(domain => 
+        emailLower.endsWith(domain)
+      );
+      
+      if (isWhitelisted) {
+        return { valid: true, message: "" };
+      }
+      
+      // Check if email uses restricted domain
+      const isRestricted = restrictedDomains.some(domain => 
+        emailLower.endsWith(domain)
+      );
+      
+      if (isRestricted) {
+        return { 
+          valid: false, 
+          message: "Personal email addresses are not allowed. Please use your company email address." 
+        };
+      }
+    }
+
+    return { valid: true, message: "" };
   };
 
   const onNext = async () => {
     let isValid = true;
 
-    if (!validateEmail(Email)) {
-      setEmailError("Please enter a valid email address.");
+    // Validate email
+    const emailValidation = validateEmail(Email);
+    if (!emailValidation.valid) {
+      setEmailError(emailValidation.message);
       isValid = false;
     } else {
       setEmailError("");
     }
 
+    // Validate password
     if (!CurrentPassword) {
       setPasswordError("Current password is required");
       isValid = false;
@@ -65,10 +120,10 @@ const ChangeEmail = () => {
     }
   };
 
-    const router = useRouter();
-    const handleBack = () => {
-      router.back();
-    };
+  const router = useRouter();
+  const handleBack = () => {
+    router.back();
+  };
 
   return (
     <Box>
@@ -77,7 +132,7 @@ const ChangeEmail = () => {
         <TextInput
           Label="New Email Address"
           required={true}
-          placeholder="Enter Email"
+          placeholder={type === "employer" ? "Enter Company Email" : "Enter Email"}
           value={Email}
           setValue={setEmail}
           error={!!emailError}
@@ -88,12 +143,16 @@ const ChangeEmail = () => {
             {emailError}
           </Typography>
         )}
+        {type === "employer" && !emailError && (
+          <Typography color="text.secondary" fontSize="0.85rem" mt={1}>
+            Company email addresses only. Personal email providers (Gmail, Yahoo, etc.) are not allowed.
+          </Typography>
+        )}
         <TextInput
           Label="Current Password"
           placeholder="Enter Current Password"
           type="password"
           required={true}
-
           value={CurrentPassword}
           setValue={setCurrentPassword}
           error={!!passwordError}

@@ -210,18 +210,6 @@ const Page = () => {
   };
 
   // edit my post work
-  // const imageUrlToBlob = async (url) => {
-  //   return fetch(url)
-  //     .then(response => response.blob())  // Fetch the image and convert it to a Blob
-  //     .then(blob => {
-  //       // Now you have the image as a Blob object
-  //       console.log(blob);
-  //       return blob;
-  //     })
-  //     .catch(error => {
-  //       console.error("Error fetching the image: ", error);
-  //     });
-  // }
   const handleEditPost = async (id) => {
     handleMenuClose();
     const selectedPost = getMyPostsReels?.find((item) => item.id === id);
@@ -229,13 +217,6 @@ const Page = () => {
     setIsCreatePost(false);
     setOpenModal(true);
     if (selectedPost?.media) {
-      // const blob = await imageUrlToBlob(selectedPost?.media).then(blob => {
-      //   // You can use the blob here, for example, create an Object URL
-      //   const objectURL = URL.createObjectURL(blob);
-      //   console.log(objectURL);
-      //   return blob;
-      // });
-      // setMedia(blob);
       setMedia(selectedPost?.media);
     } else {
       setMedia();
@@ -250,6 +231,7 @@ const Page = () => {
       postType: selectedPost?.type || "post",
     }));
   };
+  
   useEffect(() => {
     if (!isEdit) {
       setMediaPreview();
@@ -258,6 +240,7 @@ const Page = () => {
       setInputValue("");
     }
   }, [dropdownStates.postType])
+  
   //Not Ineresting post and reels api work
   const [notInterest, setNotInterest] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -301,6 +284,7 @@ const Page = () => {
       }
     }
   };
+  
   const handlePost = async () => {
     if (!dropdownStates.postType) {
       Toast("warning", "Please select a post type.");
@@ -393,17 +377,30 @@ const Page = () => {
     }
   };
 
+  const getType = useSelector((state) => state?.auth?.userData?.user?.type);
+
   const getPostAndReels = async () => {
     setLoading(true);
     try {
-      const response = await apiInstance.get(
-        `/feeds?type=${getTab}&limit=10&page=1`
-      );
+      // Build the query parameters
+      let queryParams = `/feeds?type=${getTab}&limit=10&page=1`;
+      
+      // If user is employer and viewing reels, filter for only applicant reels
+      if (getType === 'employer' && getTab === 'reel') {
+        queryParams += '&user_type=applicant';
+      }
+      
+      const response = await apiInstance.get(queryParams);
       const finalData = response?.data?.data?.feed;
+      
       if (getTab === "post") {
         setGetPosts(finalData);
       } else if (getTab === "reel") {
-        setGetReels(finalData);
+        // Additional client-side filtering as a safety measure
+        const filteredReels = getType === 'employer' 
+          ? finalData?.filter(reel => reel?.user?.type === 'applicant' || reel?.user_type === 'applicant')
+          : finalData;
+        setGetReels(filteredReels || finalData);
       }
     } catch (err) {
       console.log(err.message);
@@ -424,6 +421,7 @@ const Page = () => {
       setLoading(false);
     }
   };
+  
   const handleCommentClick = (id) => {
     var encodeId = encode(id);
     router.push(`/feed/${encodeId}`);
@@ -437,10 +435,11 @@ const Page = () => {
       setIsCreatePost(true);
     }
   };
+  
   const handleClose = () => {
     setOpenModal(false);
     setIsCreatePost(false),
-      setIsEdit(false);
+    setIsEdit(false);
     setIsShareModalOpen(false);
     setDropdownStates((prev) => ({
       ...prev,
@@ -469,8 +468,8 @@ const Page = () => {
     }
   }, [notInterest]);
 
-  const getType = useSelector((state) => state?.auth?.userData?.user?.type);
   const authUser = useSelector((state) => state?.auth?.userData?.user);
+  
   const fetchProfile = async () => {
     try {
       const url = getType === 'applicant' ? GET_PROFILE : EMPLOYER_GET_PROFILE
@@ -484,9 +483,11 @@ const Page = () => {
       setLoading(false);
     }
   };
+  
   useEffect(() => {
     fetchProfile();
   }, []);
+  
   return (
     <Suspense
       fallback={

@@ -76,7 +76,7 @@ const EducationInfo = ({ data, formData, onFieldChange, onSubmit }) => {
               sx={{ color: "#00305B", fontSize: 32 }}
             />
           </Button>
-          <Image src={data?.logo} width={70} height={140} alt="logo" />
+          <Image src={data?.logo} width={70} height={70} alt="logo" />
         </Box>
         <FormTitle label={data?.title} />
         {data.form.map((item) => (

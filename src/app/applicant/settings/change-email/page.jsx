@@ -10,7 +10,7 @@ const Page = () => {
   return (
       <Container>
         <Wizard>
-          <ChangeEmail data={CHANGE_EMAIL} />
+          <ChangeEmail data={CHANGE_EMAIL} type="applicant" />
           <VerifyNumber type={"email"} />
         </Wizard>
       </Container>

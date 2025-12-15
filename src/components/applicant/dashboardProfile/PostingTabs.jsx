@@ -4,6 +4,7 @@ import { Box, CircularProgress } from "@mui/material";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Image from "next/image";
 const PostingSection = lazy(() => import("./PostingSection"));
 const ReelsPosting = lazy(() => import("./ReelsPosting"));
 const MyPosting = lazy(() => import("./MyPosting"));

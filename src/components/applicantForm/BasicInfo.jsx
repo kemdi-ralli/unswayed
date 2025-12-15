@@ -109,6 +109,11 @@ const BasicInfo = ({
 
   const mergedErrors = { ...validationErrors, ...errors };
 
+  // Automatically show UCN modal when component mounts
+  useEffect(() => {
+    setShowUCNModal(true);
+  }, []);
+
   const validateForm = async () => {
     try {
       const schema = pathName.includes("/employer")
@@ -229,7 +234,6 @@ const BasicInfo = ({
             alignItems: "center",
             justifyContent: "center",
             gap: 1,
-            
           }}
         >
           <FormTitle label={data?.title} />
@@ -237,7 +241,6 @@ const BasicInfo = ({
             onClick={() => setShowUCNModal(true)}
             sx={{
               color: "#00305B",
-              
               "&:hover": {
                 backgroundColor: "rgba(0, 48, 91, 0.08)",
               },
@@ -509,7 +512,7 @@ const BasicInfo = ({
         </Box>
       </Box>
 
-      {/* UCN Disclaimer Modal */}
+      {/* UCN Disclaimer Modal - Auto-opens on mount */}
       <UCNDisclaimerModal
         open={showUCNModal}
         onClose={() => setShowUCNModal(false)}

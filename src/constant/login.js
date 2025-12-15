@@ -3,7 +3,7 @@ export const APPLICANT_LOGIN_DATA = {
   logo: "/assets/images/logo-round.png",
   title: "A Place to share knowledge and better understand the world",
   // paragraph: 'By Continuing You Indicate That You Agree To RALLI <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Terms Of Service </span> And <span style="font-size: 16px; line-height: 22px; font-weight: 400; color: blue;">Privacy Policy</span>.',
-  paragraph: `By Continuing You Indicate That You Agree To RALLI 
+  paragraph: `By Continuing You Indicate That You Agree To RALLi
 <a href="/terms-of-use" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
 And 
 <a href="/privacy-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
@@ -36,7 +36,7 @@ And
       placeholder: "Your password",
     },
   ],
-  forgetPasswordLable: "Forget Password?",
+  forgetPasswordLable: "Forgot Password?",
   buttonLable: "Login",
   continueWith: {
     label: "Continue With Employer",
@@ -47,7 +47,7 @@ export const EMPLOYER_LOGIN_DATA = {
   loginType: "Employer Login",
   logo: "/assets/images/logo-round.png",
   title: "A Place to share knowledge and better understand the world",
-  paragraph: `By Continuing You Indicate That You Agree To RALLI 
+  paragraph: `By Continuing You Indicate That You Agree To RALLi
 <a href="/terms-of-use" style="color: blue; text-decoration: underline;">Terms Of Service</a> 
 And 
 <a href="/privacy-policy" style="color: blue; text-decoration: underline;">Privacy Policy</a>.`,
@@ -81,7 +81,7 @@ And
       placeholder: "Your password",
     },
   ],
-  forgetPasswordLable: "Forget Password?",
+  forgetPasswordLable: "Forgot Password?",
   buttonLable: "Login",
   continueWith: {
     label: "Continue With Applicant",

@@ -65,7 +65,7 @@ const PayTransparencyModal = ({ open, onClose }) => (
           mb: 2,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#1976d2" }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "#001C63" }}>
           Pay Transparency Terms
         </Typography>
         <IconButton onClick={onClose} size="small">
@@ -124,7 +124,7 @@ const PayTransparencyModal = ({ open, onClose }) => (
         onClick={onClose}
         sx={{
           mt: 2,
-          backgroundColor: "#1976d2",
+          backgroundColor: "#001C63",
           "&:hover": { backgroundColor: "#1565c0" },
         }}
       >
@@ -869,10 +869,6 @@ const CreateJobsForm = ({
                   )}
                 </Box>
               )}
-
-              {/* ---------------------------
-                  GENERIC TEXT / NUMBER (non-salary)
-                  --------------------------- */}
               {(item.type === "text" && item.name !== "job_apply_link") ||
               (item.type === "number" && item.name !== "salary") ||
               (item.type === "number" && item.name !== "salary_max") ||
@@ -1044,7 +1040,7 @@ const CreateJobsForm = ({
                 mt: 2,
                 p: 2,
                 backgroundColor: "#e3f2fd",
-                borderLeft: "4px solid #1976d2",
+                borderLeft: "4px solid #001C63",
                 borderRadius: "8px",
                 boxShadow: "0px 0px 4px rgba(0,0,0,0.1)",
                 display: "flex",
@@ -1055,7 +1051,7 @@ const CreateJobsForm = ({
               <IconButton
                 onClick={() => setShowPayTransparencyModal(true)}
                 sx={{
-                  color: "#1976d2",
+                  color: "#001C63",
                   p: 0.5,
                   "&:hover": { backgroundColor: "rgba(25, 118, 210, 0.08)" },
                 }}
@@ -1068,7 +1064,7 @@ const CreateJobsForm = ({
                   sx={{
                     fontWeight: 600,
                     mb: 0.5,
-                    color: "#1976d2",
+                    color: "#001C63",
                     fontSize: "14px",
                   }}
                 >
