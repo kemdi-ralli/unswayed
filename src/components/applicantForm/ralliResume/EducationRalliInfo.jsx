@@ -74,9 +74,22 @@ const EducationRalliInfo = ({ data, onNext, educationDetails }) => {
           {(data?.form || [])
             .filter(item => index === 0 || item.name !== "is_continue")
             .map((item) => {
-              if (item.name === "is_continue") {
-                return (
-                  <Box key={item.name} sx={{ mb: "20px" }}>
+              // if (item.name === "is_continue") {
+              //   return (
+                  
+              //   );
+              // }
+              // Render other fields using FormField
+              return (
+                <>
+                <FormField
+                  key={item.name}
+                  item={item}
+                  form={form}
+                  index={index}
+                  handleChange={handleChange}
+                />
+                <Box key={item.name} sx={{ mb: "20px" }}>
                     <Typography
                       sx={{
                         fontSize: "16px",
@@ -146,17 +159,9 @@ const EducationRalliInfo = ({ data, onNext, educationDetails }) => {
                       />
                     </Box>
                   </Box>
-                );
-              }
-              // Render other fields using FormField
-              return (
-                <FormField
-                  key={item.name}
-                  item={item}
-                  form={form}
-                  index={index}
-                  handleChange={handleChange}
-                />
+                </>
+                
+
               );
             })}
         </Box>

@@ -3,6 +3,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
+import { CircularProgress } from "@mui/material";
 import { Box, Typography, Checkbox, ListItemText, Button } from "@mui/material";
 
 const ITEM_HEIGHT = 60;
@@ -27,6 +28,8 @@ export default function RalliDropdown({
   onChange,
   onAdd, // new callback for Add button
   required,
+  isLoadingCities,
+  isLoadingStates
 }) {
   const [open, setOpen] = useState(false); // control dropdown open/close
 
@@ -49,7 +52,7 @@ export default function RalliDropdown({
     <FormControl
       sx={{
         width: "100%",
-        mb: 1,
+        mb: 3,
         display: "flex",
         flexDirection: "column",
       }}
@@ -79,6 +82,7 @@ export default function RalliDropdown({
         multiple={multiple}
         value={selectedValue}
         onChange={handleChange}
+        disabled={isLoadingCities || isLoadingStates}
         open={open}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
@@ -97,11 +101,16 @@ export default function RalliDropdown({
             return selectedItems.join(", ");
           }
 
+          if(isLoadingCities || isLoadingStates) {
+            return <CircularProgress size={18} />
+          }
+
           const selectedItem = names.find((item) => item.id === selected);
           return selectedItem ? selectedItem.name : selected;
         }}
         MenuProps={MenuProps}
         inputProps={{ "aria-label": "Without label" }}
+        
       >
         <MenuItem disabled value="" sx={{ fontSize: "13px" }}>
           <em>Select Item</em>

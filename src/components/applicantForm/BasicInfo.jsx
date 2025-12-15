@@ -227,8 +227,9 @@ const BasicInfo = ({
           sx={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
             gap: 1,
-            mb: 2,
+            
           }}
         >
           <FormTitle label={data?.title} />
@@ -236,7 +237,7 @@ const BasicInfo = ({
             onClick={() => setShowUCNModal(true)}
             sx={{
               color: "#00305B",
-              padding: "4px",
+              
               "&:hover": {
                 backgroundColor: "rgba(0, 48, 91, 0.08)",
               },

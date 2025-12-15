@@ -7,6 +7,7 @@ import FilterCareerJobs from "../applicant/dashboard/FilterCareerJobs";
 import { usePathname } from "next/navigation";
 import AddEducation from "../applicant/profile/AddEducation";
 
+
 const style = {
   position: "absolute",
   top: "50%",
@@ -57,7 +58,9 @@ const RalliModal = ({
   data,
   handleBack,
   educationErrors,
-  setEducationErrors
+  setEducationErrors,
+  isLoadingCities,
+  isLoadingStates,
 
 }) => {
   const pathName = usePathname();
@@ -123,6 +126,9 @@ const RalliModal = ({
             jobLocations={jobLocations}
             jobShifts={jobShifts}
             jobTypes={jobTypes}
+            isLoadingStates={isLoadingStates}
+            isLoadingCities={isLoadingCities}
+
           />
         )}
         {pathName === "/applicant/profile" && (

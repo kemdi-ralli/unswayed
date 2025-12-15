@@ -155,8 +155,9 @@ const UserCard = () => {
                   justifyContent: "space-between",
                   borderRadius: "5px",
                   boxShadow: "0px 1px 3px #00000040",
-                  width: "280px",
-                  height: "300px",
+                  width: "180px",
+                  height: "200px",
+                  padding: "20px",
                   mx: "auto",
                   cursor: "pointer",
                 }}

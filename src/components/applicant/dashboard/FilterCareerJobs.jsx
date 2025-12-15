@@ -13,6 +13,8 @@ const FilterCareerJobs = ({
   jobLocations,
   jobShifts,
   jobTypes,
+  isLoadingCities,
+  isLoadingStates
 }) => {
   const [experienceLevel, setExperienceLevel] = useState([
     { name: "Entry", id: "entry" },
@@ -39,12 +41,14 @@ const FilterCareerJobs = ({
         multiple={true}
         selectedValue={dropdownStates?.state}
         onChange={(value) => handleDropdownChange("state", value)}
+        isLoadingStates={isLoadingStates}
       />
       <RalliDropdown
         names={cities}
         label="City"
         selectedValue={dropdownStates?.city}
         onChange={(value) => handleDropdownChange("city", value)}
+        isLoadingCities={isLoadingCities}
       />
       <RalliDropdown
         names={jobCategories}

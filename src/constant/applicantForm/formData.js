@@ -93,7 +93,7 @@ export const EDU_INFO = {
             placeHolder:'Bachelors'
         },
         {
-            label: 'Field Of Study',
+            label: 'Field of Study',
             name:'field_of_study',
             placeHolder:'Computer Science'
         },

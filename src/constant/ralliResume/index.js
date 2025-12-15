@@ -15,7 +15,7 @@ export const EDU_INFO_CRUD = {
     },
     {
       name: "field_of_study",
-      title: "Field Of Study",
+      title: "Field of Study",
       placeHolder: "Computer Science",
       type: "field",
     },
@@ -66,7 +66,7 @@ export const EDU_INFO_BY_RALLI = {
     },
     {
       name: "field_of_study",
-      title: "Field Of Study",
+      title: "Field of Study",
       placeHolder: "Computer Science",
       type: "field",
     },

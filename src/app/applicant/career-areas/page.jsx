@@ -32,6 +32,8 @@ const RalliModal = lazy(() => import("@/components/Modal/RalliModal"));
  * - now accepts a `page` param (1-indexed) and `pageSize` (num results per page)
  * - returns one page worth of mapped jobs (empty array if none)
  */
+
+
 const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 10) => {
   const RAPID_API_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
   if (!RAPID_API_KEY) {
@@ -150,6 +152,9 @@ const Page = () => {
   const [jobShifts, setJobShifts] = useState([]);
   const [jobTypes, setJobTypes] = useState([]);
   const [search, setSearch] = useState("");
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
+const [isLoadingCities, setIsLoadingCities] = useState(false);
+
   
   // Updated dropdownStates with salary fields
   const [dropdownStates, setDropdownStates] = useState({
@@ -301,6 +306,115 @@ const Page = () => {
     };
     fetchData();
   }, []);
+
+  // ---------- STATES (US + NON-US) ----------
+useEffect(() => {
+  const US_STATES = [
+    "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
+    "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+    "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
+    "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada",
+    "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
+    "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
+    "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
+    "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
+  ];
+
+  const US_INHABITED_TERRITORIES = [
+    "American Samoa",
+    "Guam",
+    "Northern Mariana Islands",
+    "Puerto Rico",
+    "U.S. Virgin Islands",
+  ];
+
+  const US_UNINHABITED_TERRITORIES = [
+    "Baker Island","Howland Island","Jarvis Island","Johnston Atoll",
+    "Kingman Reef","Midway Atoll","Navassa Island","Palmyra Atoll","Wake Island",
+  ];
+
+  
+
+  const fetchStates = async () => {
+    setIsLoadingStates(true);
+    try {
+      // 🇺🇸 UNITED STATES (country id = 233)
+      // if (dropdownStates?.country === 233) {
+      //   const allStates = [
+      //     ...US_STATES,
+      //     ...US_INHABITED_TERRITORIES,
+      //     ...US_UNINHABITED_TERRITORIES,
+      //   ]
+      //     .sort()
+      //     .map((name) => ({ id: name, name }));
+      //   setStates(allStates);
+      //   setIsLoadingStates(false);
+      //   return;
+      // }
+
+      // 🌍 NON-US COUNTRIES
+      if (dropdownStates?.country) {
+        const countryStates = await getStates(dropdownStates.country);
+        setStates(countryStates || []);
+        setIsLoadingStates(false);
+        return;
+      }
+
+      // ❌ NO COUNTRY SELECTED
+      setStates([]);
+    } catch (error) {
+      console.error("Error fetching states:", error);
+      setErrors(error);
+      setStates([]);
+    } finally {
+      // Always reset dependent fields
+      handleDropdownChange("state", []);
+      handleDropdownChange("city", "");
+      setCities([]);
+      setIsLoadingStates(false);
+setIsLoadingCities(false);
+
+    }
+  };
+
+  fetchStates();
+}, [dropdownStates?.country]);
+
+// ---------- CITIES ----------
+useEffect(() => {
+  const fetchCities = async () => {
+    try {
+      if (
+        Array.isArray(dropdownStates?.state) &&
+        dropdownStates.state.length > 0
+      ) {
+        setIsLoadingCities(true);
+        const stateNames = dropdownStates.state.map((s) =>
+          typeof s === "object" ? s.name : s
+        );
+
+        const cityData = await getCities(stateNames);
+        setCities(cityData || []);
+        setIsLoadingCities(false);
+        return;
+      }
+
+      setCities([]);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+      setErrors(error);
+      setCities([]);
+    } finally {
+      handleDropdownChange("city", "");
+      setIsLoadingStates(false);
+setIsLoadingCities(false);
+
+    }
+  };
+
+  fetchCities();
+}, [dropdownStates?.state]);
+
 
   // ---------- initial load ----------
   useEffect(() => {
@@ -484,6 +598,8 @@ const Page = () => {
               jobShifts={jobShifts}
               jobTypes={jobTypes}
               onClick={applyFilters}
+              isLoadingStates={isLoadingStates}
+  isLoadingCities={isLoadingCities}
             />
 
             <ApplicantJobDetails

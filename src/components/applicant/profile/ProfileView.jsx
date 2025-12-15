@@ -208,6 +208,7 @@ const ProfileView = ({
               my: 4,
             }}
           >
+            {/* {!Profile == }
             <Button
               sx={{
                 width: { xs: "70%", sm: "130px", md: "200px" },
@@ -221,7 +222,7 @@ const ProfileView = ({
               onClick={() => onPressFollow(Profile.id)}
             >
               {Profile?.isFollowed ? "UnFollow" : "Follow"}
-            </Button>
+            </Button> */}
             <Button
               sx={{
                 width: { xs: "70%", sm: "130px", md: "200px" },
@@ -363,7 +364,7 @@ const ProfileView = ({
               </Box>
               <UserDetail label="Degree" value={el?.degree} isAddEdu={true} />
               <UserDetail
-                label="Field Of Study"
+                label="Field of Study"
                 value={el?.field_of_study}
                 isAddEdu={true}
               />
