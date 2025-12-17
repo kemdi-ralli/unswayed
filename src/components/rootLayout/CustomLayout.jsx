@@ -83,7 +83,6 @@ export default function CustomLayout({ children }) {
       }}
     >
       {!hiddenNavbarRoutes.includes(pathname) &&
-        isAuthenticated &&
         (userType === "employer" ? (
           <EmployerNavbar data={EMPLOYER_NAVBAR_DATA} />
         ) : (
@@ -92,7 +91,7 @@ export default function CustomLayout({ children }) {
 
       <Box sx={{ flex: 1 }}>{children}</Box>
 
-      {!hiddenNavbarRoutes.includes(pathname) && isAuthenticated && (
+      {!hiddenNavbarRoutes.includes(pathname) && (
         <Footer data={FOOTER_DATA} />
       )}
 
