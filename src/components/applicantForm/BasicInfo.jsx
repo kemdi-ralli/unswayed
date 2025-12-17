@@ -65,11 +65,14 @@ const UCNDisclaimerModal = ({ open, onClose }) => (
         </IconButton>
       </Box>
 
-      <Typography variant="body1" sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}>
-        <strong>Note:</strong> A Unique Candidate Number (UCN) is issued for this
-        application. The employer cannot collect or utilize any information that
-        could introduce bias, as we are dedicated solely to merit-based hiring
-        based on your skills and qualifications.
+      <Typography
+        variant="body1"
+        sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
+      >
+        <strong>Note:</strong> A Unique Candidate Number (UCN) is issued for
+        this application. The employer cannot collect or utilize any information
+        that could introduce bias, as we are dedicated solely to merit-based
+        hiring based on your skills and qualifications.
       </Typography>
 
       <Button
@@ -213,7 +216,9 @@ const BasicInfo = ({
           }}
         >
           <Button onClick={handleBack} sx={{ minWidth: 0, p: 0 }}>
-            <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
+            <ArrowCircleLeftRoundedIcon
+              sx={{ color: "#00305B", fontSize: 32 }}
+            />
           </Button>
           <Image
             src={data?.logo}
@@ -324,15 +329,24 @@ const BasicInfo = ({
                       minWidth: "120px",
                     }}
                   >
-                    {countryTelephoneData.allCountries.map((country) => (
-                      <MenuItem key={country.iso2} value={`+${country.dialCode}`}>
-                        <Flag
-                          code={country.iso2.toUpperCase()}
-                          style={{ width: 20, marginRight: 8 }}
-                        />
-                        {country.name} +{country.dialCode}
-                      </MenuItem>
-                    ))}
+                    {countryTelephoneData.allCountries
+                      .filter(
+                        (country) =>
+                          country.name !==
+                          "United States Minor Outlying Islands"
+                      )
+                      .map((country) => (
+                        <MenuItem
+                          key={country.iso2}
+                          value={`+${country.dialCode}`}
+                        >
+                          <Flag
+                            code={country.iso2.toUpperCase()}
+                            style={{ width: 20, marginRight: 8 }}
+                          />
+                          {country.name} +{country.dialCode}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
 
@@ -351,7 +365,9 @@ const BasicInfo = ({
                     placeholder={item.placeHolder || "Enter phone number"}
                     value={formData.phoneNumber || ""}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      const value = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10);
                       onFieldChange("phoneNumber", value);
                       onFieldChange(
                         item.name,
