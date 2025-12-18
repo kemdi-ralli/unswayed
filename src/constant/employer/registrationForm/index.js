@@ -1,6 +1,6 @@
 export const BASIC_REGISTRATION = {
   logo: "/assets/images/bootsplash_logo.png",
-  title: "Company Registration Continued",
+  title: "Company Registration",
   form: [
     {
       label: "Phone Number",

@@ -69,10 +69,7 @@ const UCNDisclaimerModal = ({ open, onClose }) => (
         variant="body1"
         sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
       >
-        <strong>Note:</strong> A Unique Candidate Number (UCN) is issued for
-        this application. The employer cannot collect or utilize any information
-        that could introduce bias, as we are dedicated solely to merit-based
-        hiring based on your skills and qualifications.
+        <strong>Note:</strong> A Unique Candidate Number (UCN) is automatically assigned when an applicant submits their application through StepIn Now. For these applications, employers may not collect, request, or use any information that could introduce bias into the hiring process. UNSWAYED is committed to merit-based hiring, and all hiring decisions under this process must be based solely on an applicant’s skills, qualifications, and job-related experience.
       </Typography>
 
       <Button
@@ -268,40 +265,60 @@ const BasicInfo = ({
             </Typography>
 
             {/* Field Types */}
-            {item.name === "dob" ? (
-              // 🗓️ Date Picker
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker
-                  views={["year", "month", "day"]}
-                  value={
-                    formData[item.name] ? dayjs(formData[item.name]) : null
-                  }
-                  onChange={(date) =>
-                    onFieldChange(
-                      item.name,
-                      date ? dayjs(date).format("YYYY-MM-DD") : ""
-                    )
-                  }
-                  maxDate={dayjs()}
-                  slotProps={{
-                    textField: {
-                      placeholder: item.placeHolder,
-                      sx: {
-                        width: "100%",
-                        borderRadius: "10px",
-                        boxShadow: "0px 0px 3px 1px #00000040",
-                        "& input": { padding: "13px 10px" },
-                        "& fieldset": { border: "none !important" },
-                      },
-                    },
-                  }}
-                  sx={{
-                    width: "100%",
-                    boxShadow: "0px 0px 3px 1px #00000040",
-                  }}
-                />
-              </LocalizationProvider>
-            ) : item.name === "phone" ? (
+           {item.name === "dob" ? (
+  <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <DatePicker
+      views={["year", "month", "day"]}
+      value={formData[item.name] ? dayjs(formData[item.name]) : null}
+      onChange={(date) => {
+        if (!date) {
+          onFieldChange(item.name, "");
+          setValidationErrors((prev) => ({
+            ...prev,
+            dob: "Date of birth is required",
+          }));
+          return;
+        }
+
+        const age = dayjs().diff(dayjs(date), "year");
+
+        if (age < 18) {
+          onFieldChange(item.name, dayjs(date).format("YYYY-MM-DD"));
+          setValidationErrors((prev) => ({
+            ...prev,
+            dob: "You must be at least 18 years old to continue",
+          }));
+          return;
+        }
+
+        // ✅ Valid age
+        onFieldChange(item.name, dayjs(date).format("YYYY-MM-DD"));
+        setValidationErrors((prev) => {
+          const { dob, ...rest } = prev;
+          return rest;
+        });
+      }}
+      maxDate={dayjs()}
+      slotProps={{
+        textField: {
+          placeholder: item.placeHolder,
+          error: Boolean(mergedErrors.dob),
+          sx: {
+            width: "100%",
+            borderRadius: "10px",
+            boxShadow: "0px 0px 3px 1px #00000040",
+            "& input": { padding: "13px 10px" },
+            "& fieldset": { border: "none !important" },
+          },
+        },
+      }}
+      sx={{
+        width: "100%",
+        boxShadow: "0px 0px 3px 1px #00000040",
+      }}
+    />
+  </LocalizationProvider>
+) : item.name === "phone" ? (
               // 📱 Country Code + Phone Number
               <Box
                 sx={{

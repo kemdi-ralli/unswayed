@@ -33,10 +33,10 @@ const ApplicantForm = () => {
   const [errors, setErrors] = useState();
 
   const [experienceLevel, setExperienceLevel] = useState([
-    { name: "Sr", id: "sr" },
-    { name: "Jr", id: "jr" },
-    { name: "III", id: "III" },
-    { name: "IV", id: "IV" },
+    { name: "Entry", id: "jr" },
+    { name: "Intermediate", id: "III" },
+    { name: "Experienced", id: "IV" },
+    { name: "Advanced", id: "sr" },
   ]);
 
   const [agreeTerms, setAgreeTerms] = useState(false);
