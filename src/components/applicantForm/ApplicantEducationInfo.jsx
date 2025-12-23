@@ -249,6 +249,7 @@ const ApplicantEducationInfo = ({
                         <TextField
                           placeholder={item.placeHolder || "Enter school name"}
                           fullWidth
+                          required={false}
                           value={entry.institution_name || ""}
                           onChange={(e) =>
                             handleChange(index, "institution_name", e.target.value)
@@ -275,6 +276,7 @@ const ApplicantEducationInfo = ({
                             <TextField
                               {...params}
                               placeholder={item.placeHolder || "Start typing your school..."}
+                              required={false}
                               InputProps={{
                                 ...params.InputProps,
                                 endAdornment: (
@@ -313,10 +315,11 @@ const ApplicantEducationInfo = ({
                       <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "3px" }}>
                         {item.label}
                       </Typography>
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <LocalizationProvider dateAdapter={AdapterDayjs} >
                         <DatePicker
                           views={["year", "month"]}
                           value={entry[item.name] ? dayjs(entry[item.name], "YYYY-MM") : null}
+                        
                           onChange={(newValue) =>
                             handleChange(
                               index,

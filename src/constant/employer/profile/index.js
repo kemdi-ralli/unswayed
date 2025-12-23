@@ -268,7 +268,7 @@ export const EMPLOYER_PROFILE_SETTINGS = [
   },
   {
     title: "Privacy Settings",
-    placeHolder: "Hide and Show your contact details anf following list display",
+    placeHolder: "Hide and Show your contact details and following list display",
     name: "privacy",
     buttonLable: "Manage Privacy",
     link: "/employer/settings/privacy",
@@ -286,16 +286,16 @@ export const EMPLOYER_PROFILE_SETTINGS = [
   //   buttonLable: "Confirm",
   //   link: "",
   // },
-  // {
-  //   title: "Pause Account",
-  //   placeHolder: "Are You Sure Want To Pause Account?",
-  //   name: "pause",
-  //   buttonLable: "Edit Profile",
-  //   link: "",
-  // },
+  {
+    title: "Pause Account",
+    placeHolder: "Are You Sure Want To Pause Account?",
+    name: "pause",
+    buttonLable: "Edit Profile",
+    link: "",
+  },
   {
     title: "Sign Out",
-    placeHolder: "Do You Want To Sign Out Your Account?",
+    placeHolder: "Do You Want To Sign Out Of Your Account?",
     name: "signout",
     buttonLable: "Sign Out",
     link: "/employer/login",

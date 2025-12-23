@@ -75,7 +75,7 @@ const RalliResumeContainer = ({ id }) => {
   const getEditResumes = useSelector(
     (state) => state?.applicantAttachedCv?.attachedCvs
   );
-  console.log(getEditResumes, "GET REUMSEUM EDIT");
+  console.log(getEditResumes, "GET RESUME EDIT");
   const isEditing = useSelector((state) => state?.getEdit?.isEditing);
   const handleDataUpdate = (key, newData) => {
     setWizardData((prev) => ({ ...prev, [key]: newData }));
@@ -83,7 +83,7 @@ const RalliResumeContainer = ({ id }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  console.log(selectedCountry, "seleltnc count");
+  console.log(selectedCountry, "select count");
   useEffect(() => {
     const getStates = async () => {
       try {

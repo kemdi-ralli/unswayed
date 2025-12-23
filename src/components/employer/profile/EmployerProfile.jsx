@@ -292,7 +292,7 @@ const EmployerProfile = ({
       ))}
       {userData?.user?.type === "applicant" && !notUser && (
         <Box sx={{pt:1, pb:2}}>
-          <RalliButton label="Write A Reviews" onClick={handleAddReview} />
+          <RalliButton label="Write A Review" onClick={handleAddReview} />
         </Box>
       )}
     </Box>

@@ -30,16 +30,16 @@ const Search = ({ btnTitle = 'Search', placeholder = 'Type A Name', onChange = (
           disableUnderline: true,
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: "#757575" }} />
+              <SearchIcon sx={{ color: "#2f2f2fff" }} />
             </InputAdornment>
           ),
           sx: {
             color: "#222222",
             fontSize: "16px",
             lineHeight: "18px",
-            fontWeight: 250,
+            fontWeight: 400,
             "&::placeholder": {
-              color: "#757575",
+              color: "#2f2f2fff",
               fontSize: "14px",
               opacity: 1,
             },
@@ -48,7 +48,7 @@ const Search = ({ btnTitle = 'Search', placeholder = 'Type A Name', onChange = (
         inputProps={{
           sx: {
             "&::placeholder": {
-              color: "#757575",
+              color: "#2f2f2fff",
               fontSize: { xs: "12px", md: "14px" },
               opacity: 1,
             },
