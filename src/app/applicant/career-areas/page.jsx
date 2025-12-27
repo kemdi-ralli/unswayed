@@ -339,20 +339,18 @@ useEffect(() => {
     setIsLoadingStates(true);
     try {
       // 🇺🇸 UNITED STATES (country id = 233)
-      // if (dropdownStates?.country === 233) {
-      //   const allStates = [
-      //     ...US_STATES,
-      //     ...US_INHABITED_TERRITORIES,
-      //     ...US_UNINHABITED_TERRITORIES,
-      //   ]
-      //     .sort()
-      //     .map((name) => ({ id: name, name }));
-      //   setStates(allStates);
-      //   setIsLoadingStates(false);
-      //   return;
-      // }
+      if (dropdownStates?.country === 233) {
+        const allStates = [
+          ...US_STATES,
+          ...US_INHABITED_TERRITORIES,
+          ...US_UNINHABITED_TERRITORIES,
+        ].map((name) => ({ id: name, name }));
+        setStates(allStates);
+        setIsLoadingStates(false);
+        return;
+      }
 
-      // 🌍 NON-US COUNTRIES
+      
       if (dropdownStates?.country) {
         const countryStates = await getStates(dropdownStates.country);
         setStates(countryStates || []);
@@ -360,7 +358,7 @@ useEffect(() => {
         return;
       }
 
-      // ❌ NO COUNTRY SELECTED
+      
       setStates([]);
     } catch (error) {
       console.error("Error fetching states:", error);

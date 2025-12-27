@@ -99,9 +99,89 @@ const Page = () => {
   useEffect(() => {
     if (dropdownStates?.country) {
       const getStates = async (countryId) => {
+        const US_STATES = [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "Rhode Island",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming",
+    ];
+
+    const US_INHABITED_TERRITORIES = [
+      "American Samoa",
+      "Guam",
+      "Northern Mariana Islands",
+      "Puerto Rico",
+      "U.S. Virgin Islands",
+    ];
+
+    const US_UNINHABITED_TERRITORIES = [
+      "Baker Island",
+      "Howland Island",
+      "Jarvis Island",
+      "Johnston Atoll",
+      "Kingman Reef",
+      "Midway Atoll",
+      "Navassa Island",
+      "Palmyra Atoll",
+      "Wake Island",
+    ];
         try {
           const response = await apiInstance?.get(`${STATES}/${countryId}`);
-          console.log(response, "state response");
+          if (countryId === 233) {
+            const allStates = [
+              ...US_STATES,
+              ...US_INHABITED_TERRITORIES,
+              ...US_UNINHABITED_TERRITORIES,
+            ].map((name) => ({ id: name, name }));
+            setStates(allStates);
+            return;
+          }
           setStates(response?.data?.data?.states || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load states");
