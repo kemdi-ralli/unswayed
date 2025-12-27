@@ -208,8 +208,10 @@ const CreateJobsForm = ({
     { id: "Per Hour", name: "Per Hour" },
     { id: "Per Day", name: "Per Day" },
     { id: "Per Week", name: "Per Week" },
+    { id: "Per Bi-Weekly", name: "Per Bi-Weekly" },
     { id: "Per Month", name: "Per Month" },
     { id: "Per Annum", name: "Per Annum" },
+
   ];
 
   // --- Helpers (benefits) ---

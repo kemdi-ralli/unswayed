@@ -1,5 +1,6 @@
 "use client";
 import { Box, Typography } from "@mui/material";
+import BackButton from "@/components/common/BackButton/BackButton";
 
 const TERMS_CONDITIONS = {
     mainTitle: 'Terms And Conditions',
@@ -266,6 +267,7 @@ export default function TermsAndConditions() {
         px: 3,
       }}
     >
+      <BackButton/>
       <Typography
           variant="h2"
           sx={{

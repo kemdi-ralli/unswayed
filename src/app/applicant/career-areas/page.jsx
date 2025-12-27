@@ -174,12 +174,11 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
   // Pagination state:
   const [backendPage, setBackendPage] = useState(1);
   const [rapidPage, setRapidPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 20;
   const [hasMore, setHasMore] = useState(true);
 
   const router = useRouter();
   const dispatch = useDispatch();
-
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 

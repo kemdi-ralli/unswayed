@@ -59,7 +59,7 @@ const StyledDescription = styled(Typography)(({ theme }) => ({
 const TermsOfUseModal = ({ open, onClose, handleAgree }) => {
   return (
     <Dialog open={open} onClose={onClose}>
-      <StyledDialogTitle>User Agreement & Consent Policy</StyledDialogTitle>
+      <StyledDialogTitle>RALLi Terms of Use</StyledDialogTitle>
       <DialogContent>
         <StyledDescription>
           Terms of Use for Employers Posting Jobs on UNSWAYED, RALLi

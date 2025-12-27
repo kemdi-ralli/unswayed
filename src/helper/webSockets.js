@@ -15,7 +15,7 @@ import Pusher from "pusher-js";
 export const echo = new Echo({
   broadcaster: "reverb",
   Pusher,
-  key: "0n5bsxhwfgsba24s6gp9",
+  key: "56874ba3eb1c4a8570bc",
   host: "https://unswayed.onrender.com",
   wsHost: "unswayed.onrender.com",
   // wsHost: '95.168.167.68',

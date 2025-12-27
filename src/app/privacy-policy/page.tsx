@@ -1,5 +1,6 @@
 "use client"
 import { Box, Typography, Button } from "@mui/material";
+import BackButton from "@/components/common/BackButton/BackButton";
 
 const privacyPolicyContent = {
   heading: "Privacy Policy",
@@ -457,7 +458,8 @@ export default function PrivacyPolicy() {
         py: 4,
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: "768px" }}>
+      <Box sx={{ width: "100%", maxWidth: "768px", display: "flex" }}>
+        <BackButton/>
         {/* Heading */}
         <Typography
           variant="h3"

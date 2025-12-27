@@ -70,7 +70,7 @@ const TremsOfUse = ({
               }}
               onClick={handleOpenTermsModal}
             >
-              User Agreement & Consent Policy
+              RALLi Terms and Policy
             </Typography>
           </Typography>
         ) : (
