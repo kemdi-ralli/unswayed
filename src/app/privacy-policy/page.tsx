@@ -458,8 +458,9 @@ export default function PrivacyPolicy() {
         py: 4,
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: "768px", display: "flex" }}>
-        <BackButton/>
+      <Box sx={{ width: "100%", maxWidth: "768px" }}>
+        <Box sx={{ width: "100%", maxWidth: "768px" }}>
+          <BackButton/>
         {/* Heading */}
         <Typography
           variant="h3"
@@ -471,6 +472,8 @@ export default function PrivacyPolicy() {
         >
           {privacyPolicyContent.heading}
         </Typography>
+        </Box>
+        
 
         {/* Last Updated */}
         <Typography
