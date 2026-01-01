@@ -9,6 +9,7 @@ export const plans = {
   applicant: [
     { name: 'Free', price: 0, interval: 'month', stripePriceId: '' },
     { name: 'Pro', price: 49.99, interval: 'month', stripePriceId: 'price_applicant_pro' },
+    { name: 'Pro (Annual)', price: 599.99, interval: 'annual', stripePriceId: 'price_applicant_pro_annual' },
   ],
   employer: [
     { name: 'Tier 1', price: 99.99, interval: 'month', stripePriceId: 'price_employer_tier1' },
