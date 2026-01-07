@@ -238,55 +238,54 @@ const Page = () => {
   };
 
   const fetchStates = async (countryId) => {
-    
+  const US_INHABITED_TERRITORIES = [
+    "American Samoa",
+    "Guam",
+    "Northern Mariana Islands",
+    "Puerto Rico",
+    "U.S. Virgin Islands",
+  ];
 
-    const US_INHABITED_TERRITORIES = [
-      "American Samoa",
-      "Guam",
-      "Northern Mariana Islands",
-      "Puerto Rico",
-      "U.S. Virgin Islands",
-    ];
+  const US_UNINHABITED_TERRITORIES = [
+    "Baker Island",
+    "Howland Island",
+    "Jarvis Island",
+    "Johnston Atoll",
+    "Kingman Reef",
+    "Midway Atoll",
+    "Navassa Island",
+    "Palmyra Atoll",
+    "Wake Island",
+  ];
 
-    const US_UNINHABITED_TERRITORIES = [
-      "Baker Island",
-      "Howland Island",
-      "Jarvis Island",
-      "Johnston Atoll",
-      "Kingman Reef",
-      "Midway Atoll",
-      "Navassa Island",
-      "Palmyra Atoll",
-      "Wake Island",
-    ];
-    try {
-      const data = await getStates(countryId);
-      if (countryId === 233) {
-              const countryStates = await getStates(233);
-              
-              // Filter out territories from the main states list
-              const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
-              const mainStates = (countryStates || []).filter(
-                state => !territoryNames.includes(state.name)
-              );
-              
-              // Add territories at the end
-              const territories = [
-                ...US_INHABITED_TERRITORIES,
-                ...US_UNINHABITED_TERRITORIES,
-              ].map((name) => ({ id: name, name }));
-              
-              const allStates = [...mainStates, ...territories];
-              setStates(allStates);
-              setIsLoadingStates(false);
-              return;
-            }
-      setStates(data);
-    } catch (error) {
-      console.error("Error fetching states:", error);
-      Toast("error", "Failed to load states.");
+  setIsLoadingStates(true);
+  try {
+    let data = await getStates(countryId);
+
+    // Handle US territories for country 233
+    if (countryId === 233) {
+      const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+      const mainStates = (data || []).filter(
+        state => !territoryNames.includes(state.name)
+      );
+      
+      const territories = [
+        ...US_INHABITED_TERRITORIES,
+        ...US_UNINHABITED_TERRITORIES,
+      ].map((name) => ({ id: name, name }));
+      
+      data = [...mainStates, ...territories];
     }
-  };
+
+    setStates(data);
+  } catch (error) {
+    console.error("Error fetching states:", error);
+    Toast("error", "Failed to load states.");
+    setStates([]);
+  } finally {
+    setIsLoadingStates(false);
+  }
+};
 
   const fetchCities = async (stateId) => {
     try {

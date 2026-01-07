@@ -357,75 +357,76 @@ const CreateJobsForm = ({
 
   // --- Dependent dropdowns: states by country ---
   useEffect(() => {
-    
+  const US_INHABITED_TERRITORIES = [
+    "American Samoa",
+    "Guam",
+    "Northern Mariana Islands",
+    "Puerto Rico",
+    "U.S. Virgin Islands",
+  ];
 
-    const US_INHABITED_TERRITORIES = [
-      "American Samoa",
-      "Guam",
-      "Northern Mariana Islands",
-      "Puerto Rico",
-      "U.S. Virgin Islands",
-    ];
+  const US_UNINHABITED_TERRITORIES = [
+    "Baker Island",
+    "Howland Island",
+    "Jarvis Island",
+    "Johnston Atoll",
+    "Kingman Reef",
+    "Midway Atoll",
+    "Navassa Island",
+    "Palmyra Atoll",
+    "Wake Island",
+  ];
 
-    const US_UNINHABITED_TERRITORIES = [
-      "Baker Island",
-      "Howland Island",
-      "Jarvis Island",
-      "Johnston Atoll",
-      "Kingman Reef",
-      "Midway Atoll",
-      "Navassa Island",
-      "Palmyra Atoll",
-      "Wake Island",
-    ];
-    if (form?.country) {
-      const getStates = async () => {
-        setLoadingStates(true); // Add this
-        try {
-          const response = await apiInstance.get(`${STATES}/${form?.country}`);
-          const _states = response?.data?.data?.states || [];
-          const exist = form.states.filter((stateId) =>
-            _states.some((_state) => _state.id === stateId)
+  if (form?.country) {
+    const getStates = async () => {
+      setLoadingStates(true);
+      try {
+        const response = await apiInstance.get(`${STATES}/${form?.country}`);
+        let _states = response?.data?.data?.states || [];
+
+        // Handle US territories for country 233
+        if (form?.country === 233) {
+          const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+          const mainStates = _states.filter(
+            state => !territoryNames.includes(state.name)
           );
-          if (exist?.length > 0) {
-            handleChange("states", exist);
-          } else {
-            handleChange("states", []);
-          }
-          if (countryId === 233) {
-                        const countryStates = await getStates(233);
-                        
-                        // Filter out territories from the main states list
-                        const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
-                        const mainStates = (countryStates || []).filter(
-                          state => !territoryNames.includes(state.name)
-                        );
-                        
-                        // Add territories at the end
-                        const territories = [
-                          ...US_INHABITED_TERRITORIES,
-                          ...US_UNINHABITED_TERRITORIES,
-                        ].map((name) => ({ id: name, name }));
-                        
-                        const allStates = [...mainStates, ...territories];
-                        setStates(allStates);
-                        setIsLoadingStates(false);
-                        return;
-                      }
-          setStates(_states);
-        } catch (error) {
-          setErrors(error?.response?.data?.message || "Failed to load states");
-        } finally {
-          setLoadingStates(false); // Add this
+          
+          const territories = [
+            ...US_INHABITED_TERRITORIES,
+            ...US_UNINHABITED_TERRITORIES,
+          ].map((name) => ({ id: name, name }));
+          
+          _states = [...mainStates, ...territories];
         }
-      };
 
-      getStates();
-    } else {
-      handleChange("states", []);
-      setStates([]);
-    }
-  }, [form?.country]);
+        setStates(_states);
+
+        // Check if existing selected states are still valid
+        const exist = form.states.filter((stateId) =>
+          _states.some((_state) => _state.id === stateId)
+        );
+        
+        if (exist?.length > 0) {
+          handleChange("states", exist);
+        } else {
+          handleChange("states", []);
+        }
+      } catch (error) {
+        setErrors(error?.response?.data?.message || "Failed to load states");
+        setStates([]);
+        handleChange("states", []);
+      } finally {
+        setLoadingStates(false);
+      }
+    };
+
+    getStates();
+  } else {
+    handleChange("states", []);
+    setStates([]);
+    setLoadingStates(false);
+  }
+}, [form?.country]);
 
   // --- Build CURRENCIES list from countryToCurrency once (unique) ---
   useEffect(() => {

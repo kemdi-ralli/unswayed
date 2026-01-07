@@ -103,71 +103,75 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    if (dropdownStates.selectedCountry) {
-      
+  const US_INHABITED_TERRITORIES = [
+    "American Samoa",
+    "Guam",
+    "Northern Mariana Islands",
+    "Puerto Rico",
+    "U.S. Virgin Islands",
+  ];
 
-    const US_INHABITED_TERRITORIES = [
-      "American Samoa",
-      "Guam",
-      "Northern Mariana Islands",
-      "Puerto Rico",
-      "U.S. Virgin Islands",
-    ];
+  const US_UNINHABITED_TERRITORIES = [
+    "Baker Island",
+    "Howland Island",
+    "Jarvis Island",
+    "Johnston Atoll",
+    "Kingman Reef",
+    "Midway Atoll",
+    "Navassa Island",
+    "Palmyra Atoll",
+    "Wake Island",
+  ];
 
-    const US_UNINHABITED_TERRITORIES = [
-      "Baker Island",
-      "Howland Island",
-      "Jarvis Island",
-      "Johnston Atoll",
-      "Kingman Reef",
-      "Midway Atoll",
-      "Navassa Island",
-      "Palmyra Atoll",
-      "Wake Island",
-    ];
-      const getStates = async () => {
-        try {
-          const response = await apiInstance.get(`${STATES}/${dropdownStates.selectedCountry}`);
-          const _states = response?.data?.data?.states || [];
-          const exist = dropdownStates.selectedState.filter((stateId) =>
-            _states.some((_state) => _state.id === stateId)
+  if (dropdownStates.selectedCountry) {
+    const getStates = async () => {
+      setIsLoadingStates(true);
+      try {
+        const response = await apiInstance.get(`${STATES}/${dropdownStates.selectedCountry}`);
+        let _states = response?.data?.data?.states || [];
+
+        // Handle US territories for country 233
+        if (dropdownStates.selectedCountry === 233) {
+          const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+          const mainStates = _states.filter(
+            state => !territoryNames.includes(state.name)
           );
-          if (exist?.length > 0) {
-            handleDropdownChange("selectedState", exist);
-          } else {
-            handleDropdownChange("selectedState", []);
-          }
-          if (dropdownStates.selectedCountry === 233) {
-                        const countryStates = await getStates(233);
-                        
-                        // Filter out territories from the main states list
-                        const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
-                        const mainStates = (countryStates || []).filter(
-                          state => !territoryNames.includes(state.name)
-                        );
-                        
-                        // Add territories at the end
-                        const territories = [
-                          ...US_INHABITED_TERRITORIES,
-                          ...US_UNINHABITED_TERRITORIES,
-                        ].map((name) => ({ id: name, name }));
-                        
-                        const allStates = [...mainStates, ...territories];
-                        setStates(allStates);
-                        setIsLoadingStates(false);
-                        return;
-                      }
-          setStates(_states);
-        } catch (error) {
-          setErrors(error?.response?.data?.message || "Failed to load states");
+          
+          const territories = [
+            ...US_INHABITED_TERRITORIES,
+            ...US_UNINHABITED_TERRITORIES,
+          ].map((name) => ({ id: name, name }));
+          
+          _states = [...mainStates, ...territories];
         }
-      };
-      getStates();
-    } else {
-      handleDropdownChange("selectedState", []);
-      setStates([]);
-    }
-  }, [dropdownStates.selectedCountry]);
+
+        setStates(_states);
+
+        // Check if existing selected states are still valid
+        const exist = dropdownStates.selectedState.filter((stateId) =>
+          _states.some((_state) => _state.id === stateId)
+        );
+        
+        if (exist?.length > 0) {
+          handleDropdownChange("selectedState", exist);
+        } else {
+          handleDropdownChange("selectedState", []);
+        }
+      } catch (error) {
+        setErrors(error?.response?.data?.message || "Failed to load states");
+        setStates([]);
+        handleDropdownChange("selectedState", []);
+      } finally {
+        setIsLoadingStates(false);
+      }
+    };
+    getStates();
+  } else {
+    handleDropdownChange("selectedState", []);
+    setStates([]);
+    setIsLoadingStates(false);
+  }
+}, [dropdownStates.selectedCountry]);
 
   useEffect(() => {
     if (dropdownStates?.selectedState?.length > 0) {

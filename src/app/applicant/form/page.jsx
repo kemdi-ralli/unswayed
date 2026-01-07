@@ -140,59 +140,65 @@ const ApplicantForm = () => {
 
   /** Fetch States */
   useEffect(() => {
-    
+  const US_INHABITED_TERRITORIES = [
+    "American Samoa",
+    "Guam",
+    "Northern Mariana Islands",
+    "Puerto Rico",
+    "U.S. Virgin Islands",
+  ];
 
-    const US_INHABITED_TERRITORIES = [
-      "American Samoa",
-      "Guam",
-      "Northern Mariana Islands",
-      "Puerto Rico",
-      "U.S. Virgin Islands",
-    ];
+  const US_UNINHABITED_TERRITORIES = [
+    "Baker Island",
+    "Howland Island",
+    "Jarvis Island",
+    "Johnston Atoll",
+    "Kingman Reef",
+    "Midway Atoll",
+    "Navassa Island",
+    "Palmyra Atoll",
+    "Wake Island",
+  ];
 
-    const US_UNINHABITED_TERRITORIES = [
-      "Baker Island",
-      "Howland Island",
-      "Jarvis Island",
-      "Johnston Atoll",
-      "Kingman Reef",
-      "Midway Atoll",
-      "Navassa Island",
-      "Palmyra Atoll",
-      "Wake Island",
-    ];
-    if (dropdownStates.country) {
-      const getStates = async (countryId) => {
-        try {
-          const response = await apiInstance.get(`${STATES}/${countryId}`);
-          if (countryId === 233) {
-                  const countryStates = await getStates(233);
-                  
-                  // Filter out territories from the main states list
-                  const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
-                  const mainStates = (countryStates || []).filter(
-                    state => !territoryNames.includes(state.name)
-                  );
-                  
-                  // Add territories at the end
-                  const territories = [
-                    ...US_INHABITED_TERRITORIES,
-                    ...US_UNINHABITED_TERRITORIES,
-                  ].map((name) => ({ id: name, name }));
-                  
-                  const allStates = [...mainStates, ...territories];
-                  setStates(allStates);
-                  setIsLoadingStates(false);
-                  return;
-                }
-          setStates(response?.data?.data?.states || []);
-        } catch (error) {
-          setErrors(error?.response?.data?.message || "Failed to load states");
+  if (dropdownStates.country) {
+    const getStates = async (countryId) => {
+      setIsLoadingStates(true);
+      try {
+        const response = await apiInstance.get(`${STATES}/${countryId}`);
+        const fetchedStates = response?.data?.data?.states || [];
+
+        if (countryId === 233) {
+          // Filter out territories from the main states list
+          const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+          const mainStates = fetchedStates.filter(
+            state => !territoryNames.includes(state.name)
+          );
+          
+          // Add territories at the end
+          const territories = [
+            ...US_INHABITED_TERRITORIES,
+            ...US_UNINHABITED_TERRITORIES,
+          ].map((name) => ({ id: name, name }));
+          
+          const allStates = [...mainStates, ...territories];
+          setStates(allStates);
+        } else {
+          setStates(fetchedStates);
         }
-      };
-      getStates(dropdownStates.country);
-    }
-  }, [dropdownStates.country]);
+      } catch (error) {
+        setErrors(error?.response?.data?.message || "Failed to load states");
+        setStates([]);
+      } finally {
+        setIsLoadingStates(false);
+      }
+    };
+    
+    getStates(dropdownStates.country);
+  } else {
+    setStates([]);
+    setIsLoadingStates(false);
+  }
+}, [dropdownStates.country]);
 
   /** Fetch Cities */
   useEffect(() => {
