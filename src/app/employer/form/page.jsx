@@ -99,58 +99,7 @@ const Page = () => {
   useEffect(() => {
     if (dropdownStates?.country) {
       const getStates = async (countryId) => {
-        const US_STATES = [
-      "Alabama",
-      "Alaska",
-      "Arizona",
-      "Arkansas",
-      "California",
-      "Colorado",
-      "Connecticut",
-      "Delaware",
-      "Florida",
-      "Georgia",
-      "Hawaii",
-      "Idaho",
-      "Illinois",
-      "Indiana",
-      "Iowa",
-      "Kansas",
-      "Kentucky",
-      "Louisiana",
-      "Maine",
-      "Maryland",
-      "Massachusetts",
-      "Michigan",
-      "Minnesota",
-      "Mississippi",
-      "Missouri",
-      "Montana",
-      "Nebraska",
-      "Nevada",
-      "New Hampshire",
-      "New Jersey",
-      "New Mexico",
-      "New York",
-      "North Carolina",
-      "North Dakota",
-      "Ohio",
-      "Oklahoma",
-      "Oregon",
-      "Pennsylvania",
-      "Rhode Island",
-      "South Carolina",
-      "South Dakota",
-      "Tennessee",
-      "Texas",
-      "Utah",
-      "Vermont",
-      "Virginia",
-      "Washington",
-      "West Virginia",
-      "Wisconsin",
-      "Wyoming",
-    ];
+        
 
     const US_INHABITED_TERRITORIES = [
       "American Samoa",
@@ -174,14 +123,25 @@ const Page = () => {
         try {
           const response = await apiInstance?.get(`${STATES}/${countryId}`);
           if (countryId === 233) {
-            const allStates = [
-              ...US_STATES,
-              ...US_INHABITED_TERRITORIES,
-              ...US_UNINHABITED_TERRITORIES,
-            ].map((name) => ({ id: name, name }));
-            setStates(allStates);
-            return;
-          }
+              const countryStates = await getStates(233);
+              
+              // Filter out territories from the main states list
+              const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+              const mainStates = (countryStates || []).filter(
+                state => !territoryNames.includes(state.name)
+              );
+              
+              // Add territories at the end
+              const territories = [
+                ...US_INHABITED_TERRITORIES,
+                ...US_UNINHABITED_TERRITORIES,
+              ].map((name) => ({ id: name, name }));
+              
+              const allStates = [...mainStates, ...territories];
+              setStates(allStates);
+              setIsLoadingStates(false);
+              return;
+            }
           setStates(response?.data?.data?.states || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load states");

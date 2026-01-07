@@ -308,17 +308,6 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
 
   // ---------- STATES (US + NON-US) ----------
 useEffect(() => {
-  const US_STATES = [
-    "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
-    "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
-    "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
-    "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada",
-    "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
-    "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
-    "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
-    "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
-  ];
-
   const US_INHABITED_TERRITORIES = [
     "American Samoa",
     "Guam",
@@ -332,24 +321,31 @@ useEffect(() => {
     "Kingman Reef","Midway Atoll","Navassa Island","Palmyra Atoll","Wake Island",
   ];
 
-  
-
   const fetchStates = async () => {
     setIsLoadingStates(true);
     try {
       // 🇺🇸 UNITED STATES (country id = 233)
       if (dropdownStates?.country === 233) {
-        const allStates = [
-          ...US_STATES,
+        const countryStates = await getStates(233);
+        
+        // Filter out territories from the main states list
+        const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
+        const mainStates = (countryStates || []).filter(
+          state => !territoryNames.includes(state.name)
+        );
+        
+        // Add territories at the end
+        const territories = [
           ...US_INHABITED_TERRITORIES,
           ...US_UNINHABITED_TERRITORIES,
         ].map((name) => ({ id: name, name }));
+        
+        const allStates = [...mainStates, ...territories];
         setStates(allStates);
         setIsLoadingStates(false);
         return;
       }
 
-      
       if (dropdownStates?.country) {
         const countryStates = await getStates(dropdownStates.country);
         setStates(countryStates || []);
@@ -357,7 +353,6 @@ useEffect(() => {
         return;
       }
 
-      
       setStates([]);
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -369,8 +364,7 @@ useEffect(() => {
       handleDropdownChange("city", "");
       setCities([]);
       setIsLoadingStates(false);
-setIsLoadingCities(false);
-
+      setIsLoadingCities(false);
     }
   };
 
