@@ -117,7 +117,7 @@ const RalliResumeContainer = ({ id }) => {
   ];
 
   const getStates = async () => {
-    setIsLoadingStates(true);
+    
     try {
       const response = await apiInstance?.get(
         `${COUNTRY_STATES_NAME}/${selectedCountry}`
@@ -143,16 +143,13 @@ const RalliResumeContainer = ({ id }) => {
     } catch (error) {
       setErrors(error?.response?.data?.message || "Failed to load states");
       setStates([]);
-    } finally {
-      setIsLoadingStates(false);
-    }
+    } 
   };
 
   if (selectedCountry) {
     getStates();
   } else {
     setStates([]);
-    setIsLoadingStates(false);
   }
 }, [selectedCountry]);
 

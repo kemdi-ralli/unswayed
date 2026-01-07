@@ -82,7 +82,7 @@ const Page = () => {
     "Wake Island",
   ];
 
-  setIsLoadingStates(true);
+  setLoading(true);
   try {
     let data = await getStates(countryId);
 
@@ -107,7 +107,7 @@ const Page = () => {
     Toast("error", "Failed to load states.");
     setStates([]);
   } finally {
-    setIsLoadingStates(false);
+    setLoading(false);
   }
 };
 

@@ -125,7 +125,7 @@ const Page = () => {
 
   if (dropdownStates.selectedCountry) {
     const getStates = async () => {
-      setIsLoadingStates(true);
+      
       try {
         const response = await apiInstance.get(`${STATES}/${dropdownStates.selectedCountry}`);
         let _states = response?.data?.data?.states || [];
@@ -161,15 +161,13 @@ const Page = () => {
         setErrors(error?.response?.data?.message || "Failed to load states");
         setStates([]);
         handleDropdownChange("selectedState", []);
-      } finally {
-        setIsLoadingStates(false);
-      }
+      } 
     };
     getStates();
   } else {
     handleDropdownChange("selectedState", []);
     setStates([]);
-    setIsLoadingStates(false);
+    
   }
 }, [dropdownStates.selectedCountry]);
 

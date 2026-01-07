@@ -119,7 +119,7 @@ const Page = () => {
 
   if (dropdownStates.country) {
     const getStates = async (countryId) => {
-      setIsLoadingStates(true);
+      
       try {
         const response = await apiInstance.get(`${STATES}/${countryId}`);
         const fetchedStates = response?.data?.data?.states || [];
@@ -145,15 +145,12 @@ const Page = () => {
       } catch (error) {
         setErrors(error?.response?.data?.message || "Failed to load states");
         setStates([]);
-      } finally {
-        setIsLoadingStates(false);
       }
     };
     
     getStates(dropdownStates.country);
   } else {
     setStates([]);
-    setIsLoadingStates(false);
   }
 }, [dropdownStates.country]);
 
