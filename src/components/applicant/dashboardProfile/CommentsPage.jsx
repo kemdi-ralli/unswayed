@@ -66,7 +66,8 @@ const CommentsPage = ({
   replyState,
   handleReplyChange,
   handleReplySubmit,
-  handleEditCancel
+  handleEditCancel,
+  likeLoading = false,
 }) => {
   const isMenuOpen = Boolean(anchorEl);
   const isCommentMenuOpen = Boolean(anchorCommentEl);
@@ -560,6 +561,7 @@ const CommentsPage = ({
             >
               <Button
                 onClick={() => onLike(data?.id)}
+                disabled={likeLoading}
                 sx={{
                   fontSize: { xs: "8px", sm: "10px", md: "12px", lg: "16px" },
                   lineHeight: "17px",
@@ -570,10 +572,14 @@ const CommentsPage = ({
                   borderRadius: { xs: "10px", sm: "20px", md: "30px" },
                   minWidth: { xs: "60px", sm: "100px", lg: "170px" },
                   py: 1,
+                  opacity: likeLoading ? 0.7 : 1,
+                  "&.Mui-disabled": {
+                    color: "#222222",
+                  },
                 }}
                 startIcon={
                   data?.isLiked ? (
-                    <ThumbUpIcon color="primary" />
+                    <ThumbUpIcon sx={{ color: "#1976d2" }} />
                   ) : (
                     <ThumbUpOffAltIcon />
                   )

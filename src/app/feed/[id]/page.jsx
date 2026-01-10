@@ -48,6 +48,7 @@ const CommentScreen = ({ params }) => {
   const [EditComment, setEditComment] = useState(null);
   const [likedPostIds, setLikedPostIds] = useState(null);
   const [isLiked, setIsLiked] = useState();
+  const [likeLoading, setLikeLoading] = useState(false);
   const authUser = useSelector((state) => state?.auth?.userData?.user);
   // reply work
   const [replyState, setReplyState] = useState({});
@@ -543,6 +544,22 @@ const CommentScreen = ({ params }) => {
   };
   //like post work
   const handleLike = async (postId) => {
+    // Prevent multiple clicks while processing
+    if (likeLoading) return;
+    
+    // Store previous state for rollback
+    const previousIsLiked = data?.isLiked;
+    const previousTotalLikes = data?.total_likes || 0;
+    
+    // Optimistic update - immediately update UI
+    setData((prevData) => ({
+      ...prevData,
+      isLiked: !previousIsLiked,
+      total_likes: previousIsLiked ? previousTotalLikes - 1 : previousTotalLikes + 1,
+    }));
+    
+    setLikeLoading(true);
+    
     const formData = new FormData();
     formData.append("post_id", postId);
     try {
@@ -556,10 +573,24 @@ const CommentScreen = ({ params }) => {
         setLikedPostIds(postId);
         setIsLiked(response?.data?.message);
       } else {
+        // Rollback on unexpected response
+        setData((prevData) => ({
+          ...prevData,
+          isLiked: previousIsLiked,
+          total_likes: previousTotalLikes,
+        }));
         console.error(`Unexpected response: ${response.status}`);
       }
     } catch (error) {
+      // Rollback on error
+      setData((prevData) => ({
+        ...prevData,
+        isLiked: previousIsLiked,
+        total_likes: previousTotalLikes,
+      }));
       Toast("error", error?.response?.data || error.message || "Unknown error");
+    } finally {
+      setLikeLoading(false);
     }
   };
 
@@ -680,6 +711,7 @@ const CommentScreen = ({ params }) => {
         handleSend={handleSend}
         handleClose={handleClose}
         handleEditCancel={handleEditCancel}
+        likeLoading={likeLoading}
       />
       <CreatePostModal
         open={openModal}

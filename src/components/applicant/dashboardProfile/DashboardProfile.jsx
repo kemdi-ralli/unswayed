@@ -32,7 +32,8 @@ const DashboardProfile = ({
   handleSend,
   handleClose,
   handleCommentClick,
-  loading
+  loading,
+  likeLoading = {},
 }) => {
 
 
@@ -76,6 +77,7 @@ const DashboardProfile = ({
             handleSend={handleSend}
             handleClose={handleClose}
             loading={loading}
+            likeLoading={likeLoading}
           />
         </Grid>
       </Grid>

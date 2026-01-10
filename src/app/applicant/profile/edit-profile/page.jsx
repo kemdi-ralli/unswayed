@@ -258,7 +258,6 @@ const Page = () => {
     "Wake Island",
   ];
 
-  setIsLoadingStates(true);
   try {
     let data = await getStates(countryId);
 
@@ -282,9 +281,7 @@ const Page = () => {
     console.error("Error fetching states:", error);
     Toast("error", "Failed to load states.");
     setStates([]);
-  } finally {
-    setIsLoadingStates(false);
-  }
+  } 
 };
 
   const fetchCities = async (stateId) => {

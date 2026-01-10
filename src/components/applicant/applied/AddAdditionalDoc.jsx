@@ -32,6 +32,35 @@ const AddAdditionalDoc = ({
   const additionalInputRef = useRef(null);
   const dispatch = useDispatch();
 
+  const getFileIcon = (file) => {
+    const fileName = file?.name?.toLowerCase() || "";
+    const fileType = file?.type?.toLowerCase() || "";
+    
+    // PDF files
+    if (fileType === "application/pdf" || fileName.endsWith(".pdf")) {
+      return "/assets/images/document.png";
+    }
+    
+    // Word document types (doc, docx, docm, dotx, dotm)
+    const wordMimeTypes = [
+      "application/msword",                                                          // .doc
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",     // .docx
+      "application/vnd.ms-word.document.macroenabled.12",                            // .docm
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.template",     // .dotx
+      "application/vnd.ms-word.template.macroenabled.12"                             // .dotm
+    ];
+    const wordExtensions = [".doc", ".docx", ".docm", ".dotx", ".dotm"];
+    
+    if (
+      wordMimeTypes.includes(fileType) ||
+      wordExtensions.some((ext) => fileName.endsWith(ext))
+    ) {
+      return "/assets/images/word.png";
+    }
+    
+    return "/assets/images/txt.png";
+  };
+
   const createJobValidationSchema = yup.object().shape({
     resumeId: yup
       .string()
@@ -201,7 +230,7 @@ const AddAdditionalDoc = ({
             <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "16px" }, fontWeight: 400, color: "#111111", pl: 3 }}>
               {data?.attachAdditionalDoc}
             </Typography>
-            <input ref={additionalInputRef} type="file" style={{ display: "none" }} accept=".pdf" multiple onChange={handleAdditionalDocChange} />
+            <input ref={additionalInputRef} type="file" style={{ display: "none" }} accept=".pdf,.doc,.docx,.docm,.dotx,.dotm,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-word.document.macroEnabled.12,application/vnd.openxmlformats-officedocument.wordprocessingml.template,application/vnd.ms-word.template.macroEnabled.12" multiple onChange={handleAdditionalDocChange} />
           </Box>
 
           {additionalFiles.length > 0 && (
@@ -230,21 +259,12 @@ const AddAdditionalDoc = ({
                       justifyContent: "center",
                     }}
                   >
-                    {fileInputRef.current.files[0]?.type === ".pdf" ? (
-                      <Image
-                      src="/assets/images/pdf.png"
+                    <Image
+                      src={getFileIcon(file)}
                       width={53.09}
                       height={65.23}
-                      alt="pdf"
+                      alt="document"
                     />
-                    ) : (
-                      <Image
-                      src="/assets/images/word.png"
-                      width={53.09}
-                      height={65.23}
-                      alt="word"
-                    />
-                    )}
                     
                     <Box sx={{ px: 2, pt: "10px" }}>
                       <Typography

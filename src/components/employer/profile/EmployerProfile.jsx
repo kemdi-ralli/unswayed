@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Avatar, Box, Button, Rating, Typography } from "@mui/material";
+import { Avatar, Box, Button, Chip, Rating, Typography } from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import { BorderLinearProgress } from "@/helper/progressbar";
 import RalliButton from "@/components/button/RalliButton";
@@ -49,6 +49,41 @@ const EmployerProfile = ({
     };
     getReviews(data?.employer_id);
   }, [data?.employer_id]);
+
+  // === NEW: Get subscription info from data or userData ===
+  const getSubscriptionDisplay = () => {
+    const subscriptionPlan = data?.subscription_plan || userData?.user?.subscription_plan || "30-days trial";
+    const isOnTrial = data?.subscription?.is_on_trial || subscriptionPlan === "30-days trial";
+    const daysRemaining = data?.subscription?.days_remaining || 0;
+    
+    // Calculate days remaining for trial if not provided
+    let calculatedDaysRemaining = daysRemaining;
+    if (isOnTrial && data?.trial_ends_at && !daysRemaining) {
+      const trialEnd = new Date(data.trial_ends_at);
+      const now = new Date();
+      calculatedDaysRemaining = Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)));
+    }
+    
+    return {
+      plan: subscriptionPlan,
+      isOnTrial,
+      daysRemaining: calculatedDaysRemaining,
+    };
+  };
+
+  const subscriptionInfo = getSubscriptionDisplay();
+
+  // === NEW: Get color based on subscription type ===
+  const getSubscriptionColor = (plan) => {
+    if (plan === "30-days trial") return { bg: "#fef3c7", text: "#d97706" };
+    if (plan === "Tier 1") return { bg: "#dbeafe", text: "#2563eb" };
+    if (plan === "Tier 2") return { bg: "#dcfce7", text: "#16a34a" };
+    if (plan === "Tier 3") return { bg: "#f3e8ff", text: "#9333ea" };
+    if (plan === "Expired") return { bg: "#fee2e2", text: "#dc2626" };
+    return { bg: "#f3f4f6", text: "#374151" };
+  };
+
+  const subColors = getSubscriptionColor(subscriptionInfo.plan);
 
   return (
     <Box>
@@ -128,6 +163,72 @@ const EmployerProfile = ({
           </Button>
         </Box>
       )}
+
+      {/* === NEW: Subscription Plan Display for Employer === */}
+      {isMyProfile && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 1,
+            mb: 3,
+            p: 2,
+            borderRadius: "12px",
+            backgroundColor: subColors.bg,
+            border: `1px solid ${subColors.text}20`,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography sx={{ fontWeight: 500, color: "#374151" }}>
+              Current Plan:
+            </Typography>
+            <Chip
+              label={subscriptionInfo.plan}
+              size="small"
+              sx={{
+                backgroundColor: subColors.text,
+                color: "#fff",
+                fontWeight: 600,
+              }}
+            />
+          </Box>
+          
+          {subscriptionInfo.isOnTrial && subscriptionInfo.daysRemaining > 0 && (
+            <Typography
+              sx={{
+                fontSize: "14px",
+                color: subscriptionInfo.daysRemaining <= 7 ? "#dc2626" : "#d97706",
+                fontWeight: 600,
+              }}
+            >
+              ⏰ {subscriptionInfo.daysRemaining} days remaining in trial
+            </Typography>
+          )}
+          
+          {(subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
+            <Button
+              variant="contained"
+              onClick={() => route.push("/pricing")}
+              sx={{
+                mt: 1,
+                backgroundColor: "#189e33ff",
+                color: "#fff",
+                borderRadius: "20px",
+                textTransform: "none",
+                fontWeight: 600,
+                px: 3,
+                "&:hover": {
+                  backgroundColor: "#147c2cff",
+                },
+              }}
+            >
+              {subscriptionInfo.plan === "Expired" ? "Renew Subscription" : "Upgrade Now"}
+            </Button>
+          )}
+        </Box>
+      )}
+
       {!notUser && (
         <>
           <Typography sx={styles.heading}>Overview</Typography>
@@ -168,6 +269,23 @@ const EmployerProfile = ({
               {data?.founded ?? ""}
             </Typography>
           </Box>
+
+          {/* === NEW: Subscription Plan in Overview (for non-owner view) === */}
+          {!isMyProfile && (
+            <Box sx={styles.detailTab}>
+              <Typography sx={styles.detailHeading}>Subscription</Typography>
+              <Chip
+                label={subscriptionInfo.plan}
+                size="small"
+                sx={{
+                  backgroundColor: subColors.bg,
+                  color: subColors.text,
+                  fontWeight: 600,
+                  fontSize: "12px",
+                }}
+              />
+            </Box>
+          )}
         </>
       )}
 
@@ -380,6 +498,7 @@ const styles = {
     color: "#222222",
     display: "flex",
     justifyContent: "space-between",
+    alignItems: "center",
     my: 2,
     gap:1
   },

@@ -1,71 +1,187 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import apiInstance from "@/services/apiService/apiServiceInstance";
+
+// Types matching Laravel backend
+interface SubscriptionPlan {
+  id: number;
+  name: string;
+  slug: string;
+  stripe_price_id: string | null;
+  price: string;
+  billing_period: "monthly" | "yearly";
+  description: string | null;
+  features: string[] | null;
+  user_type: "applicant" | "employer";
+  is_active: boolean;
+  sort_order: number;
+}
+
+interface SubscriptionInfo {
+  plan: string;
+  is_subscribed: boolean;
+  is_on_trial: boolean;
+  trial_ends_at: string | null;
+  subscription_ends_at: string | null;
+  days_remaining: number;
+  has_active_subscription: boolean;
+}
+
+interface AuthState {
+  auth: {
+    userData: {
+      token?: string;
+      user?: {
+        id: number;
+        type: "applicant" | "employer";
+        [key: string]: any;
+      };
+    } | null;
+  };
+}
 
 export function PricingSection() {
   const [isApplicant, setIsApplicant] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [currentSubscription, setCurrentSubscription] =
+    useState<SubscriptionInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ✅ Updated Checkout Handler (no deprecated redirectToCheckout)
-  // inside PricingSection component
-  const handleCheckout = async (
-    planName: string,
-    stripePriceId?: string | null
-  ) => {
-    if (!stripePriceId) {
-      alert("This plan is free or not configured for Stripe.");
+  const router = useRouter();
+
+  // Get auth state from Redux
+  const { userData } = useSelector((state: AuthState) => state.auth);
+  const user = userData?.user;
+  const isAuthenticated = !!user;
+
+  // Set initial tab based on user type
+  useEffect(() => {
+    if (user?.type) {
+      setIsApplicant(user.type === "applicant");
+    }
+  }, [user?.type]);
+
+  // Fetch plans from Laravel backend
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        // Fetch plans - works for both authenticated and unauthenticated users
+        // The backend should allow this endpoint without auth for displaying plans
+        const response = await apiInstance.get("/subscriptions/plans");
+
+        if (response.data?.status === "success") {
+          setPlans(response.data.data.plans || []);
+          setCurrentSubscription(response.data.data.current_subscription || null);
+        }
+      } catch (err: any) {
+        console.error("Error fetching plans:", err);
+        // If 401 (unauthenticated), that's okay - we'll show static plans for display
+        if (err.response?.status !== 401) {
+          setError("Failed to load subscription plans");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, [isAuthenticated]);
+
+  // Handle checkout via Laravel backend
+  const handleCheckout = async (plan: SubscriptionPlan) => {
+    // If free plan, no checkout needed
+    if (!plan.stripe_price_id || parseFloat(plan.price) === 0) {
+      alert("This is a free plan. You already have access!");
+      return;
+    }
+
+    // If not authenticated, redirect to appropriate login
+    if (!isAuthenticated) {
+      const loginPath =
+        plan.user_type === "employer" ? "/employer/login" : "/applicant/login";
+      router.push(`${loginPath}?redirect=/pricing&plan=${plan.slug}`);
+      return;
+    }
+
+    // Check if user type matches plan type
+    if (user?.type !== plan.user_type) {
+      alert(
+        `This plan is for ${plan.user_type}s. Please select a plan for your account type.`
+      );
+      return;
+    }
+
+    // IMPORTANT: Use the actual plan.id from the database, not hardcoded
+    if (!plan.id) {
+      alert("Invalid plan. Please refresh and try again.");
       return;
     }
 
     try {
-      setLoadingPlan(planName);
+      setLoadingPlan(plan.slug);
 
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: stripePriceId }),
+      const response = await apiInstance.post("/subscriptions/checkout", {
+        plan_id: plan.id, // This must match the actual database ID
+        success_url: `${window.location.origin}/subscription/success`,
+        cancel_url: `${window.location.origin}/pricing`,
       });
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseErr) {
-        console.error("Non-JSON response:", text);
-        alert("Server returned unexpected response. Check console.");
-        return;
+      if (
+        response.data?.status === "success" &&
+        response.data?.data?.checkout_url
+      ) {
+        // Redirect to Stripe Checkout
+        window.location.href = response.data.data.checkout_url;
+      } else {
+        console.error("Checkout response:", response.data);
+        alert(
+          response.data?.message || "Unable to initiate checkout. Please try again."
+        );
       }
-
-      if (!res.ok) {
-        console.error("Checkout failed (status " + res.status + "):", data);
-        alert(`Checkout failed: ${data.error || "server error"}`);
-        return;
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.errors ||
+        "Something went wrong while starting checkout.";
+      
+      // Show more detailed error for debugging
+      if (typeof errorMessage === 'object') {
+        alert(`Validation Error: ${JSON.stringify(errorMessage)}`);
+      } else {
+        alert(errorMessage);
       }
-
-      if (!data.url) {
-        console.error("No checkout URL returned from backend:", data);
-        alert("Unable to initiate checkout — no URL returned.");
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Something went wrong while starting checkout. Check console.");
     } finally {
       setLoadingPlan(null);
     }
   };
 
-  // ✅ Applicant Plans
-  const applicantPlans = [
+  // Check if user is on this plan
+  const isCurrentPlan = (planName: string): boolean => {
+    if (!currentSubscription) return false;
+    return currentSubscription.plan.toLowerCase() === planName.toLowerCase();
+  };
+
+  // Static plans for display only (when API fails or for SEO)
+  // These are NOT used for checkout - only for visual display
+  const staticApplicantPlans: SubscriptionPlan[] = [
     {
-      name: "Free Basic Plan",
-      price: "$0",
+      id: 0, // ID 0 indicates static plan - cannot checkout
+      name: "Freemium",
+      slug: "applicant-freemium",
+      stripe_price_id: null,
+      price: "0.00",
+      billing_period: "monthly",
       description:
         "Always Free - No cost, No time limit. Unlimited Access for Job Seekers.",
       features: [
@@ -76,40 +192,18 @@ export function PricingSection() {
         "Job alerts (customizable: daily or weekly)",
         "Career resource library (articles, tips, and guidance)",
       ],
-      audience:
-        "Job seekers of all levels of experience, who want to actively apply to jobs.",
-      buttonText: "Get Started Free",
-      popular: false,
-      stripePriceId: null,
-      annual: null,
+      user_type: "applicant",
+      is_active: true,
+      sort_order: 1,
     },
-    // {
-    //   name: "Pro Plan",
-    //   price: "$49.99/Month",
-    //   description: "Unlimited Access for Job Seekers with hands-on career support.",
-    //   features: [
-    //     "Full access to all job listings",
-    //     "Advanced job search filters with unlimited usage",
-    //     "Unlimited job applications",
-    //     "Resume creation and uploads",
-    //     "Job alerts (customizable: daily or weekly)",
-    //     "Career resource library (articles, tips, and guidance)",
-    //     "Resume-building toolkits",
-    //     "Career coaching sessions (Coming Soon)",
-    //     "Professional resume review and optimization (Coming Soon)",
-    //     "Priority customer support (Coming Soon)",
-    //   ],
-    //   audience:
-    //     "Job seekers of all levels of experience, who want to actively apply to jobs and receive hands-on support to boost their career success.",
-    //   buttonText: "Upgrade to Pro",
-    //   popular: true,
-    //   stripePriceId: process.env.NEXT_PUBLIC_STRIPE_APPLICANT_PRO_PRICE_ID,
-    // },
     {
+      id: 0,
       name: "Pro Plan",
-      price: "$49.99/Month",
-      description:
-        "Unlimited Access for Job Seekers with hands-on career support.",
+      slug: "applicant-pro-monthly",
+      stripe_price_id: "price_1SOckYEWILSBYYC8Rpzc4Cgg",
+      price: "49.99",
+      billing_period: "monthly",
+      description: "Unlimited Access for Job Seekers with hands-on career support.",
       features: [
         "Full access to all job listings",
         "Advanced job search filters with unlimited usage",
@@ -122,26 +216,44 @@ export function PricingSection() {
         "Professional resume review and optimization (Coming Soon)",
         "Priority customer support (Coming Soon)",
       ],
-      audience:
-        "Job seekers of all levels of experience, who want to actively apply to jobs and receive hands-on support to boost their career success.",
-      buttonText: "Upgrade to Pro",
-      popular: true,
-      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_APPLICANT_PRO_PRICE_ID,
-      annual: {
-        price: "$599.99 / Year",
-        label: "Go Pro — Annual",
-        highlight: "Best Value · Save more with annual billing",
-        stripePriceId:
-          process.env.NEXT_PUBLIC_STRIPE_APPLICANT_PRO_ANNUAL_PRICE_ID,
-      },
+      user_type: "applicant",
+      is_active: true,
+      sort_order: 2,
+    },
+    {
+      id: 0,
+      name: "Pro Plan (Yearly)",
+      slug: "applicant-pro-yearly",
+      stripe_price_id: "price_1SkoOrEWILSBYYC8ZS5zVpYP",
+      price: "599.99",
+      billing_period: "yearly",
+      description: "Unlock premium features - Save with annual billing",
+      features: [
+        "Full access to all job listings",
+        "Advanced job search filters with unlimited usage",
+        "Unlimited job applications",
+        "Resume creation and uploads",
+        "Job alerts (customizable: daily or weekly)",
+        "Career resource library (articles, tips, and guidance)",
+        "Resume-building toolkits",
+        "Career coaching sessions (Coming Soon)",
+        "Professional resume review and optimization (Coming Soon)",
+        "Priority customer support (Coming Soon)",
+      ],
+      user_type: "applicant",
+      is_active: true,
+      sort_order: 3,
     },
   ];
 
-  // ✅ Employer Plans
-  const employerPlans = [
+  const staticEmployerPlans: SubscriptionPlan[] = [
     {
+      id: 0,
       name: "Tier 1",
-      price: "$99.99/Month",
+      slug: "employer-tier-1",
+      stripe_price_id: "price_1SOckYEWILSBYYC8c3GeP7ez",
+      price: "99.99",
+      billing_period: "monthly",
       description: "Ideal for small teams and occasional hiring needs.",
       features: [
         "Job Postings: 50 active job postings at a time",
@@ -150,15 +262,17 @@ export function PricingSection() {
         "Company Profile: Basic company profile with logo and brief description",
         "Customer Support: Email Support",
       ],
-      buttonText: "Start with Standard",
-      audience: "Small businesses and startups with occasional hiring needs.",
-      popular: false,
-      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_EMPLOYER_TIER1_PRICE_ID,
-      annual: null,
+      user_type: "employer",
+      is_active: true,
+      sort_order: 1,
     },
     {
+      id: 0,
       name: "Tier 2",
-      price: "$150.00/Month",
+      slug: "employer-tier-2",
+      stripe_price_id: "price_1SOckYEWILSBYYC82cPtMenr",
+      price: "150.00",
+      billing_period: "monthly",
       description:
         "For growing companies needing more candidate filtering and visibility.",
       features: [
@@ -170,16 +284,17 @@ export function PricingSection() {
         "Featured Job Slots: 30 featured job slots per month for increased visibility",
         "Customer Support: Priority email and chat support",
       ],
-      buttonText: "Upgrade to Professional",
-      audience:
-        "Growing businesses with regular hiring needs and a focus on candidate quality.",
-      popular: true,
-      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_EMPLOYER_TIER2_PRICE_ID,
-      annual: null,
+      user_type: "employer",
+      is_active: true,
+      sort_order: 2,
     },
     {
+      id: 0,
       name: "Tier 3",
-      price: "$175.00/Month",
+      slug: "employer-tier-3",
+      stripe_price_id: "price_1SOckYEWILSBYYC8N8GbflcY",
+      price: "175.00",
+      billing_period: "monthly",
       description:
         "Tailored for large organizations and high-volume hiring requirements.",
       features: [
@@ -192,16 +307,80 @@ export function PricingSection() {
         "Dedicated Account Manager: Personalized onboarding and ongoing support",
         "ATS Integrations: API access to integrate existing HR systems",
       ],
-      buttonText: "Contact Enterprise Sales",
-      audience:
-        "Large enterprises and organizations with high-volume hiring needs.",
-      popular: false,
-      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_EMPLOYER_TIER3_PRICE_ID,
-      annual: null,
+      user_type: "employer",
+      is_active: true,
+      sort_order: 3,
     },
   ];
 
-  const plans = isApplicant ? applicantPlans : employerPlans;
+  // Use fetched plans if available, otherwise use static plans for display
+  const getDisplayPlans = (): SubscriptionPlan[] => {
+    const fetchedPlans = plans.filter((p) =>
+      isApplicant ? p.user_type === "applicant" : p.user_type === "employer"
+    );
+
+    if (fetchedPlans.length > 0) {
+      return fetchedPlans;
+    }
+
+    // Fallback to static plans for display only
+    return isApplicant ? staticApplicantPlans : staticEmployerPlans;
+  };
+
+  const displayPlans = getDisplayPlans();
+
+  // Check if we're using static plans (no real IDs)
+  const isUsingStaticPlans = displayPlans.some((p) => p.id === 0);
+
+  // Determine if plan is "popular" (middle tier or Pro)
+  const isPlanPopular = (plan: SubscriptionPlan): boolean => {
+    if (isApplicant) {
+      return plan.name === "Pro Plan" && plan.billing_period === "monthly";
+    }
+    return plan.name === "Tier 2";
+  };
+
+  // Get button text based on plan state
+  const getButtonText = (plan: SubscriptionPlan): string => {
+    if (isCurrentPlan(plan.name)) return "Current Plan";
+    if (parseFloat(plan.price) === 0) return "Get Started Free";
+    if (!isAuthenticated) return "Sign Up to Subscribe";
+    // if (plan.id === 0) return "Login to Subscribe"; // Static plan
+    if (currentSubscription?.is_on_trial) return "Upgrade Now";
+    return plan.name.includes("Tier 3") ? "Contact Enterprise Sales" : "Subscribe";
+  };
+
+  // Format price display
+  const formatPrice = (plan: SubscriptionPlan): string => {
+    const price = parseFloat(plan.price);
+    if (price === 0) return "$0";
+    return `$${price.toFixed(2)}/${plan.billing_period === "yearly" ? "Year" : "Month"}`;
+  };
+
+  // Handle button click - redirect to login if using static plans
+  const handleButtonClick = (plan: SubscriptionPlan) => {
+    if (plan.id === 0 && parseFloat(plan.price) > 0) {
+      // Static plan with price - need to login first
+      const loginPath =
+        plan.user_type === "employer" ? "/employer/login" : "/applicant/login";
+      router.push(`${loginPath}?redirect=/pricing`);
+      return;
+    }
+    handleCheckout(plan);
+  };
+
+  if (isLoading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -225,10 +404,27 @@ export function PricingSection() {
           variant="body1"
           sx={{ color: "rgba(60,60,60,0.7)", mt: 1.5 }}
         >
-          Whether you’re a job seeker or an employer, Unswayed offers
+          Whether you're a job seeker or an employer, Unswayed offers
           transparent, powerful plans to help you find the right match.
         </Typography>
       </Box>
+
+      {/* Current Subscription Status */}
+      {currentSubscription && isAuthenticated && (
+        <Box
+          mb={4}
+          p={2}
+          borderRadius="12px"
+          bgcolor={currentSubscription.is_on_trial ? "#fef3c7" : "#dcfce7"}
+          border={`1px solid ${currentSubscription.is_on_trial ? "#f59e0b" : "#22c55e"}`}
+        >
+          <Typography variant="body2" fontWeight={600}>
+            {currentSubscription.is_on_trial
+              ? `🕐 Trial: ${currentSubscription.days_remaining} days remaining`
+              : `✓ Current Plan: ${currentSubscription.plan}`}
+          </Typography>
+        </Box>
+      )}
 
       {/* Plan Toggle */}
       <Box
@@ -269,6 +465,21 @@ export function PricingSection() {
         </Button>
       </Box>
 
+      {/* Error State */}
+      {error && (
+        <Box
+          mb={4}
+          p={2}
+          borderRadius="8px"
+          bgcolor="#fee2e2"
+          border="1px solid #ef4444"
+        >
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
+        </Box>
+      )}
+
       {/* Pricing Cards */}
       <Box
         display="flex"
@@ -278,195 +489,182 @@ export function PricingSection() {
         justifyContent="center"
         width="100%"
       >
-        {plans.map((plan) => (
-          <Box
-            key={plan.name}
-            sx={{
-              flex: "1 1 300px",
-              p: 4,
-              borderRadius: "16px",
-              backgroundColor: plan.popular ? "#00305B" : "#ffffff",
-              border: "2px solid #00305B",
-              color: plan.popular ? "#fff" : "#111827",
-              boxShadow: plan.popular
-                ? "0 12px 24px rgba(3,105,161,0.25)"
-                : "0 4px 12px rgba(0,0,0,0.06)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: 2.5,
-              position: "relative",
-            }}
-          >
-            {plan.popular && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  background: "#fff",
-                  color: "#00305B",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  px: 1.5,
-                  py: 0.5,
-                  borderRadius: "999px",
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                }}
-              >
-                Most Popular
-              </Box>
-            )}
+        {displayPlans.map((plan) => {
+          const popular = isPlanPopular(plan);
+          const isCurrent = isCurrentPlan(plan.name);
 
-            <Typography variant="h6" fontWeight={700}>
-              {plan.name}
-            </Typography>
-            <Typography variant="h4" fontWeight={700} lineHeight={1}>
-              {plan.price}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: plan.popular ? "rgba(255,255,255,0.85)" : "#6b7280",
-              }}
-            >
-              {plan.description}
-            </Typography>
-
-            {/* ✅ Checkout Button */}
-            <Button
-              variant={plan.popular ? "contained" : "outlined"}
-              fullWidth
-              disabled={loadingPlan === plan.name}
-              onClick={() =>
-                handleCheckout(plan.name, plan.stripePriceId || "")
-              }
-              sx={{
-                borderRadius: "40px",
-                fontWeight: 600,
-                textTransform: "none",
-                py: 1.2,
-                fontSize: "15px",
-                borderColor: plan.popular ? "transparent" : "#189e33ff",
-                backgroundColor: plan.popular ? "#189e33ff" : "transparent",
-                color: plan.popular ? "#fff" : "#189e33ff",
-                "&:hover": {
-                  backgroundColor: plan.popular ? "#147c2cff" : "#189e33ff",
-                  color: "#fff",
-                },
-              }}
-            >
-              {loadingPlan === plan.name ? "Processing..." : plan.buttonText}
-            </Button>
-
-            {/* ✅ Annual Pro — rendered ONLY when defined */}
-            {isApplicant && plan.name === "Pro Plan" && plan.annual && (
-              <Box
-                mt={2}
-                width="100%"
-                p={2}
-                border="1px dashed #189e33ff"
-                borderRadius="12px"
-                textAlign="center"
-              >
-                <Typography fontWeight={700} fontSize="18px">
-                  {plan.annual.price}
-                </Typography>
-
-                <Typography variant="body2" sx={{ opacity: 0.85, mb: 1 }}>
-                  {plan.annual.highlight}
-                </Typography>
-
-                <Button
-                  fullWidth
-                  disabled={loadingPlan === "Pro Plan Annual"}
-                  onClick={() =>
-                    handleCheckout("Pro Plan Annual", plan.annual.stripePriceId)
-                  }
-                  sx={{
-                    borderRadius: "40px",
-                    fontWeight: 600,
-                    textTransform: "none",
-                    py: 1.2,
-                    backgroundColor: "#189e33ff",
-                    color: "#fff",
-                    "&:hover": { backgroundColor: "#147c2cff" },
-                  }}
-                >
-                  Go Pro — Annual
-                </Button>
-              </Box>
-            )}
-
-            <Typography variant="body2" fontWeight={600} mt={2}>
-              What’s Included:
-            </Typography>
+          return (
             <Box
-              component="ul"
+              key={plan.slug}
               sx={{
-                listStyle: "none",
-                p: 0,
-                m: 0,
+                flex: "1 1 300px",
+                p: 4,
+                borderRadius: "16px",
+                backgroundColor: popular ? "#00305B" : "#ffffff",
+                border: isCurrent ? "3px solid #22c55e" : "2px solid #00305B",
+                color: popular ? "#fff" : "#111827",
+                boxShadow: popular
+                  ? "0 12px 24px rgba(3,105,161,0.25)"
+                  : "0 4px 12px rgba(0,0,0,0.06)",
                 display: "flex",
                 flexDirection: "column",
-                gap: 1.5,
+                alignItems: "flex-start",
+                gap: 2.5,
+                position: "relative",
+                opacity: isCurrent ? 0.9 : 1,
               }}
             >
-              {plan.features.map((feature) => (
+              {/* Popular Badge */}
+              {popular && (
                 <Box
-                  key={feature}
-                  component="li"
-                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                  sx={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                    background: "#fff",
+                    color: "#00305B",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "999px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                  }}
                 >
-                  <Check
-                    strokeWidth={2}
-                    color={plan.popular ? "#fff" : "#189e33ff"}
-                    size={18}
-                  />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: plan.popular ? "rgba(255,255,255,0.9)" : "#374151",
-                    }}
-                  >
-                    {feature}
-                  </Typography>
+                  Most Popular
                 </Box>
-              ))}
-            </Box>
+              )}
 
-            {isApplicant && plan?.audience && (
+              {/* Current Plan Badge */}
+              {isCurrent && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 16,
+                    left: 16,
+                    background: "#22c55e",
+                    color: "#fff",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "999px",
+                  }}
+                >
+                  Current
+                </Box>
+              )}
+
+              <Typography variant="h6" fontWeight={700}>
+                {plan.name}
+              </Typography>
+              <Typography variant="h4" fontWeight={700} lineHeight={1}>
+                {formatPrice(plan)}
+              </Typography>
               <Typography
                 variant="body2"
+                sx={{ color: popular ? "rgba(255,255,255,0.85)" : "#6b7280" }}
+              >
+                {plan.description}
+              </Typography>
+
+              {/* Checkout Button */}
+              <Button
+                variant={popular ? "contained" : "outlined"}
+                fullWidth
+                disabled={loadingPlan === plan.slug || isCurrent}
+                onClick={() => handleButtonClick(plan)}
                 sx={{
-                  mt: 2,
-                  fontStyle: "italic",
-                  color: plan.popular ? "rgba(255,255,255,0.85)" : "#555",
+                  borderRadius: "40px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  py: 1.2,
+                  fontSize: "15px",
+                  borderColor: popular ? "transparent" : "#189e33ff",
+                  backgroundColor: isCurrent
+                    ? "#9ca3af"
+                    : popular
+                    ? "#189e33ff"
+                    : "transparent",
+                  color: popular || isCurrent ? "#fff" : "#189e33ff",
+                  "&:hover": {
+                    backgroundColor: isCurrent
+                      ? "#9ca3af"
+                      : popular
+                      ? "#147c2cff"
+                      : "#189e33ff",
+                    color: "#fff",
+                  },
+                  "&:disabled": {
+                    backgroundColor: isCurrent ? "#9ca3af" : undefined,
+                    color: isCurrent ? "#fff" : undefined,
+                  },
                 }}
               >
-                Who This Is For: {plan?.audience}
+                {loadingPlan === plan.slug ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  getButtonText(plan)
+                )}
+              </Button>
+
+              {/* Features List */}
+              <Typography variant="body2" fontWeight={600} mt={2}>
+                What's Included:
               </Typography>
-            )}
-          </Box>
-        ))}
+              <Box
+                component="ul"
+                sx={{
+                  listStyle: "none",
+                  p: 0,
+                  m: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                }}
+              >
+                {plan.features?.map((feature) => (
+                  <Box
+                    key={feature}
+                    component="li"
+                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                  >
+                    <Check
+                      strokeWidth={2}
+                      color={popular ? "#fff" : "#189e33ff"}
+                      size={18}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: popular ? "rgba(255,255,255,0.9)" : "#374151",
+                      }}
+                    >
+                      {feature}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          );
+        })}
       </Box>
 
+      {/* Employer Footer Info */}
       {!isApplicant && (
         <Box mt={6} maxWidth="800px" textAlign="center">
           <Typography variant="body2" sx={{ color: "#4b5563", mb: 1 }}>
-            <strong>Free Trial:</strong> Employers who sign up for the Free
-            Trial Plan get full access to the Standard Plan features for 30
-            days. No credit card is required to begin the trial. After 30 days,
-            Employers must upgrade to a paid plan to continue using the
-            platform.
+            <strong>Free Trial:</strong> Employers who sign up get full access
+            to Tier 1 features for 30 days. No credit card required. After 30
+            days, upgrade to continue.
           </Typography>
           <Typography variant="body2" sx={{ color: "#4b5563", mb: 1 }}>
-            <strong>Billing:</strong> Monthly or annual billing options
-            available. Annual subscribers receive a 10% discount.
+            <strong>Billing:</strong> Monthly billing. Cancel anytime before the
+            next billing cycle.
           </Typography>
           <Typography variant="body2" sx={{ color: "#4b5563" }}>
-            <strong>Cancellation:</strong> Users can cancel any time before the
-            next billing cycle to avoid charges.
+            <strong>Need Help?</strong> Contact our sales team for custom
+            enterprise solutions.
           </Typography>
         </Box>
       )}

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { Box, Button, Typography, IconButton } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Button, Typography, IconButton, Modal } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import CloseIcon from "@mui/icons-material/Close";
 import { useWizard } from "react-use-wizard";
 import Image from "next/image";
 import RalliButton from "../button/RalliButton";
@@ -11,6 +12,63 @@ import Container from "../common/Container";
 import { usePathname, useRouter } from "next/navigation";
 import { ApplicantSignUpSchema } from "@/schemas/applicantRegistrationSchema";
 import TremsOfUse from "../common/tremsAndConditionModal/TremsOfUse";
+
+// UCN Disclaimer Modal Component
+const UCNDisclaimerModal = ({ open, onClose }) => (
+  <Modal open={open} onClose={onClose}>
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: { xs: "90%", sm: "500px" },
+        maxHeight: "80vh",
+        overflow: "auto",
+        bgcolor: "background.paper",
+        boxShadow: 24,
+        borderRadius: "12px",
+        p: 4,
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700, color: "#00305B" }}>
+          Unique Candidate Number (UCN)
+        </Typography>
+        <IconButton onClick={onClose} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <Typography
+        variant="body1"
+        sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
+      >
+        <strong>Note:</strong> A Unique Candidate Number (UCN) is automatically assigned when an applicant submits their application through StepIn Now. For these applications, employers may not collect, request, or use any information that could introduce bias into the hiring process. UNSWAYED is committed to merit-based hiring, and all hiring decisions under this process must be based solely on an applicant's skills, qualifications, and job-related experience.
+      </Typography>
+
+      <Button
+        fullWidth
+        variant="contained"
+        onClick={onClose}
+        sx={{
+          mt: 2,
+          backgroundColor: "#00305B",
+          "&:hover": { backgroundColor: "#002347" },
+        }}
+      >
+        I Understand
+      </Button>
+    </Box>
+  </Modal>
+);
 
 const RegistrationInfo = ({
   data,
@@ -31,7 +89,13 @@ const RegistrationInfo = ({
   });
 
   const [validationErrors, setValidationErrors] = useState({});
+  const [showUCNModal, setShowUCNModal] = useState(false);
   const mergedErrors = { ...validationErrors, ...errors };
+
+  // Automatically show UCN modal when component mounts
+  useEffect(() => {
+    setShowUCNModal(true);
+  }, []);
 
   const handleChange = (name, value) => {
     onFieldChange(name, value);
@@ -189,6 +253,12 @@ const RegistrationInfo = ({
 
         <RalliButton label="Next" onClick={handleNext} disabled={!agreeTerms} />
       </Box>
+
+      {/* UCN Disclaimer Modal - Auto-opens on mount */}
+      <UCNDisclaimerModal
+        open={showUCNModal}
+        onClose={() => setShowUCNModal(false)}
+      />
     </Container>
   );
 };

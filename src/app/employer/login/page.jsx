@@ -73,12 +73,55 @@ const Page = () => {
         throw new Error("No credential found");
       }
 
+      // Validate email domain
+      const email = result?.user?.email?.toLowerCase().trim();
+      
+      if (!email) {
+        throw new Error("Email is required.");
+      }
+
+      // Restricted personal domains
+      const restrictedDomains = [
+        "@gmail.com",
+        "@yahoo.com",
+        "@aol.com",
+        "@comcast.net",
+        "@onmicrosoft.com",
+        "@outlook.com",
+        "@hotmail.com",
+        "@live.com",
+        "@protonmail.com",
+        "@mail.com",
+        "@zoho.com",
+        "@icloud.com",
+      ];
+
+      // Whitelisted domains (allowed even if not company-standard)
+      const whitelistDomains = [
+        "@partner.org",
+        "@affiliate.net",
+      ];
+
+      const isWhitelisted = whitelistDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      const isRestricted = restrictedDomains.some((domain) =>
+        email.endsWith(domain)
+      );
+
+      if (!isWhitelisted && isRestricted) {
+        Toast("error", "Please use your company email (e.g., @yourcompany.com) to sign in.");
+        return;
+      }
+
       const accessToken = result?._tokenResponse?.oauthIdToken;
       await employerSocialLogedIn(router, dispatch, "google", accessToken);
     } catch (error) {
       console.error("Login failed:", error);
       console.error("Error Code:", error.code);
       console.error("Error Message:", error.message);
+      Toast("error", error.message || "Login failed");
     } finally {
       setLoading(false);
     }

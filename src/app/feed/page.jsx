@@ -62,6 +62,7 @@ const Page = () => {
 
   const [isEdit, setIsEdit] = useState(false);
   const [likedPostIds, setLikedPostIds] = useState();
+  const [likeLoading, setLikeLoading] = useState({});
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectItem, setSelectItem] = useState([]);
   const [postId, setPostId] = useState();
@@ -87,6 +88,38 @@ const Page = () => {
 
   //like post work
   const handleLike = async (postId) => {
+    // Prevent multiple clicks while processing this specific post
+    if (likeLoading[postId]) return;
+
+    // Helper to update post in any of the post arrays
+    const updatePostLikeState = (posts, id, isLiked, likeDelta) => {
+      return posts?.map((post) =>
+        post.id === id
+          ? {
+              ...post,
+              isLiked: isLiked,
+              total_likes: (post.total_likes || 0) + likeDelta,
+            }
+          : post
+      );
+    };
+
+    // Find current post state
+    const currentPost =
+      getPosts?.find((p) => p.id === postId) ||
+      getReels?.find((p) => p.id === postId) ||
+      getMyPostsReels?.find((p) => p.id === postId);
+
+    const previousIsLiked = currentPost?.isLiked;
+    const likeDelta = previousIsLiked ? -1 : 1;
+
+    // Optimistic update - immediately update UI
+    setGetPosts((prev) => updatePostLikeState(prev, postId, !previousIsLiked, likeDelta));
+    setGetReels((prev) => updatePostLikeState(prev, postId, !previousIsLiked, likeDelta));
+    setGetMyPostsReels((prev) => updatePostLikeState(prev, postId, !previousIsLiked, likeDelta));
+
+    setLikeLoading((prev) => ({ ...prev, [postId]: true }));
+
     const formData = new FormData();
     formData.append("post_id", postId);
     try {
@@ -99,10 +132,20 @@ const Page = () => {
         Toast("success", response?.data?.message || "Post liked successfully");
         setLikedPostIds(response?.data?.message);
       } else {
+        // Rollback on unexpected response
+        setGetPosts((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
+        setGetReels((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
+        setGetMyPostsReels((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
         console.error(`Unexpected response: ${response.status}`);
       }
     } catch (error) {
+      // Rollback on error
+      setGetPosts((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
+      setGetReels((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
+      setGetMyPostsReels((prev) => updatePostLikeState(prev, postId, previousIsLiked, -likeDelta));
       Toast("error", error?.response?.data || error.message || "Unknown error");
+    } finally {
+      setLikeLoading((prev) => ({ ...prev, [postId]: false }));
     }
   };
 
@@ -559,6 +602,7 @@ const Page = () => {
           handleClose={handleClose}
           handleCommentClick={handleCommentClick}
           loading={loading}
+          likeLoading={likeLoading}
         />
       </Suspense>
       {openModal && (

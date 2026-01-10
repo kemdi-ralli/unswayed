@@ -1,16 +1,55 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Box, Button, Typography, Dialog, DialogTitle, DialogContent, TextField, DialogActions } from "@mui/material";
+import { 
+  Box, Button, Typography, Dialog, DialogTitle, DialogContent, 
+  TextField, DialogActions, RadioGroup, FormControlLabel, Radio 
+} from "@mui/material";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { Toast } from "@/components/Toast/Toast";
 import { applicantInterviewResponse } from "@/helper/ApplicationActionHelper";
+
+const DECLINE_REASONS = [
+  "Scheduling conflict",
+  "No longer interested in the position",
+  "Accepted another offer",
+  "Location/Commute issues",
+  "Other"
+];
 
 const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData = {} }) => {
   const [item, setItem] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [declineLoading, setDeclineLoading] = useState(false);
+  const [selectedDeclineReason, setSelectedDeclineReason] = useState(""); // Track radio selection
+
+  const onDecline = async () => {
+    if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
+      const finalReason = selectedDeclineReason === "Other" ? declineReason : selectedDeclineReason;
+      
+      if (!finalReason.trim()) {
+        Toast("error", "Please provide a reason before declining.");
+        return;
+      }
+
+      setDeclineLoading(true);
+      try {
+        const formData = new FormData();
+        formData.append("type", 'decline');
+        formData.append("reason", finalReason); 
+        const response = await applicantInterviewResponse(item?.id, formData);
+        if (response?.data?.status === 'success') {
+          window.location.href = window.location.href;
+        }
+      } catch (error) {
+        Toast("error", "Something went wrong while declining.");
+      } finally {
+        setDeclineLoading(false);
+        setOpenDeclinePopup(false);
+      }
+    }
+  };
 
   // decline popup state
   const [openDeclinePopup, setOpenDeclinePopup] = useState(false);
@@ -45,29 +84,29 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
     }
   };
 
-  const onDecline = async () => {
-    if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
-      if (!declineReason.trim()) {
-        Toast("error", "Please provide a reason before declining.");
-        return;
-      }
-      setDeclineLoading(true);
-      try {
-        const formData = new FormData();
-        formData.append("type", 'decline');
-        formData.append("reason", declineReason); // attach reason
-        const response = await applicantInterviewResponse(item?.id, formData);
-        if (response?.data?.status === 'success') {
-          window.location.href = window.location.href;
-        }
-      } catch (error) {
-        Toast("error", "Something went wrong while declining.");
-      } finally {
-        setDeclineLoading(false);
-        setOpenDeclinePopup(false);
-      }
-    }
-  };
+  // const onDecline = async () => {
+  //   if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
+  //     if (!declineReason.trim()) {
+  //       Toast("error", "Please provide a reason before declining.");
+  //       return;
+  //     }
+  //     setDeclineLoading(true);
+  //     try {
+  //       const formData = new FormData();
+  //       formData.append("type", 'decline');
+  //       formData.append("reason", declineReason); // attach reason
+  //       const response = await applicantInterviewResponse(item?.id, formData);
+  //       if (response?.data?.status === 'success') {
+  //         window.location.href = window.location.href;
+  //       }
+  //     } catch (error) {
+  //       Toast("error", "Something went wrong while declining.");
+  //     } finally {
+  //       setDeclineLoading(false);
+  //       setOpenDeclinePopup(false);
+  //     }
+  //   }
+  // };
 
   const getInterviewDetails = async () => {
     try {
@@ -175,27 +214,53 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
       )}
 
       {/* Decline Reason Popup */}
-      <Dialog open={openDeclinePopup} onClose={() => setOpenDeclinePopup(false)}>
-        <DialogTitle>Decline Interview</DialogTitle>
+      <Dialog 
+        open={openDeclinePopup} 
+        onClose={() => setOpenDeclinePopup(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "#00305B" }}>Decline Interview</DialogTitle>
         <DialogContent>
-          <TextField
-            label="Reason for Decline"
-            multiline
-            rows={4}
-            fullWidth
-            value={declineReason}
-            onChange={(e) => setDeclineReason(e.target.value)}
-          />
+          <Typography sx={{ fontSize: "14px", mb: 2, color: "#555" }}>
+            Please select a reason for declining this interview invite:
+          </Typography>
+          
+          <RadioGroup
+            value={selectedDeclineReason}
+            onChange={(e) => setSelectedDeclineReason(e.target.value)}
+          >
+            {DECLINE_REASONS.map((reason) => (
+              <FormControlLabel 
+                key={reason} 
+                value={reason} 
+                control={<Radio sx={{ color: "#00305B" }} />} 
+                label={reason} 
+              />
+            ))}
+          </RadioGroup>
+
+          {selectedDeclineReason === "Other" && (
+            <TextField
+              label="Specify Reason"
+              multiline
+              rows={3}
+              fullWidth
+              sx={{ mt: 2 }}
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+            />
+          )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setOpenDeclinePopup(false)}>Cancel</Button>
           <Button
             onClick={onDecline}
             variant="contained"
             color="error"
-            disabled={declineLoading}
+            disabled={declineLoading || !selectedDeclineReason || (selectedDeclineReason === "Other" && !declineReason.trim())}
           >
-            {declineLoading ? "Declining..." : "Decline"}
+            {declineLoading ? "Declining..." : "Confirm Decline"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -150,9 +150,8 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
   const getFileIcon = (url) => {
     const ext = getFileExtension(url);
     if (ext === "pdf") return "/assets/images/document.png";
-    if (ext === "txt") return "/assets/images/txt.png";
     if (ext === "doc" || ext === "docx") return "/assets/images/word.png";
-    return null;
+    return "/assets/images/txt.png";
   };
 
   return (

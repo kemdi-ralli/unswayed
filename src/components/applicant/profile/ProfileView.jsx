@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Avatar, Box, Button, Typography } from "@mui/material";
+import { Avatar, Box, Button, Chip, Typography } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./profile.module.css";
 import ResumeTab from "../ResumeTab/ResumeTab";
@@ -169,6 +169,34 @@ const ProfileView = ({
   };
   const selectedResume = (id) => {};
 
+  // === NEW: Get subscription info from Profile or userData ===
+  const getSubscriptionDisplay = () => {
+    // Try to get from Profile first (comes from API)
+    const subscriptionPlan = Profile?.subscription_plan || userData?.user?.subscription_plan || "Freemium";
+    const isOnTrial = Profile?.subscription?.is_on_trial || false;
+    const daysRemaining = Profile?.subscription?.days_remaining || 0;
+    
+    return {
+      plan: subscriptionPlan,
+      isOnTrial,
+      daysRemaining,
+    };
+  };
+
+  const subscriptionInfo = getSubscriptionDisplay();
+
+  // === NEW: Get color based on subscription type ===
+  const getSubscriptionColor = (plan) => {
+    if (plan === "Freemium") return { bg: "#f3f4f6", text: "#6b7280" };
+    if (plan === "30-days trial") return { bg: "#fef3c7", text: "#d97706" };
+    if (plan === "Pro Plan" || plan?.includes("Pro")) return { bg: "#dbeafe", text: "#2563eb" };
+    if (plan?.includes("Tier")) return { bg: "#dcfce7", text: "#16a34a" };
+    if (plan === "Expired") return { bg: "#fee2e2", text: "#dc2626" };
+    return { bg: "#f3f4f6", text: "#374151" };
+  };
+
+  const subColors = getSubscriptionColor(subscriptionInfo.plan);
+
   return (
     <Box className={styles.profileContainer}>
       <Box className={styles.userInfo}>
@@ -257,28 +285,17 @@ const ProfileView = ({
       <Typography
         sx={{
           fontWeight: 600,
-          fontSize: "30px",
-          lineHeight: "18px",
+          fontSize: { xs: "16px", sm: "18px", md: "22px" },
+          lineHeight: "17px",
+          letterSpacing: "0%",
           color: "#00305B",
-          py: 2,
-          pb: 4,
+          my: 3,
         }}
       >
-        Contact Details
+        User Details
       </Typography>
-
       {!isMyProfile ? (
         <>
-          <UserDetail
-            label="Ethnicity"
-            value={Profile?.ethnicity?.name}
-            isAddEdu={false}
-          />
-          <UserDetail
-            label="Gender"
-            value={Profile?.gender?.name}
-            isAddEdu={false}
-          />
           <UserDetail
             label="Type"
             value={Profile?.type?.toUpperCase()}
@@ -414,54 +431,86 @@ const ProfileView = ({
         {Profile?.about ? Profile?.about : "No About Found For This Profile"}
       </Typography>
 
+      {/* === UPDATED: Dynamic Subscription Plan Display === */}
       <Box
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        backgroundColor: "#FFF",
-        border: "none",
-        outline: "none",
-        width: "100%",
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "#FFF",
+          border: "none",
+          outline: "none",
+          width: "100%",
           mb: "20px",
           mt: "20px",
           boxShadow: "0px 0px 3px #00000040",
           padding: "18px 20px",
           borderRadius: "10px",
-      }}
-    >
-      <Typography
-        sx={{
-          fontSize: { xs: "10px", sm: "14px", md: "16px" },
-          lineHeight: { xs: "19px", sm: "22px", md: "25px" },
-          fontWeight: 500,
-          color: "#222222",
-          "@media (max-width: 340px)": {
-            fontSize: "9px",
-            lineHeight:  "19px",
-          },
-        }}  
-      >
-        Subscription Plan:
-      </Typography>
-      
-        <Typography
-        sx={{
-          fontSize: { xs: "10px", sm: "14px", md: "16px" },
-          lineHeight: { xs: "19px", sm: "22px", md: "25px" },
-          fontWeight: 500,
-          color: "#222222",
-          "@media (max-width: 340px)": {
-            fontSize: "9px",
-            lineHeight:  "19px",
-          },
         }}
       >
-        Freemium
-      </Typography>
-      
-    </Box>
+        <Typography
+          sx={{
+            fontSize: { xs: "10px", sm: "14px", md: "16px" },
+            lineHeight: { xs: "19px", sm: "22px", md: "25px" },
+            fontWeight: 500,
+            color: "#222222",
+            "@media (max-width: 340px)": {
+              fontSize: "9px",
+              lineHeight: "19px",
+            },
+          }}
+        >
+          Subscription Plan:
+        </Typography>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Chip
+            label={subscriptionInfo.plan}
+            size="small"
+            sx={{
+              backgroundColor: subColors.bg,
+              color: subColors.text,
+              fontWeight: 600,
+              fontSize: { xs: "10px", sm: "12px", md: "14px" },
+            }}
+          />
+          {subscriptionInfo.isOnTrial && subscriptionInfo.daysRemaining > 0 && (
+            <Typography
+              sx={{
+                fontSize: { xs: "9px", sm: "11px", md: "12px" },
+                color: "#d97706",
+                fontWeight: 500,
+              }}
+            >
+              ({subscriptionInfo.daysRemaining} days left)
+            </Typography>
+          )}
+        </Box>
+      </Box>
+
+      {/* === NEW: Upgrade button for own profile === */}
+      {isMyProfile && (subscriptionInfo.plan === "Freemium" || subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={() => router.push("/pricing")}
+            sx={{
+              backgroundColor: "#189e33ff",
+              color: "#fff",
+              borderRadius: "10px",
+              textTransform: "none",
+              fontWeight: 600,
+              "&:hover": {
+                backgroundColor: "#147c2cff",
+              },
+            }}
+          >
+            {subscriptionInfo.plan === "Expired" ? "Renew Subscription" : "Upgrade Plan"}
+          </Button>
+        </Box>
+      )}
+
       {isMyProfile && (
         <Box sx={{ mt: 3 }}>
           <Typography

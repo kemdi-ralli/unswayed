@@ -50,7 +50,7 @@ const OfferLetter = ({ ucn = '',type = 'OfferLetter', onAction = () => {}}) => {
                 color: "#00305B",
               }}
             >
-              {data?.titleType || "Offer later"}
+              {data?.titleType || "Offer letter"}
             </Typography>
             <Typography
               sx={{

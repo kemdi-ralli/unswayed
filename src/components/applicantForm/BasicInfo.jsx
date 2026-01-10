@@ -8,12 +8,8 @@ import {
   Select,
   Typography,
   FormControl,
-  Modal,
-  IconButton,
 } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeft";
-import InfoIcon from "@mui/icons-material/Info";
-import CloseIcon from "@mui/icons-material/Close";
 import { useWizard } from "react-use-wizard";
 import Image from "next/image";
 import RalliButton from "../button/RalliButton";
@@ -31,62 +27,6 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { Loader } from "@googlemaps/js-api-loader";
 
-// UCN Disclaimer Modal Component
-const UCNDisclaimerModal = ({ open, onClose }) => (
-  <Modal open={open} onClose={onClose}>
-    <Box
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: { xs: "90%", sm: "500px" },
-        maxHeight: "80vh",
-        overflow: "auto",
-        bgcolor: "background.paper",
-        boxShadow: 24,
-        borderRadius: "12px",
-        p: 4,
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#00305B" }}>
-          Unique Candidate Number (UCN)
-        </Typography>
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </Box>
-
-      <Typography
-        variant="body1"
-        sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
-      >
-        <strong>Note:</strong> A Unique Candidate Number (UCN) is automatically assigned when an applicant submits their application through StepIn Now. For these applications, employers may not collect, request, or use any information that could introduce bias into the hiring process. UNSWAYED is committed to merit-based hiring, and all hiring decisions under this process must be based solely on an applicant’s skills, qualifications, and job-related experience.
-      </Typography>
-
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={onClose}
-        sx={{
-          mt: 2,
-          backgroundColor: "#00305B",
-          "&:hover": { backgroundColor: "#002347" },
-        }}
-      >
-        I Understand
-      </Button>
-    </Box>
-  </Modal>
-);
 
 const BasicInfo = ({
   data,
@@ -105,14 +45,8 @@ const BasicInfo = ({
   const [validationErrors, setValidationErrors] = useState({});
   const pathName = usePathname();
   const router = useRouter();
-  const [showUCNModal, setShowUCNModal] = useState(false);
 
   const mergedErrors = { ...validationErrors, ...errors };
-
-  // Automatically show UCN modal when component mounts
-  useEffect(() => {
-    setShowUCNModal(true);
-  }, []);
 
   const validateForm = async () => {
     try {
@@ -229,28 +163,7 @@ const BasicInfo = ({
           />
         </Box>
 
-        {/* Form Title with Disclaimer Icon */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 1,
-          }}
-        >
-          <FormTitle label={data?.title} />
-          <IconButton
-            onClick={() => setShowUCNModal(true)}
-            sx={{
-              color: "#00305B",
-              "&:hover": {
-                backgroundColor: "rgba(0, 48, 91, 0.08)",
-              },
-            }}
-          >
-            <InfoIcon sx={{ fontSize: 24 }} />
-          </IconButton>
-        </Box>
+        <FormTitle label={data?.title} />
 
         {/* Form Fields */}
         {data.form.map((item) => (
@@ -544,12 +457,6 @@ const BasicInfo = ({
           </Button>
         </Box>
       </Box>
-
-      {/* UCN Disclaimer Modal - Auto-opens on mount */}
-      <UCNDisclaimerModal
-        open={showUCNModal}
-        onClose={() => setShowUCNModal(false)}
-      />
     </Container>
   );
 };
