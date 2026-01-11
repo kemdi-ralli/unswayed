@@ -1,10 +1,11 @@
+"use client";
+
 // pages/subscription/success.tsx
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export default function SubscriptionSuccess() {
   const router = useRouter();
-  const { session_id } = router.query;
 
 //   useEffect(() => {
 //     if (session_id) {
