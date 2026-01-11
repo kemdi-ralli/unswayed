@@ -494,7 +494,7 @@ const ProfileView = ({
         <Box sx={{ mb: 2 }}>
           <Button
             variant="contained"
-            onClick={() => router.push("/pricing")}
+            onClick={() => router.push("/billing")}
             sx={{
               backgroundColor: "#189e33ff",
               color: "#fff",

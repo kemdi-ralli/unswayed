@@ -114,12 +114,12 @@ export function PricingSection() {
     }
 
     // Check if user type matches plan type
-    if (user?.type !== plan.user_type) {
-      alert(
-        `This plan is for ${plan.user_type}s. Please select a plan for your account type.`
-      );
-      return;
-    }
+    // if (user?.type !== plan.user_type) {
+    //   alert(
+    //     `This plan is for ${plan.user_type}s. Please select a plan for your account type.`
+    //   );
+    //   return;
+    // }
 
     // IMPORTANT: Use the actual plan.id from the database, not hardcoded
     if (!plan.id) {
@@ -132,8 +132,8 @@ export function PricingSection() {
 
       const response = await apiInstance.post("/subscriptions/checkout", {
         plan_id: plan.id, // This must match the actual database ID
-        success_url: `${window.location.origin}/subscription/success`,
-        cancel_url: `${window.location.origin}/pricing`,
+        success_url: `${window.location.origin}/billing/success`,
+        cancel_url: `${window.location.origin}/billing`,
       });
 
       if (

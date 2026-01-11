@@ -19,7 +19,7 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isForgetPasswordModalOpen, setIsForgetPasswordModalOpen] =
     useState(false);
-  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(true);
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -82,7 +82,7 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
             />
 
             {/* DISCLAIMER TRIGGER — EMPLOYER ONLY */}
-            {data?.loginType === "Employer Login" && (
+            {/* {data?.loginType === "Employer Login" && (
               <Box
                 sx={{
                   mt: 2,
@@ -113,7 +113,7 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
                   View
                 </Button>
               </Box>
-            )}
+            )} */}
 
             {data?.loginWidth?.map((item) => (
               <Link href={item?.path} key={item.label}>

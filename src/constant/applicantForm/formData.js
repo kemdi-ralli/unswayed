@@ -90,32 +90,38 @@ export const EDU_INFO = {
         {
             label: 'Degree/Certifications Name',
             name:'degree',
-            placeHolder:'Bachelors'
+            placeHolder:'Bachelors',
+            required: false,
         },
         {
             label: 'Field of Study',
             name:'field_of_study',
-            placeHolder:'Computer Science'
+            placeHolder:'Computer Science',
+            required: false,
         },
         {
             label: 'School',
             name: 'institution_name',
-            placeHolder: 'Enter Your School Name'
+            placeHolder: 'Enter Your School Name',
+            required: false,
         },
         {
             label: 'Start Date',
             name: 'start_date',
-            placeHolder: '01/2010'
+            placeHolder: '01/2010',
+            required: false,
         },
         {
             label: 'End Date',
             name: 'end_date',
-            placeHolder: '01/2015'
+            placeHolder: '01/2015',
+            required: false,
         },
         {
             label: 'Grade/GPA',
             name: 'grade',
-            placeHolder: 'A'
+            placeHolder: 'A',
+            required: false,
         },
         // {
         //     label: 'Degree/Certifications',
@@ -125,12 +131,14 @@ export const EDU_INFO = {
         {
             label: 'Skills',
             name: 'skills',
-            placeHolder: 'Press Enter To Add Skills'
+            placeHolder: 'Press Enter To Add Skills',
+            required: true,
         },
         {
             label: 'Experience',
             name:'experience_level',
-            placeHolder: 'senior'
+            placeHolder: 'senior',
+            required: true,
         },
     ]
 }

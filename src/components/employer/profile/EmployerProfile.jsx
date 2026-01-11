@@ -209,7 +209,7 @@ const EmployerProfile = ({
           {(subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
             <Button
               variant="contained"
-              onClick={() => route.push("/pricing")}
+              onClick={() => route.push("/billing")}
               sx={{
                 mt: 1,
                 backgroundColor: "#189e33ff",

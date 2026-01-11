@@ -373,13 +373,20 @@ const ApplicantEducationInfo = ({
 
         {/* Skills Section */}
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px" }}>Skills</Typography>
+          <Box sx={{display: "flex"}}>
+            <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px" }}>Skills</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px", ml: "4px", color: "red" }}>*</Typography>
+          </Box>
           <TagInput tags={skills} setTags={handleSkillsChange} placeholder={"Press Enter To Add Skills"} />
         </Box>
 
         {/* Experience Level */}
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px" }}>Experience</Typography>
+          <Box sx={{display: "flex"}}>
+            <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px" }}>Experience</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: "16px", mb: "8px", ml: "4px", color: "red" }}>*</Typography>
+          </Box>
+          
           <FormControl fullWidth>
             <select
               value={formData?.experience_level || ""}
