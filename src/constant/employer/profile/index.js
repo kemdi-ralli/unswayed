@@ -286,13 +286,13 @@ export const EMPLOYER_PROFILE_SETTINGS = [
   //   buttonLable: "Confirm",
   //   link: "",
   // },
-  {
-    title: "Pause Account",
-    placeHolder: "Are You Sure Want To Pause Account?",
-    name: "pause",
-    buttonLable: "Edit Profile",
-    link: "",
-  },
+  // {
+  //   title: "Pause Account",
+  //   placeHolder: "Are You Sure Want To Pause Account?",
+  //   name: "pause",
+  //   buttonLable: "Edit Profile",
+  //   link: "",
+  // },
   {
     title: "Sign Out",
     placeHolder: "Do You Want To Sign Out Of Your Account?",

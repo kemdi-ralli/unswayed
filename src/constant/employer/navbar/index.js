@@ -1,11 +1,11 @@
 export const EMPLOYER_NAVBAR_DATA = {
     logo:'/assets/images/logo-single.png',
     items: [
-        {
-            navImg:'/assets/images/navbar/home.png',
-            navTitle: 'Home',
-            path: '/employer/home'
-        },
+        // {
+        //     navImg:'/assets/images/navbar/home.png',
+        //     navTitle: 'Home',
+        //     path: '/employer/home'
+        // },
         {
             navImg:'/assets/images/navbar/talent.png',
             navTitle: 'Talent Network',

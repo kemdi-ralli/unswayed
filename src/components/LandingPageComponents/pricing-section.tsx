@@ -19,7 +19,7 @@ interface SubscriptionPlan {
   price: string;
   billing_period: "monthly" | "yearly";
   description: string | null;
-  features: string[] | null;
+  features: string[] | string | null; // Can be array or JSON string
   user_type: "applicant" | "employer";
   is_active: boolean;
   sort_order: number;
@@ -48,6 +48,21 @@ interface AuthState {
   };
 }
 
+// Helper function to safely parse features (handles JSON string or array)
+const parseFeatures = (features: string[] | string | null): string[] => {
+  if (!features) return [];
+  if (Array.isArray(features)) return features;
+  if (typeof features === "string") {
+    try {
+      const parsed = JSON.parse(features);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export function PricingSection() {
   const [isApplicant, setIsApplicant] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -74,21 +89,24 @@ export function PricingSection() {
   // Fetch plans from Laravel backend
   useEffect(() => {
     const fetchPlans = async () => {
+      // Only fetch if authenticated - otherwise use static plans
+      if (!isAuthenticated) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        // Fetch plans - works for both authenticated and unauthenticated users
-        // The backend should allow this endpoint without auth for displaying plans
         const response = await apiInstance.get("/subscriptions/plans");
 
         if (response.data?.status === "success") {
-          setPlans(response.data.data.plans || []);
+          const fetchedPlans = response.data.data.plans || [];
+          console.log("Fetched plans:", fetchedPlans); // Debug log
+          setPlans(fetchedPlans);
           setCurrentSubscription(response.data.data.current_subscription || null);
         }
       } catch (err: any) {
         console.error("Error fetching plans:", err);
-        // If 401 (unauthenticated), that's okay - we'll show static plans for display
-        if (err.response?.status !== 401) {
-          setError("Failed to load subscription plans");
-        }
+        // Don't set error - just use static plans
       } finally {
         setIsLoading(false);
       }
@@ -99,6 +117,8 @@ export function PricingSection() {
 
   // Handle checkout via Laravel backend
   const handleCheckout = async (plan: SubscriptionPlan) => {
+    console.log("handleCheckout called with plan:", plan); // Debug log
+
     // If free plan, no checkout needed
     if (!plan.stripe_price_id || parseFloat(plan.price) === 0) {
       alert("This is a free plan. You already have access!");
@@ -109,55 +129,63 @@ export function PricingSection() {
     if (!isAuthenticated) {
       const loginPath =
         plan.user_type === "employer" ? "/employer/login" : "/applicant/login";
-      router.push(`${loginPath}?redirect=/pricing&plan=${plan.slug}`);
+      router.push(`${loginPath}?redirect=/billing&plan=${plan.slug}`);
       return;
     }
 
-    // Check if user type matches plan type
-    // if (user?.type !== plan.user_type) {
-    //   alert(
-    //     `This plan is for ${plan.user_type}s. Please select a plan for your account type.`
-    //   );
-    //   return;
-    // }
-
-    // IMPORTANT: Use the actual plan.id from the database, not hardcoded
-    if (!plan.id) {
-      alert("Invalid plan. Please refresh and try again.");
+    // IMPORTANT: Validate plan has a real database ID
+    if (!plan.id || plan.id === 0) {
+      console.error("Plan has no valid ID:", plan);
+      alert("Unable to process this plan. Please refresh the page and try again.");
       return;
     }
 
     try {
       setLoadingPlan(plan.slug);
 
+      console.log("Sending checkout request with plan_id:", plan.id); // Debug log
+
       const response = await apiInstance.post("/subscriptions/checkout", {
-        plan_id: plan.id, // This must match the actual database ID
+        plan_id: plan.id,
         success_url: `${window.location.origin}/billing/success`,
         cancel_url: `${window.location.origin}/billing`,
       });
+
+      console.log("Checkout response:", response.data); // Debug log
 
       if (
         response.data?.status === "success" &&
         response.data?.data?.checkout_url
       ) {
-        // Redirect to Stripe Checkout
+        // Use window.location.href for external redirect to Stripe
+        console.log("Redirecting to:", response.data.data.checkout_url);
         window.location.href = response.data.data.checkout_url;
       } else {
-        console.error("Checkout response:", response.data);
+        console.error("Unexpected checkout response:", response.data);
         alert(
           response.data?.message || "Unable to initiate checkout. Please try again."
         );
       }
     } catch (err: any) {
       console.error("Checkout error:", err);
+      console.error("Error response:", err.response?.data);
+
+      // Check if it's a redirect happening (axios might throw on redirect)
+      if (err.response?.status === 302 || err.response?.status === 301) {
+        const redirectUrl = err.response?.headers?.location;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+          return;
+        }
+      }
+
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.errors ||
         "Something went wrong while starting checkout.";
-      
-      // Show more detailed error for debugging
-      if (typeof errorMessage === 'object') {
-        alert(`Validation Error: ${JSON.stringify(errorMessage)}`);
+
+      if (typeof errorMessage === "object") {
+        alert(`Error: ${JSON.stringify(errorMessage)}`);
       } else {
         alert(errorMessage);
       }
@@ -172,11 +200,10 @@ export function PricingSection() {
     return currentSubscription.plan.toLowerCase() === planName.toLowerCase();
   };
 
-  // Static plans for display only (when API fails or for SEO)
-  // These are NOT used for checkout - only for visual display
+  // Static plans for display only (when not authenticated or API fails)
   const staticApplicantPlans: SubscriptionPlan[] = [
     {
-      id: 0, // ID 0 indicates static plan - cannot checkout
+      id: 0,
       name: "Freemium",
       slug: "applicant-freemium",
       stripe_price_id: null,
@@ -200,7 +227,7 @@ export function PricingSection() {
       id: 0,
       name: "Pro Plan",
       slug: "applicant-pro-monthly",
-      stripe_price_id: "price_1SOckYEWILSBYYC8Rpzc4Cgg",
+      stripe_price_id: "price_placeholder",
       price: "49.99",
       billing_period: "monthly",
       description: "Unlimited Access for Job Seekers with hands-on career support.",
@@ -224,7 +251,7 @@ export function PricingSection() {
       id: 0,
       name: "Pro Plan (Yearly)",
       slug: "applicant-pro-yearly",
-      stripe_price_id: "price_1SkoOrEWILSBYYC8ZS5zVpYP",
+      stripe_price_id: "price_placeholder",
       price: "599.99",
       billing_period: "yearly",
       description: "Unlock premium features - Save with annual billing",
@@ -251,7 +278,7 @@ export function PricingSection() {
       id: 0,
       name: "Tier 1",
       slug: "employer-tier-1",
-      stripe_price_id: "price_1SOckYEWILSBYYC8c3GeP7ez",
+      stripe_price_id: "price_placeholder",
       price: "99.99",
       billing_period: "monthly",
       description: "Ideal for small teams and occasional hiring needs.",
@@ -270,7 +297,7 @@ export function PricingSection() {
       id: 0,
       name: "Tier 2",
       slug: "employer-tier-2",
-      stripe_price_id: "price_1SOckYEWILSBYYC82cPtMenr",
+      stripe_price_id: "price_placeholder",
       price: "150.00",
       billing_period: "monthly",
       description:
@@ -292,7 +319,7 @@ export function PricingSection() {
       id: 0,
       name: "Tier 3",
       slug: "employer-tier-3",
-      stripe_price_id: "price_1SOckYEWILSBYYC8N8GbflcY",
+      stripe_price_id: "price_placeholder",
       price: "175.00",
       billing_period: "monthly",
       description:
@@ -329,9 +356,6 @@ export function PricingSection() {
 
   const displayPlans = getDisplayPlans();
 
-  // Check if we're using static plans (no real IDs)
-  const isUsingStaticPlans = displayPlans.some((p) => p.id === 0);
-
   // Determine if plan is "popular" (middle tier or Pro)
   const isPlanPopular = (plan: SubscriptionPlan): boolean => {
     if (isApplicant) {
@@ -345,7 +369,6 @@ export function PricingSection() {
     if (isCurrentPlan(plan.name)) return "Current Plan";
     if (parseFloat(plan.price) === 0) return "Get Started Free";
     if (!isAuthenticated) return "Sign Up to Subscribe";
-    // if (plan.id === 0) return "Login to Subscribe"; // Static plan
     if (currentSubscription?.is_on_trial) return "Upgrade Now";
     return plan.name.includes("Tier 3") ? "Contact Enterprise Sales" : "Subscribe";
   };
@@ -357,16 +380,33 @@ export function PricingSection() {
     return `$${price.toFixed(2)}/${plan.billing_period === "yearly" ? "Year" : "Month"}`;
   };
 
-  // Handle button click - redirect to login if using static plans
-  const handleButtonClick = (plan: SubscriptionPlan) => {
-    if (plan.id === 0 && parseFloat(plan.price) > 0) {
-      // Static plan with price - need to login first
-      const loginPath =
-        plan.user_type === "employer" ? "/employer/login" : "/applicant/login";
-      router.push(`${loginPath}?redirect=/pricing`);
+  // Handle button click
+  const handleButtonClick = async (plan: SubscriptionPlan) => {
+    console.log("Button clicked for plan:", plan.name, "ID:", plan.id, "Authenticated:", isAuthenticated);
+
+    // Free plan - no action needed
+    if (parseFloat(plan.price) === 0) {
+      alert("This is a free plan. You already have access!");
       return;
     }
-    handleCheckout(plan);
+
+    // Not authenticated - redirect to login
+    if (!isAuthenticated) {
+      const loginPath =
+        plan.user_type === "employer" ? "/employer/login" : "/applicant/login";
+      router.push(`${loginPath}?redirect=/billing&plan=${plan.slug}`);
+      return;
+    }
+
+    // Using static plans (ID is 0) but authenticated - this shouldn't happen
+    // It means the API call failed. Try to refetch or show error.
+    if (plan.id === 0) {
+      alert("Unable to load plan details. Please refresh the page and try again.");
+      return;
+    }
+
+    // Proceed to checkout
+    await handleCheckout(plan);
   };
 
   if (isLoading) {
@@ -492,6 +532,8 @@ export function PricingSection() {
         {displayPlans.map((plan) => {
           const popular = isPlanPopular(plan);
           const isCurrent = isCurrentPlan(plan.name);
+          // Parse features safely - handles both array and JSON string
+          const features = parseFeatures(plan.features);
 
           return (
             <Box
@@ -623,9 +665,9 @@ export function PricingSection() {
                   gap: 1.5,
                 }}
               >
-                {plan.features?.map((feature) => (
+                {features.map((feature, index) => (
                   <Box
-                    key={feature}
+                    key={`${plan.slug}-feature-${index}`}
                     component="li"
                     sx={{ display: "flex", alignItems: "center", gap: 1 }}
                   >
