@@ -25,12 +25,13 @@ export default function DatePickerInput({
                 width: "100%",
                 borderRadius: "10px",
                 "& input": {
-                  color: "rgba(0, 0, 0, 0.3)",
+                  color: "#000000ff",
                   padding: "13px 10px",
                   width: "100%",
                   border: "none",
                   outline: "none",
-
+                  fontSize: "16px",
+                  fontWeight: 400,
                 },
                 "& fieldset": {
                   outline: "none",

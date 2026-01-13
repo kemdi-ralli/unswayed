@@ -34,7 +34,7 @@ const RalliModal = lazy(() => import("@/components/Modal/RalliModal"));
  */
 
 
-const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 10) => {
+const fetchJSearchJobs = async (search = "", filters = {}, page = 5, pageSize = 10) => {
   const RAPID_API_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
   if (!RAPID_API_KEY) {
     throw new Error(
@@ -64,12 +64,12 @@ const fetchJSearchJobs = async (search = "", filters = {}, page = 1, pageSize = 
     else parts.push(String(filters.skills));
   }
 
-  const query = parts.filter(Boolean).join(" ").trim() || "Software Engineer";
+  const query = parts.filter(Boolean).join(" ").trim() || "Frontend";
 
   const url = new URL("https://jsearch.p.rapidapi.com/search");
   url.searchParams.append("query", query);
   url.searchParams.append("page", String(page));
-  url.searchParams.append("num_pages", "1");
+  url.searchParams.append("num_pages", "5");
 
   const headers = {
     "x-rapidapi-key": RAPID_API_KEY,

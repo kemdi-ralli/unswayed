@@ -842,7 +842,7 @@ const CreateJobsForm = ({
                   fontSize: { xs: "12px", md: "14px", lg: "16px" },
                   fontWeight: 600,
                   lineHeight: "18px",
-                  color: "#222222",
+                  color: "#000000ff",
                   mb: "10px",
                 }}
               >
@@ -929,7 +929,7 @@ const CreateJobsForm = ({
                     fontSize: "16px",
                     fontWeight: 300,
                     lineHeight: "18px",
-                    color: "#222222",
+                    color: "#000000ff",
                     "&::placeholder": {
                       color: "rgba(0, 0, 0, 0.5)",
                       fontSize: "16px",
@@ -949,6 +949,13 @@ const CreateJobsForm = ({
                   label={item.placeHolder}
                   value={dayjs(form?.[item.name])}
                   onChange={handleDateChange}
+                  sx={{ color: "#000000ff","&::placeholder": {
+                                color: "#000000ff",
+                                fontSize: "14px",
+                                fontWeight: 500,
+                                opacity: 1,
+                            }, }}
+                  
                 />
               )}
 
