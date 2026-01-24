@@ -1407,7 +1407,7 @@ const CreateJobsForm = ({
         para={`Thank you! Your Job has been ${
           jobDetail?.id ? "updated" : "created"
         } successfully.`}
-        imageSrc={"/assets/images/confirmation.png"}
+        
         buttonLabel="Done"
       />
       {isEdit ? (
