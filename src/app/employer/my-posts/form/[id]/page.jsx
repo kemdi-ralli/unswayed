@@ -33,7 +33,7 @@ const Page = ({ params }) => {
   return (
       <Container>
       <BackButtonWithTitle label='Edit Job'/>
-        <CreateJobsForm  data={CREATE_JOB_FORM} isEdit={true} jobEditDetail={jobDetail}/>
+        <CreateJobsForm  data={CREATE_JOB_FORM.form} isEdit={true} jobEditDetail={jobDetail}/>
       </Container>
   );
 };

@@ -10,7 +10,7 @@ const page = () => {
   return (
       <Container>
       <BackButtonWithTitle label='Create Job'/>
-        <CreateJobsForm  data={CREATE_JOB_FORM}/>
+        <CreateJobsForm  data={CREATE_JOB_FORM.form}/>
       </Container>
   );
 };

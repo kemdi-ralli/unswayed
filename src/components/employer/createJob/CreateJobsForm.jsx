@@ -844,10 +844,10 @@ const CreateJobsForm = ({
 
   return (
     <Box>
-      {data?.map((item, index) => (
+      {Array.isArray(data) && data.map((item, index) => (
         <React.Fragment key={index}>
           {/* Text inputs */}
-          {item.type === "text" && item.name === "title" && (
+          {(item.type === "text" || item.type === "url") && item.name === "title" && (
             <Box sx={{ py: 1 }}>
               <TextField
                 label={item.title}
@@ -862,7 +862,7 @@ const CreateJobsForm = ({
             </Box>
           )}
 
-          {item.type === "text" && item.name === "no_of_positions" && (
+          {(item.type === "text" || item.type === "number") && item.name === "no_of_positions" && (
             <Box sx={{ py: 1 }}>
               <TextField
                 label={item.title}
@@ -878,7 +878,7 @@ const CreateJobsForm = ({
             </Box>
           )}
 
-          {item.type === "text" && item.name === "salary" && (
+          {(item.type === "text" || item.type === "number") && item.name === "salary" && (
             <Box sx={{ py: 1 }}>
               <Box
                 sx={{
@@ -922,7 +922,7 @@ const CreateJobsForm = ({
             </Box>
           )}
 
-          {item.type === "text" && item.name === "salary_max" && (
+          {(item.type === "text" || item.type === "number") && item.name === "salary_max" && (
             <Box sx={{ py: 1 }}>
               <TextField
                 label={item.title}
@@ -945,7 +945,7 @@ const CreateJobsForm = ({
             </Box>
           )}
 
-          {item.type === "text" && item.name === "job_apply_link" && (
+          {(item.type === "text" || item.type === "url") && item.name === "job_apply_link" && (
             <Box sx={{ py: 1 }}>
               <Box
                 sx={{
@@ -991,6 +991,22 @@ const CreateJobsForm = ({
             </Box>
           )}
 
+          {(item.type === "text" || item.type === "number") && item.name === "interview_rounds" && (
+            <Box sx={{ py: 1 }}>
+              <TextField
+                label={item.title}
+                required={item.required}
+                variant="outlined"
+                fullWidth
+                type="number"
+                value={form.interview_rounds || ""}
+                onChange={(e) => handleChange("interview_rounds", e.target.value)}
+                error={!!formikErrors[item.name]}
+                helperText={formikErrors[item.name]}
+              />
+            </Box>
+          )}
+
           {/* Date picker */}
           {item.type === "date" && item.name === "deadline" && (
             <Box sx={{ py: 1 }}>
@@ -1007,7 +1023,7 @@ const CreateJobsForm = ({
           )}
 
           {/* Tag input for skills */}
-          {item.type === "tag" && item.name === "skills" && (
+          {(item.type === "tag" || item.type === "taginput") && item.name === "skills" && (
             <Box sx={{ py: 1 }}>
               <TagInput
                 label={item.title}
