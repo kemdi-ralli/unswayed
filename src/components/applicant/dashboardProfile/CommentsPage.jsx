@@ -566,22 +566,37 @@ const CommentsPage = ({
                   fontSize: { xs: "8px", sm: "10px", md: "12px", lg: "16px" },
                   lineHeight: "17px",
                   fontWeight: 300,
-                  color: "#222222",
+                  color: data?.isLiked ? "#189e33ff" : "#222222",
                   border: "none",
                   boxShadow: "0px 1px 3px #00000040",
                   borderRadius: { xs: "10px", sm: "20px", md: "30px" },
                   minWidth: { xs: "60px", sm: "100px", lg: "170px" },
                   py: 1,
                   opacity: likeLoading ? 0.7 : 1,
+                  cursor: likeLoading ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
                   "&.Mui-disabled": {
-                    color: "#222222",
+                    color: data?.isLiked ? "#189e33ff" : "#222222",
+                    opacity: 0.7,
+                  },
+                  "&:hover": {
+                    backgroundColor: likeLoading ? "transparent" : "rgba(24, 158, 51, 0.08)",
                   },
                 }}
                 startIcon={
                   data?.isLiked ? (
-                    <ThumbUpIcon sx={{ color: "#1976d2" }} />
+                    <ThumbUpIcon 
+                      sx={{ 
+                        color: "#189e33ff",
+                        opacity: likeLoading ? 0.7 : 1,
+                      }} 
+                    />
                   ) : (
-                    <ThumbUpOffAltIcon />
+                    <ThumbUpOffAltIcon 
+                      sx={{ 
+                        opacity: likeLoading ? 0.7 : 1,
+                      }} 
+                    />
                   )
                 }
               >

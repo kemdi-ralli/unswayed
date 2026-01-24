@@ -12,6 +12,7 @@ import Container from "../common/Container";
 import { usePathname, useRouter } from "next/navigation";
 import { ApplicantSignUpSchema } from "@/schemas/applicantRegistrationSchema";
 import TremsOfUse from "../common/tremsAndConditionModal/TremsOfUse";
+import * as Yup from "yup";
 
 // UCN Disclaimer Modal Component
 const UCNDisclaimerModal = ({ open, onClose }) => (
@@ -89,7 +90,9 @@ const RegistrationInfo = ({
   });
 
   const [validationErrors, setValidationErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
   const [showUCNModal, setShowUCNModal] = useState(false);
+  
   const mergedErrors = { ...validationErrors, ...errors };
 
   // Automatically show UCN modal when component mounts
@@ -97,8 +100,78 @@ const RegistrationInfo = ({
     setShowUCNModal(true);
   }, []);
 
+  // Validate a single field
+  const validateField = async (fieldName, value) => {
+    try {
+      // Create a partial schema for single field validation
+      const fieldSchema = Yup.reach(ApplicantSignUpSchema, fieldName);
+      await fieldSchema.validate(value);
+      
+      // Clear error for this field if valid
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+      return true;
+    } catch (error) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [fieldName]: error.message,
+      }));
+      return false;
+    }
+  };
+
+  // Validate password match
+  const validatePasswordMatch = (password, confirmPassword) => {
+    if (confirmPassword && password !== confirmPassword) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords must match",
+      }));
+      return false;
+    } else if (confirmPassword && password === confirmPassword) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
+        return newErrors;
+      });
+      return true;
+    }
+    return true;
+  };
+
   const handleChange = (name, value) => {
     onFieldChange(name, value);
+    
+    // Mark field as touched
+    setTouchedFields((prev) => ({ ...prev, [name]: true }));
+    
+    // Immediate validation on change
+    validateField(name, value);
+    
+    // Special handling for password confirmation
+    if (name === "password") {
+      validatePasswordMatch(value, formData.confirmPassword);
+    }
+    if (name === "confirmPassword") {
+      validatePasswordMatch(formData.password, value);
+    }
+  };
+
+  // Validate on blur
+  const handleBlur = (name, value) => {
+    setTouchedFields((prev) => ({ ...prev, [name]: true }));
+    validateField(name, value);
+    
+    // Validate password match on blur
+    if (name === "password" || name === "confirmPassword") {
+      validatePasswordMatch(
+        name === "password" ? value : formData.password,
+        name === "confirmPassword" ? value : formData.confirmPassword
+      );
+    }
   };
 
   const handleBack = () => {
@@ -121,7 +194,11 @@ const RegistrationInfo = ({
       await ApplicantSignUpSchema.validate(formData, { abortEarly: false });
 
       if (!agreeTerms) {
-        throw new Error("You must agree to the terms of use.");
+        setValidationErrors((prev) => ({
+          ...prev,
+          terms: "You must agree to the terms of use.",
+        }));
+        return false;
       }
 
       setValidationErrors({});
@@ -137,6 +214,13 @@ const RegistrationInfo = ({
         newErrors.terms = validationErrors.message;
       }
 
+      // Mark all fields as touched to show errors
+      const allTouched = {};
+      data?.form?.forEach((item) => {
+        allTouched[item.name] = true;
+      });
+      setTouchedFields(allTouched);
+      
       setValidationErrors(newErrors);
       return false;
     }
@@ -147,6 +231,11 @@ const RegistrationInfo = ({
     if (isValid) {
       nextStep(formData);
     }
+  };
+
+  // Check if field should show error (only if touched)
+  const shouldShowError = (fieldName) => {
+    return touchedFields[fieldName] && mergedErrors[fieldName];
   };
 
   return (
@@ -165,10 +254,16 @@ const RegistrationInfo = ({
           <Button onClick={handleBack} sx={{ minWidth: 0, p: 0 }}>
             <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
           </Button>
-          <Image src={data?.logo} width={70} height={70} alt="logo" style={{
-            border: "1px solid #fff", 
-            borderRadius: 40
-          }} />
+          <Image 
+            src={data?.logo} 
+            width={70} 
+            height={70} 
+            alt="logo" 
+            style={{
+              border: "1px solid #fff", 
+              borderRadius: 40
+            }} 
+          />
         </Box>
 
         <FormTitle label={data?.title} />
@@ -204,15 +299,23 @@ const RegistrationInfo = ({
                 name={item.name}
                 value={formData[item.name] || ""}
                 onChange={(e) => handleChange(item.name, e.target.value)}
+                onBlur={(e) => handleBlur(item.name, e.target.value)}
                 sx={{
                   px: "18px",
                   py: "22px",
                   borderRadius: "10px",
-                  boxShadow: "0px 0px 3px #00000040",
+                  boxShadow: shouldShowError(item.name) 
+                    ? "0px 0px 3px 2px #ff000040" 
+                    : "0px 0px 3px #00000040",
                   width: "100%",
-                  border: "none",
-                  borderColor: errors[item.name] ? "red" : "transparent",
+                  border: shouldShowError(item.name) ? "1px solid #ff0000" : "none",
                   "&::placeholder": { transform: "translateY(2px)" },
+                  "&:focus": {
+                    outline: "none",
+                    boxShadow: shouldShowError(item.name)
+                      ? "0px 0px 3px 2px #ff000060"
+                      : "0px 0px 5px #00305B80",
+                  },
                 }}
                 placeholder={item?.placeHolder}
               />
@@ -237,9 +340,19 @@ const RegistrationInfo = ({
               )}
             </Box>
 
-            {mergedErrors[item.name] && (
-              <Typography sx={{ color: "red", fontSize: "12px", mt: "5px" }}>
-                {mergedErrors[item.name]}
+            {/* Error message directly below the field */}
+            {shouldShowError(item.name) && (
+              <Typography 
+                sx={{ 
+                  color: "red", 
+                  fontSize: "12px", 
+                  mt: "5px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                ⚠ {mergedErrors[item.name]}
               </Typography>
             )}
           </Box>

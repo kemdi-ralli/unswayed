@@ -21,122 +21,14 @@ import { encode } from "@/helper/GeneralHelpers";
 import FormTitle from "@/components/applicant/dashboard/FormTitle";
 import { setAppliedData } from "@/redux/slices/applicantAppliedSpecificJob";
 import { useDispatch } from "react-redux";
+import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
 
 const SearchBar = lazy(() => import("@/components/applicant/dashboard/SearchBar"));
 const Container = lazy(() => import("@/components/common/Container"));
 const ApplicantJobDetails = lazy(() => import("@/components/applicant/dashboard/ApplicantJobDetails"));
 const RalliModal = lazy(() => import("@/components/Modal/RalliModal"));
 
-/**
- * fetchJSearchJobs
- * - now accepts a `page` param (1-indexed) and `pageSize` (num results per page)
- * - returns one page worth of mapped jobs (empty array if none)
- */
-
-
-const fetchJSearchJobs = async (search = "", filters = {}, page = 5, pageSize = 10) => {
-  const RAPID_API_KEY = process.env.NEXT_PUBLIC_RAPIDAPI_KEY;
-  if (!RAPID_API_KEY) {
-    throw new Error(
-      "Missing RapidAPI key. Set NEXT_PUBLIC_RAPIDAPI_KEY in your environment."
-    );
-  }
-
-  const parts = [];
-  if (search && search.trim()) parts.push(search.trim());
-
-  if (filters.city) parts.push(filters.city);
-  else if (Array.isArray(filters.state) && filters.state.length > 0) {
-    const s = filters.state[0];
-    if (typeof s === "object") parts.push(s.name || s.id || "");
-    else parts.push(s);
-  } else if (filters.country) {
-    parts.push(typeof filters.country === "string" ? filters.country : "");
-  }
-
-  if (filters.job_category && filters.job_category.length > 0) {
-    if (Array.isArray(filters.job_category)) parts.push(filters.job_category.join(" "));
-    else parts.push(String(filters.job_category));
-  }
-
-  if (filters.skills && filters.skills.length > 0) {
-    if (Array.isArray(filters.skills)) parts.push(filters.skills.join(" "));
-    else parts.push(String(filters.skills));
-  }
-
-  const query = parts.filter(Boolean).join(" ").trim() || "Frontend";
-
-  const url = new URL("https://jsearch.p.rapidapi.com/search");
-  url.searchParams.append("query", query);
-  url.searchParams.append("page", String(page));
-  url.searchParams.append("num_pages", "5");
-
-  const headers = {
-    "x-rapidapi-key": RAPID_API_KEY,
-    "x-rapidapi-host": "jsearch.p.rapidapi.com",
-  };
-
-  const res = await fetch(url.toString(), { headers });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => null);
-    throw new Error(`JSearch fetch failed (${res.status}): ${text || res.statusText}`);
-  }
-
-  const body = await res.json();
-  const items = body?.data || [];
-
-  const mapped = items.map((job) => ({
-    id: job?.job_id ? `rapid-${job.job_id}` : `rapid-${Math.random().toString(36).slice(2, 9)}`,
-    title: job?.job_title || "Untitled",
-    country: job?.job_country || "N/A",
-    states: job?.job_city ? [{ name: job.job_city }] : [],
-    description: job?.job_description || job?.job_highlights || "",
-    created_at: job?.job_posted_at_datetime_utc || new Date().toISOString(),
-    deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    is_applied: false,
-    is_saved: false,
-    _raw: job,
-    _source: "rapid",
-    job_apply_link: job?.job_apply_link || job?.job_link || job?.url || "",
-  }));
-
-  return mapped;
-};
-
-/**
- * mergeAndDedupeJobs
- * - Combine backend (careerJobs) and external (rapidJobs)
- * - Deduplicate by title|country|city (conservative)
- * - Prefer backend job object when duplicate found
- */
-const mergeAndDedupeJobs = (existingJobs = [], backendJobs = [], rapidJobs = []) => {
-  const map = new Map();
-
-  const keyFor = (j) => {
-    const title = (j.title || "").toString().trim().toLowerCase();
-    const country = (j.country || "").toString().trim().toLowerCase();
-    const city = (Array.isArray(j.states) && j.states[0]?.name) ? j.states[0].name.toString().trim().toLowerCase() : "";
-    return `${title}|${country}|${city}`;
-  };
-
-  existingJobs.forEach((j) => {
-    map.set(keyFor(j), j);
-  });
-
-  backendJobs.forEach((j) => {
-    map.set(keyFor(j), { ...j, _source: j._source || "backend" });
-  });
-
-  rapidJobs.forEach((j) => {
-    const k = keyFor(j);
-    if (!map.has(k)) {
-      map.set(k, j);
-    }
-  });
-
-  return Array.from(map.values());
-};
+// No more RAPID API - external jobs now come from backend
 
 const Page = () => {
   const [jobs, setJobs] = useState([]);
@@ -156,7 +48,7 @@ const Page = () => {
 const [isLoadingCities, setIsLoadingCities] = useState(false);
 
   
-  // Updated dropdownStates with salary fields
+  // Updated dropdownStates with salary fields and job_kind filter
   const [dropdownStates, setDropdownStates] = useState({
     country: "",
     state: [],
@@ -169,11 +61,11 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
     skills: [],
     salary: "",
     salary_max: "",
+    job_kind: "all", // all, internal, external
   });
 
   // Pagination state:
   const [backendPage, setBackendPage] = useState(1);
-  const [rapidPage, setRapidPage] = useState(1);
   const pageSize = 20;
   const [hasMore, setHasMore] = useState(true);
 
@@ -182,28 +74,30 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
 
-  // ---------- fetch one "page" from both sources and append ----------
+  // ---------- fetch jobs from backend only ----------
   const fetchAndAppendJobs = async ({ reset = false, searchQuery = null } = {}) => {
     const query = searchQuery !== null ? searchQuery : search;
     let targetBackendPage = backendPage;
-    let targetRapidPage = rapidPage;
 
     if (reset) {
       targetBackendPage = 1;
-      targetRapidPage = 1;
       setBackendPage(1);
-      setRapidPage(1);
       setHasMore(true);
     }
 
     setIsLoadingJobs(true);
     try {
-      // 1) backend page - build query params with filters including salary
+      // Build query params with filters including salary and job_kind
       const params = new URLSearchParams({
         limit: pageSize.toString(),
         page: targetBackendPage.toString(),
         search: encodeURIComponent(query),
       });
+
+      // Add job_kind filter (all, internal, external)
+      if (dropdownStates.job_kind && dropdownStates.job_kind !== "all") {
+        params.append("job_kind", dropdownStates.job_kind);
+      }
 
       // Add salary filters if present
       if (dropdownStates.salary) {
@@ -213,15 +107,34 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
         params.append("salary_max", dropdownStates.salary_max);
       }
 
+      // Add salary_currency based on selected country
+      if (dropdownStates.country && countries.length > 0) {
+        const selectedCountry = countries.find(c => c.id === dropdownStates.country);
+        if (selectedCountry) {
+          const currency = countryToCurrency[selectedCountry.name] || "USD";
+          params.append("salary_currency", currency);
+        }
+      }
+
       // Add other filters as needed
       if (dropdownStates.country) {
         params.append("country", dropdownStates.country);
       }
       if (Array.isArray(dropdownStates.state) && dropdownStates.state.length > 0) {
-        params.append("state", dropdownStates.state.join(","));
+        // Backend expects state[] array notation
+        dropdownStates.state.forEach(stateId => {
+          params.append("state[]", stateId);
+        });
       }
       if (dropdownStates.city) {
-        params.append("city", dropdownStates.city);
+        // Handle city as single value or array
+        if (Array.isArray(dropdownStates.city)) {
+          dropdownStates.city.forEach(cityId => {
+            params.append("city[]", cityId);
+          });
+        } else {
+          params.append("city[]", dropdownStates.city);
+        }
       }
       if (Array.isArray(dropdownStates.job_category) && dropdownStates.job_category.length > 0) {
         params.append("job_category", dropdownStates.job_category.join(","));
@@ -249,38 +162,29 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
       } catch (err) {
         console.error("Backend CAREER_JOBS fetch failed:", err);
         setErrors(err?.response?.data?.message || err?.message || err);
+        Toast("error", "Failed to load jobs");
       }
 
-      // 2) rapidapi page
-      let rapidJobs = [];
-      try {
-        rapidJobs = await fetchJSearchJobs(query, dropdownStates, targetRapidPage, pageSize);
-      } catch (err) {
-        console.error("RapidAPI fetch failed:", err);
-        setErrors((prev) => prev || (err?.message || err));
-        Toast("info", "RapidAPI fetch failed – showing backend jobs only");
-      }
-
-      // 3) merge with existing jobs, dedupe
-      const newCombined = mergeAndDedupeJobs(reset ? [] : jobs, backendJobs, rapidJobs);
-      setJobs(newCombined);
-
-      // 4) compute hasMore:
-      const backendHasMore = backendJobs.length === pageSize;
-      const rapidHasMore = rapidJobs.length === pageSize;
-      setHasMore(backendHasMore || rapidHasMore);
-
-      if (!reset) {
-        if (backendHasMore) setBackendPage((p) => p + 1);
-        if (rapidHasMore) setRapidPage((p) => p + 1);
+      // Set jobs (reset or append)
+      if (reset) {
+        setJobs(backendJobs);
       } else {
-        if (backendHasMore) setBackendPage(2);
-        if (rapidHasMore) setRapidPage(2);
+        setJobs((prev) => [...prev, ...backendJobs]);
+      }
+
+      // Compute hasMore
+      const backendHasMore = backendJobs.length === pageSize;
+      setHasMore(backendHasMore);
+
+      if (!reset && backendHasMore) {
+        setBackendPage((p) => p + 1);
+      } else if (reset && backendHasMore) {
+        setBackendPage(2);
       }
 
       if (reset) Toast("success", "Filters applied");
     } catch (err) {
-      console.error("Error fetching/merging jobs:", err);
+      console.error("Error fetching jobs:", err);
       setErrors(err?.message || err);
       Toast("error", "Failed to load jobs");
     } finally {
@@ -417,7 +321,6 @@ setIsLoadingCities(false);
   const applyFilters = async (e, q = null) => {
     setSearch(q === null ? search : q);
     setBackendPage(1);
-    setRapidPage(1);
     await fetchAndAppendJobs({ reset: true, searchQuery: q === null ? search : q });
   };
 
@@ -434,10 +337,10 @@ setIsLoadingCities(false);
       skills: [],
       salary: "",
       salary_max: "",
+      job_kind: "all",
     });
     setSearch("");
     setBackendPage(1);
-    setRapidPage(1);
     await fetchAndAppendJobs({ reset: true, searchQuery: "" });
     Toast("info", "Filters cleared");
   };
@@ -449,56 +352,54 @@ setIsLoadingCities(false);
       Toast("error", "Job not found");
       return;
     }
-    if (!job._source || job._source === "backend") {
-      setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j)));
-      try {
-        const response = await apiInstance.post(`${SAVE_JOB}/${id}`);
-        if (response?.data?.status !== "success") {
-          throw new Error(response?.data?.message || "Failed to save job");
-        }
-        Toast("success", response?.data?.message || "Saved");
-      } catch (error) {
-        console.error("Save job error:", error);
-        setErrors(error?.response?.data?.message || error?.message || "Failed to save job");
-        Toast("error", error?.message || "Failed to save");
-      }
+    
+    // Check if this is an external job
+    const isExternal = job?.type === "external" || job?.job_kind === "external";
+    
+    if (isExternal) {
+      Toast("info", "Cannot save external jobs");
       return;
     }
+    
+    // Internal job - save normally
     setJobs((prev) => prev.map((j) => (j.id === id ? { ...j, is_saved: !j.is_saved } : j)));
-    Toast("success", "Saved locally (external job)");
+    try {
+      const response = await apiInstance.post(`${SAVE_JOB}/${id}`);
+      if (response?.data?.status !== "success") {
+        throw new Error(response?.data?.message || "Failed to save job");
+      }
+      Toast("success", response?.data?.message || "Saved");
+    } catch (error) {
+      console.error("Save job error:", error);
+      setErrors(error?.response?.data?.message || error?.message || "Failed to save job");
+      Toast("error", error?.message || "Failed to save");
+    }
   };
 
   const handleEasyApply = (item) => {
     dispatch(setAppliedData(item));
-    if (!item._source || item._source === "backend") {
-      router.push(`/applicant/career-areas/easy-apply/${item?.id}`);
+    
+    // Check if this is an external job
+    const isExternal = item?.type === "external" || item?.job_kind === "external";
+    
+    if (isExternal && item?.job_apply_link) {
+      // Open external job application link
+      window.open(item.job_apply_link, "_blank", "noopener,noreferrer");
       return;
     }
-    const raw = item._raw || {};
-    const possibleLinks = [
-      raw.job_apply_link,
-      raw.job_apply_url,
-      raw.job_link,
-      raw.apply_link,
-      raw.url,
-    ].filter(Boolean);
-    if (possibleLinks.length > 0) {
-      window.open(possibleLinks[0], "_blank");
+    
+    if (isExternal) {
+      Toast("info", "No application link available for this external job");
       return;
     }
-    Toast("info", "Opening external job (no direct apply link found)");
-    if (raw?.job_id) {
-      Toast("info", "No direct external apply link available for this job.");
-    }
+    
+    // Internal job - use internal apply flow
+    router.push(`/applicant/career-areas/easy-apply/${item?.id}`);
   };
 
   const handleCard = (id) => {
-    if (typeof id === "string" && id.startsWith("rapid-")) {
-      router.push(`/applicant/job/${id}`);
-    } else {
-      const encodeId = encode(id);
-      router.push(`/applicant/job/${encodeId}`);
-    }
+    const encodeId = encode(id);
+    router.push(`/applicant/job/${encodeId}`);
   };
 
   // ---------- Load more (called by child) ----------

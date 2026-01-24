@@ -54,6 +54,7 @@ export const MY_ACTIVITIES = "/applicant/my-activities";
 export const APPLICANT_GET_RESUMES = "/applicant/resume/resumes";
 export const APPLICANT_DELETE_RESUMES = "/applicant/resume/delete";
 export const APPLICANT_REPLACE_RESUME = "/applicant/resume/update";
+export const APPLICANT_RENAME_RESUME = "/applicant/resume/rename";
 export const APPLICANT_APPLY_JOB = "/applicant/job";
 export const DISABILITIES = "/disabilities";
 export const SAVE_JOB = "/applicant/job-save";
@@ -70,6 +71,12 @@ export const CHANGE_SETTING = "/settings/change-setting";
 export const UPDATE_PROFILE_PIC = "/applicant/change-profile-pic";
 export const ETHNICITIES = "/ethnicities";
 export const APPLICANT_EDUCATION = "/applicant/education";
+export const BLOGS = "/blogs";
+export const BLOG_CATEGORIES = "/blogs/categories";
+export const BLOG_LIKE = "/blog-like";
+export const BLOG_COMMENT = "/blog-comment";
+export const BLOG_SHARE_STAT = "/blog-share";
+export const BLOG_SHARE_CHAT = "/blogs/share";
 
 // Employer EndPoints
 export const EMPLOYER_REGISTRATION = "/employer/register";
@@ -88,3 +95,4 @@ export const NOT_INTERESTED = "/post/mark-not-interesting"
 export const REPORT_POST = "/post/report-post" 
 export const EMPLOYER_SOCIAL_LOGIN = "/employer/social-login";
 export const DEACTIVATE_ACCOUNT = "/settings/deactivate-account";
+export const REACTIVATE_ACCOUNT = "/settings/reactivate-account";

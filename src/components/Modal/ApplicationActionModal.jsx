@@ -16,21 +16,30 @@ const style = {
     width: { xs: '90%' },
     maxHeight: '700px',
     overflowY: 'scroll',
-    // scrollbarWidth: 'none',
-    '&::-webkit-scrollbar': {
-        // display: 'none',
-    },
+    '&::-webkit-scrollbar': {},
     bgcolor: '#FFFFFF',
     boxShadow: "0px 1px 5px #00000040",
-    boxShadow: 24,
     p: 4,
     borderRadius: '15px'
 };
-const ApplicationActionModal = ({ ucn = '', open, onClose, actionType = '', applicationId = null}) => {
+
+const ApplicationActionModal = ({ 
+    ucn = '', 
+    open, 
+    onClose, 
+    actionType = '', 
+    applicationId = null,
+    rejectionReason = '' // NEW PROP: Receive rejection reason from parent
+}) => {
     
     const onAction = async (payload) => {
+        // If rejecting, ensure the reason is included in the payload
+        if (actionType === 'Reject' && rejectionReason) {
+            payload.append('reason', rejectionReason);
+        }
+        
         const response = await employerApplicationAction(applicationId, payload);
-        if(response?.data?.status === 'success'){
+        if (response?.data?.status === 'success') {
             onClose();
             window.location.href = window.location.href;
         }
@@ -51,11 +60,11 @@ const ApplicationActionModal = ({ ucn = '', open, onClose, actionType = '', appl
                 >
                     <Close
                         sx={{
-                        position: "absolute",
-                        cursor: "pointer",
-                        color: "red",
-                        top: 5,
-                        right: 5,
+                            position: "absolute",
+                            cursor: "pointer",
+                            color: "red",
+                            top: 5,
+                            right: 5,
                         }}
                         onClick={() => onClose()}
                     />
@@ -66,12 +75,23 @@ const ApplicationActionModal = ({ ucn = '', open, onClose, actionType = '', appl
                     flexDirection: 'column',
                     py: 4.5
                 }}>
-                    {actionType === "Reject" && <CandidateReject onAction={onAction} onClose={onClose} />}
-                    {actionType === "Interview" && <InterviewInvite ucn={ucn} onAction={onAction} />}
-                    {(actionType === "OfferLetter" || actionType === "CounterOfferLetter") && <OfferLetter ucn={ucn} type={actionType} onAction={onAction} />}
+                    {actionType === "Reject" && (
+                        <CandidateReject 
+                            onAction={onAction} 
+                            onClose={onClose} 
+                            rejectionReason={rejectionReason} // Pass reason to CandidateReject if needed
+                        />
+                    )}
+                    {actionType === "Interview" && (
+                        <InterviewInvite ucn={ucn} onAction={onAction} />
+                    )}
+                    {(actionType === "OfferLetter" || actionType === "CounterOfferLetter") && (
+                        <OfferLetter ucn={ucn} type={actionType} onAction={onAction} />
+                    )}
                 </Box>
             </Box>
         </Modal>
     );
 }
-export default ApplicationActionModal
+
+export default ApplicationActionModal;

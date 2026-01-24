@@ -2,6 +2,7 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
   CAREER_JOBS,
   CITIES,
+  CITIES_STATES_NAME,
   COUNTRIES,
   ETHNICITIES,
   GENDERS,
@@ -11,6 +12,15 @@ import {
   JOB_TYPES,
   STATES,
 } from "@/services/apiService/apiEndPoints";
+
+// US inhabited territories that have cities
+const US_INHABITED_TERRITORIES = [
+  "American Samoa",
+  "Guam",
+  "Northern Mariana Islands",
+  "Puerto Rico",
+  "U.S. Virgin Islands",
+];
 
 export const getJobCategories = async () => {
   try {
@@ -84,6 +94,14 @@ export const getStates = async (countryId) => {
 
 export const getCities = async (stateId) => {
   try {
+    // Check if stateId is a US inhabited territory (string name)
+    if (typeof stateId === 'string' && US_INHABITED_TERRITORIES.includes(stateId)) {
+      // Use name-based endpoint for territories
+      const response = await apiInstance.get(`${CITIES_STATES_NAME}/${stateId}`);
+      return response?.data?.data?.cities || [];
+    }
+    
+    // Use ID-based endpoint for regular states
     const response = await apiInstance.get(`${CITIES}/${stateId}`);
     return response?.data?.data?.cities || [];
   } catch (error) {

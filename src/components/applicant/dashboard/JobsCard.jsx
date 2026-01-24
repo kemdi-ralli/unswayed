@@ -17,40 +17,19 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
   const today = new Date().toISOString().split("T")[0];
 
   /****************************************************************************************
-   * IDENTIFY RAPIDAPI JOBS CLEANLY
+   * IDENTIFY EXTERNAL JOBS
    * --------------------------------------------------------------------------------------
-   *    - isRapid applies ONLY to JSearch jobs
-   *    - All backend jobs DO NOT have isRapid === true
-   *    - handleCard() must receive:
-   *          - backend jobs → backend ID (integer)
-   *          - RapidAPI jobs → encoded external ID (string)
+   *    - isExternal applies to jobs from backend with type="external" or job_kind="external"
+   *    - These jobs have job_apply_link for external application
    *****************************************************************************************/
 
-  const isRapid =
-    item?.isRapid ||
-    item?._source === "jsearch" ||
-    item?._source === "rapid" ||
-    item?.job_id !== undefined; // JSearch jobs always have "job_id"
+  const isExternal = item?.type === "external" || item?.job_kind === "external";
 
   /****************************************************************************************
-   * EXTRACT A CLEAN EXTERNAL APPLY LINK FOR JSEARCH JOBS
+   * EXTRACT EXTERNAL APPLY LINK
    *****************************************************************************************/
   const getExternalLink = () => {
-    if (item?.external_url) return item.external_url;
-
-    const r = item?._raw || {};
-
-    return (
-      item?.job_apply_link ||
-      item?.apply_link ||
-      item?.job_apply_url ||
-      r.job_apply_link ||
-      r.job_link ||
-      r.job_apply_url ||
-      r.applyUrl ||
-      r.url ||
-      null
-    );
+    return item?.job_apply_link || null;
   };
 
   /****************************************************************************************
@@ -59,12 +38,12 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
   const handleButtonClick = (e) => {
     e.stopPropagation();
 
-    if (isRapid) {
+    if (isExternal) {
       const url = getExternalLink();
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
       } else {
-        window.open("", "_blank");
+        console.error("No external link available");
       }
       return;
     }
@@ -81,25 +60,19 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
     (item?.deadline ? new Date(item.deadline) < new Date(today) : false);
 
   /****************************************************************************************
-   * CLICK ON CARD → OPEN DETAILS PAGE
-   * Backend:     /applicant/career-areas/job-details/{encodedID}
-   * RapidAPI:    /applicant/career-areas/job-details/rapid-{encodedJobID}
+   * CLICK ON CARD → OPEN DETAILS PAGE OR EXTERNAL LINK
    *****************************************************************************************/
   const handleCardClick = () => {
-    if (isRapid) {
-      // must pass the unique RapidAPI job_id
-      // router.push(item.job)
+    if (isExternal) {
       const url = getExternalLink();
       if (url) {
         window.open(url, "_blank", "noopener,noreferrer");
-      } else {
-        window.open("", "_blank");
       }
       return;
-    } else {
-      // backend job
-      handleCard(item?.id);
     }
+    
+    // Internal job - view details page
+    handleCard(item?.id);
   };
 
   return (
@@ -132,7 +105,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
             {item?.title}
           </Typography>
 
-          {!isRapid && (
+          {!isExternal && (
             <Box
               onClick={(e) => {
                 e.stopPropagation();
@@ -158,7 +131,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               pr: "5px",
             }}
           >
-            {item?.country || item?.job_country || "—"},
+            {item?.country?.name || item?.country || item?.job_country || "—"},
           </Typography>
 
           {Array.isArray(item?.states) &&
@@ -177,8 +150,8 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               </Typography>
             ))}
 
-          {/* RapidAPI sometimes gives city only */}
-          {isRapid && item?.job_city && (
+          {/* External jobs might have city info */}
+          {isExternal && item?.job_city && (
             <Typography
               sx={{
                 fontSize: { md: "16px", sm: "14px", xs: "11px" },
@@ -213,13 +186,13 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
               textTransform: "none",
             }}
             onClick={handleButtonClick}
-            disabled={isRapid ? false : internalDisabled}
+            disabled={isExternal ? false : internalDisabled}
           >
             <SendRoundedIcon sx={{ width: "18px", mr: 1 }} />
-            {isRapid ? "StepOut Now (external job link)" : "StepIn Now"}
+            {isExternal ? "StepOut Now (External Job)" : "StepIn Now"}
           </Button>
 
-          {!isRapid && item?.deadline && new Date(item.deadline) < new Date(today) && (
+          {!isExternal && item?.deadline && new Date(item.deadline) < new Date(today) && (
             <Typography
               sx={{
                 color: "red",
@@ -266,13 +239,13 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
           }}
         >
           Posted:{" "}
-          {!isRapid
+          {item?.created_at 
             ? dayjs(item?.created_at).format("MM-DD-YYYY")
-            : dayjs(item?.job_posted_at_datetime_utc).format("MM-DD-YYYY")}
+            : "N/A"}
         </Typography>
 
         {/* DEADLINE FOR INTERNAL JOBS ONLY */}
-        {!isRapid && (
+        {!isExternal && (
           <Typography
             sx={{
               color: "#189e33ff",

@@ -366,8 +366,8 @@ const PostingSection = ({
                 startIcon={
                   item?.isLiked ? (
                     <ThumbUpIcon
-                      color="primary"
                       sx={(theme) => ({
+                        color: "#189e33ff",
                         fontSize: "14px !important",
                         [theme.breakpoints.up("sm")]: {
                           fontSize: "20px !important",

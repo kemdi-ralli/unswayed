@@ -9,6 +9,12 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HourglassFullIcon from "@mui/icons-material/HourglassFull";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import PeopleIcon from "@mui/icons-material/People";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import DescriptionIcon from "@mui/icons-material/Description";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import LinkIcon from "@mui/icons-material/Link";
 import JobTypeTab from "./JobTypeTab";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import dayjs from "dayjs";
@@ -29,8 +35,8 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
   const router = useRouter();
   const today = new Date().toISOString().split("T")[0];
 
-  // Detect RapidAPI / external jobs
-  const isRapid = data?.external_source === "rapidapi" || data?.source === "jsearch" || data?.job_id;
+  // Detect external jobs from backend
+  const isExternal = data?.type === "external" || data?.job_kind === "external";
 
   // Format salary
   const addCommaToString = (num) => {
@@ -80,9 +86,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
           const rate = result.conversion_rates[currencyCode];
           setExchangeRate(rate);
 
-          const salaryValue = isRapid
-            ? data.job_min_salary || data.job_max_salary || 0
-            : data.salary;
+          const salaryValue = data.salary || 0;
 
           const converted = Math.round(salaryValue * rate);
           setConvertedSalary(converted);
@@ -95,62 +99,80 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
     fetchRate();
   }, [userCountry, data]);
 
-  // Employer actions (backend only)
+  // Employer actions (internal jobs only)
   const onApplicationClick = () => {
-    if (!isRapid && userData.user.type === "employer" && data?.isMyjob) {
+    if (!isExternal && userData.user.type === "employer" && data?.isMyjob) {
       const encodedId = encode(data?.id);
       router.push(`/employer/dashboard/${encodedId}`);
     }
   };
   const onEdit = () => {
-    if (!isRapid && userData.user.type === "employer" && data?.isMyjob) {
+    if (!isExternal && userData.user.type === "employer" && data?.isMyjob) {
       const encodedId = encode(data?.id);
       router.push(`/employer/my-posts/form/${encodedId}`);
     }
   };
   const onDelete = () => {
-    if (!isRapid && userData.user.type === "employer" && data?.isMyjob) {
+    if (!isExternal && userData.user.type === "employer" && data?.isMyjob) {
       setIsConfirmModalOpen(true);
     }
   };
   const onDeleteConfirm = async () => {
-    if (!isRapid && userData.user.type === "employer" && data?.isMyjob) {
+    if (!isExternal && userData.user.type === "employer" && data?.isMyjob) {
       await apiInstance.delete(`${EMPLOYER_CRUD_JOBS}/${data?.id}`);
       router.push(`/employer/my-posts`);
     }
   };
   const onEmployerClick = () => {
-    if (isRapid) return;
+    if (isExternal) return;
     const encodedId = encode(data?.employer?.id);
     router.push(`/profile/${encodedId}`);
   };
 
   // Apply Now button
   const handleApplyClick = () => {
-    if (isRapid && data?.job_apply_link) {
-      window.open(data.job_apply_link, "_blank");
+    if (isExternal && data?.job_apply_link) {
+      window.open(data.job_apply_link, "_blank", "noopener,noreferrer");
       return;
     }
-    ApplyNow(data);
+    if (ApplyNow) {
+      ApplyNow(data);
+    }
   };
 
   // Display values normalized
-  const displayTitle = isRapid ? data.job_title : data?.title;
-  const displayEmployer = isRapid ? data.employer_name : data?.employer?.username;
-  const displayCategory = isRapid ? data.job_employment_type : data?.category?.name;
-  const displayCountry = isRapid ? data.job_country : data?.country?.name;
-  const displayCity = isRapid ? data.job_city : data?.city?.name;
-  const displayDescription = isRapid ? data.job_description : data?.description;
-  const displayDeadline = isRapid ? "N/A" : dayjs(data?.deadline).format("MM-DD-YYYY");
-  const displaySkills = isRapid
-    ? data.job_highlights?.Qualifications || []
-    : data?.skills?.map((s) => s.name) || [];
-  const displaySalaryCurrency = isRapid
-    ? data?.job_salary_currency || "USD"
-    : data?.salary_currency;
-  const displaySalary = isRapid
-    ? data?.job_min_salary || data?.job_max_salary || null
-    : data?.salary;
+  const displayTitle = data?.title || "Untitled";
+  const displayEmployer = isExternal ? (data?.employer_name || "External Employer") : data?.employer?.username;
+  const displayCategory = data?.category?.name || data?.job_categories?.[0]?.name || data?.job_employment_type || "N/A";
+  const displayCountry = data?.country?.name || data?.job_country || "N/A";
+  const displayCity = data?.city?.name || data?.cities?.[0]?.name || data?.job_city || "N/A";
+  const displayStates = data?.states?.map((s) => s.name).join(", ") || "N/A";
+  const displayDescription = data?.description || data?.job_description || "";
+  const displayDeadline = isExternal ? "N/A" : (data?.deadline ? dayjs(data.deadline).format("MM-DD-YYYY") : "N/A");
+  // Handle skills - can be array of objects with name property or array of strings
+  const displaySkills = (() => {
+    if (!data?.skills || !Array.isArray(data.skills)) return [];
+    return data.skills.map((s) => {
+      if (typeof s === "string") return s;
+      if (typeof s === "object" && s !== null) {
+        return s.name || s.title || s.skill || String(s);
+      }
+      return String(s);
+    }).filter(Boolean);
+  })();
+  const displaySalaryCurrency = data?.salary_currency || "USD";
+  const displaySalary = data?.salary || null;
+  const displaySalaryMax = data?.salary_max || null;
+  const displaySalaryPeriod = data?.salary_period || "Per Month";
+  const displayNoOfPositions = data?.no_of_positions || "N/A";
+  const displayJobTypes = data?.job_types?.map((t) => t.name).join(", ") || data?.job_type?.name || "N/A";
+  const displayJobLocations = data?.job_locations?.map((l) => l.name).join(", ") || data?.job_location?.name || "N/A";
+  const displayJobShifts = data?.job_shifts?.map((s) => s.name).join(", ") || data?.job_shift?.name || "N/A";
+  const displayJobShiftTiming = data?.job_shift_timing?.name || data?.job_shift_timing || "N/A";
+  const displayRequirements = data?.requirements || "";
+  const displayCompanyAbout = data?.company_about || "";
+  const displayCompanyBenefits = data?.company_benefits || "";
+  const displayJobApplyLink = data?.job_apply_link || "";
 
   return (
     <>
@@ -158,7 +180,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography sx={styles.heading}>{displayTitle}</Typography>
 
-          {!isRapid && data?.isMyjob && (
+          {!isExternal && data?.isMyjob && (
             <Typography sx={styles.applicationCount} onClick={onApplicationClick}>
               {data?.applications_count} Application
             </Typography>
@@ -167,18 +189,18 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
 
         {userData?.user?.type === "applicant" && (
           <Box sx={{ py: "10px", display: "flex", gap: 2 }}>
-            <Button sx={styles.companyName} onClick={onEmployerClick} disabled={isRapid}>
+            <Button sx={styles.companyName} onClick={onEmployerClick} disabled={isExternal}>
               {displayEmployer}
-              {!isRapid && <ArrowOutwardIcon sx={styles.arrowIcon} />}
+              {!isExternal && <ArrowOutwardIcon sx={styles.arrowIcon} />}
             </Button>
             <Button
               onClick={handleApplyClick}
               sx={styles.applyButton}
-              disabled={!isRapid && (data?.is_applied || data?.is_closed || data?.deadline < today)}
+              disabled={!isExternal && (data?.is_applied || data?.is_closed || data?.deadline < today)}
             >
-              {isRapid ? "StepOut Now (External Job Link)" : "StepIn Now"}
+              {isExternal ? "StepOut Now (External Job)" : "StepIn Now"}
             </Button>
-            {!isRapid && (
+            {!isExternal && (
               <Button
                 onClick={() => OnSave(data?.id)}
                 sx={{
@@ -192,7 +214,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
           </Box>
         )}
 
-        {!isRapid && userData?.user?.type === "employer" && data?.isMyjob && (
+        {!isExternal && userData?.user?.type === "employer" && data?.isMyjob && (
           <Box sx={{ py: "10px", display: "flex", gap: 2 }}>
             <Button sx={styles.applyButton} onClick={onEdit}>
               Edit
@@ -203,13 +225,13 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
           </Box>
         )}
 
-        {!isRapid && data?.is_applied && userData?.user?.type !== "employer" && (
+        {!isExternal && data?.is_applied && userData?.user?.type !== "employer" && (
           <Typography sx={styles.actionText}>You Have Applied On This Job</Typography>
         )}
-        {!isRapid && data?.is_closed && userData?.user?.type !== "employer" && (
+        {!isExternal && data?.is_closed && userData?.user?.type !== "employer" && (
           <Typography sx={styles.actionText}>Position Fulfilled</Typography>
         )}
-        {!isRapid && data?.deadline < today && userData.user.type !== "employer" && (
+        {!isExternal && data?.deadline < today && userData.user.type !== "employer" && (
           <Typography sx={styles.actionText}>No Longer Accepting Applications</Typography>
         )}
       </Box>
@@ -218,14 +240,41 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
       <Box sx={styles.detailsSection}>
         <Typography sx={styles.sectionHeading}>Job Details</Typography>
 
-        <Box sx={styles.detailRow}><WorkIcon sx={styles.icon} /><Typography>{displayCategory}</Typography></Box>
-        <Box sx={styles.detailRow}><FlagIcon sx={styles.icon} /><Typography>{displayCountry}</Typography></Box>
-        <Box sx={styles.detailRow}><HomeIcon sx={styles.icon} /><Typography>{data?.address || "N/A"}</Typography></Box>
-        <Box sx={styles.detailRow}><LocationCityIcon sx={styles.icon} /><Typography>{displayCity}</Typography></Box>
-        <Box sx={styles.detailRow}><AccessTimeIcon sx={styles.icon} /><Typography>Deadline: {displayDeadline}</Typography></Box>
-        <Box sx={styles.detailRow}><HourglassFullIcon sx={styles.icon} /><Typography>Experience: {isRapid ? "Not Specified" : `${data?.experience} years`}</Typography></Box>
-        <Box sx={styles.detailRow}><HomeWorkIcon sx={styles.icon} /><Typography>Job Type: {displayCategory}</Typography></Box>
-        <Box sx={styles.detailRow}><MonetizationOnIcon sx={styles.icon} /><Typography>Salary: {displaySalaryCurrency} {addCommaToString(displaySalary)}{convertedSalary && ` (~${addCommaToString(convertedSalary.toFixed(2))} ${countryToCurrency[userCountry]})`}</Typography></Box>
+        <Box sx={styles.detailRow}><WorkIcon sx={styles.icon} /><Typography><strong>Category:</strong> {displayCategory}</Typography></Box>
+        <Box sx={styles.detailRow}><PeopleIcon sx={styles.icon} /><Typography><strong>Number of Positions:</strong> {displayNoOfPositions}</Typography></Box>
+        <Box sx={styles.detailRow}><BusinessCenterIcon sx={styles.icon} /><Typography><strong>Job Types:</strong> {displayJobTypes}</Typography></Box>
+        <Box sx={styles.detailRow}><HomeWorkIcon sx={styles.icon} /><Typography><strong>Job Locations:</strong> {displayJobLocations}</Typography></Box>
+        <Box sx={styles.detailRow}><ScheduleIcon sx={styles.icon} /><Typography><strong>Job Shifts:</strong> {displayJobShifts}</Typography></Box>
+        {displayJobShiftTiming !== "N/A" && (
+          <Box sx={styles.detailRow}><ScheduleIcon sx={styles.icon} /><Typography><strong>Shift Timing:</strong> {displayJobShiftTiming}</Typography></Box>
+        )}
+        <Box sx={styles.detailRow}><HourglassFullIcon sx={styles.icon} /><Typography><strong>Experience Level:</strong> {data?.experience_level ? data.experience_level.charAt(0).toUpperCase() + data.experience_level.slice(1) : (data?.experience ? `${data.experience} years` : "Not Specified")}</Typography></Box>
+        <Box sx={styles.detailRow}><FlagIcon sx={styles.icon} /><Typography><strong>Country:</strong> {displayCountry}</Typography></Box>
+        {displayStates !== "N/A" && (
+          <Box sx={styles.detailRow}><LocationCityIcon sx={styles.icon} /><Typography><strong>States:</strong> {displayStates}</Typography></Box>
+        )}
+        <Box sx={styles.detailRow}><LocationCityIcon sx={styles.icon} /><Typography><strong>City:</strong> {displayCity}</Typography></Box>
+        {data?.address && (
+          <Box sx={styles.detailRow}><HomeIcon sx={styles.icon} /><Typography><strong>Address:</strong> {data.address}</Typography></Box>
+        )}
+        <Box sx={styles.detailRow}><AccessTimeIcon sx={styles.icon} /><Typography><strong>Deadline:</strong> {displayDeadline}</Typography></Box>
+        <Box sx={styles.detailRow}><MonetizationOnIcon sx={styles.icon} /><Typography>
+          <strong>Salary:</strong> {displaySalaryCurrency} {addCommaToString(displaySalary)}
+          {displaySalaryMax && ` - ${addCommaToString(displaySalaryMax)}`}
+          {` ${displaySalaryPeriod}`}
+          {convertedSalary && ` (~${addCommaToString(convertedSalary.toFixed(2))} ${countryToCurrency[userCountry]})`}
+        </Typography></Box>
+        {isExternal && displayJobApplyLink && (
+          <Box sx={styles.detailRow}>
+            <LinkIcon sx={styles.icon} />
+            <Typography>
+              <strong>Application Link:</strong>{" "}
+              <a href={displayJobApplyLink} target="_blank" rel="noopener noreferrer" style={{ color: "#189e33ff", textDecoration: "underline" }}>
+                {displayJobApplyLink}
+              </a>
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* DESCRIPTION */}
@@ -234,15 +283,41 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
         <Typography sx={styles.description}>{displayDescription}</Typography>
       </Box>
 
-      {/* SKILLS */}
-      <Box sx={styles.detailsSection}>
-        <Typography sx={styles.sectionHeading}>Required Skills</Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {displaySkills.map((skill, index) => <JobTypeTab key={index} label={skill} />)}
+      {/* REQUIREMENTS */}
+      {displayRequirements && (
+        <Box sx={styles.detailsSection}>
+          <Typography sx={styles.sectionHeading}>Requirements</Typography>
+          <Typography sx={styles.description}>{displayRequirements}</Typography>
         </Box>
-      </Box>
+      )}
 
-      {!isRapid && userData.user?.type === "employer" && data?.isMyjob && (
+      {/* SKILLS */}
+      {displaySkills.length > 0 && (
+        <Box sx={styles.detailsSection}>
+          <Typography sx={styles.sectionHeading}>Required Skills</Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {displaySkills.map((skill, index) => <JobTypeTab key={index} label={skill} />)}
+          </Box>
+        </Box>
+      )}
+
+      {/* COMPANY ABOUT */}
+      {displayCompanyAbout && (
+        <Box sx={styles.detailsSection}>
+          <Typography sx={styles.sectionHeading}>About the Company</Typography>
+          <Typography sx={styles.description}>{displayCompanyAbout}</Typography>
+        </Box>
+      )}
+
+      {/* COMPANY BENEFITS */}
+      {displayCompanyBenefits && (
+        <Box sx={styles.detailsSection}>
+          <Typography sx={styles.sectionHeading}>Company Benefits</Typography>
+          <Typography sx={styles.description}>{displayCompanyBenefits}</Typography>
+        </Box>
+      )}
+
+      {!isExternal && userData.user?.type === "employer" && data?.isMyjob && (
         <ConfirmModal
           open={isConfirmModalOpen}
           title="Are you sure you want to delete this job?"

@@ -5,6 +5,7 @@ import {
   COUNTRIES,
   STATES,
   CITIES,
+  CITIES_STATES_NAME,
   JOB_CATEGORIES,
   JOB_LOCATIONS,
   JOB_SHIFTS,
@@ -17,6 +18,7 @@ import * as yup from "yup";
 import BackButtonWithTitle from "@/components/applicant/dashboard/BackButtonWithTitle";
 import Container from "@/components/common/Container";
 import AllowJobSearchNotificationSwitch from "@/components/applicant/settings/changeNotficationType/AllowJobSearchNotificationSwitch";
+import JobEmailNotificationSwitch from "@/components/applicant/settings/changeNotficationType/JobEmailNotificationSwitch";
 import AddJobAlertDropdown from "@/components/applicant/settings/changeNotficationType/AddJobAlertDropdown";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { Toast } from "@/components/Toast/Toast";
@@ -175,7 +177,22 @@ const Page = () => {
     if (dropdownStates?.selectedState?.length > 0) {
       const getCities = async () => {
         try {
-          const response = await apiInstance.get(`${CITIES}/[${dropdownStates?.selectedState}]`);
+          const US_INHABITED_TERRITORIES = [
+            "American Samoa",
+            "Guam",
+            "Northern Mariana Islands",
+            "Puerto Rico",
+            "U.S. Virgin Islands",
+          ];
+          
+          const stateValue = dropdownStates?.selectedState;
+          // Check if this is a US inhabited territory (string name)
+          const isTerritory = typeof stateValue === 'string' && US_INHABITED_TERRITORIES.includes(stateValue);
+          
+          const response = isTerritory
+            ? await apiInstance.get(`${CITIES_STATES_NAME}/${stateValue}`)
+            : await apiInstance.get(`${CITIES}/${stateValue}`);
+            
           const _cities = response?.data?.data?.cities || [];
           const exist = dropdownStates.selectedCity.filter((cityId) =>
             _cities.some((_city) => _city.id === cityId)
@@ -301,6 +318,7 @@ const Page = () => {
     <Container>
       <BackButtonWithTitle label="Notification" />
       <AllowJobSearchNotificationSwitch />
+      <JobEmailNotificationSwitch />
       <AddJobAlertDropdown
         countries={countries}
         states={states}

@@ -27,6 +27,20 @@ const AddReviews = ({ data, id }) => {
     benefits: 0,
     stability: 0,
   });
+  
+  // Yes/No Questions
+  const yesNoQuestions = [
+    "Would you recommend this company to a friend?",
+    "Did management support your career growth?",
+    "Were you fairly compensated?",
+    "Was there good work-life balance?",
+    "Did you feel valued as an employee?"
+  ];
+
+  const [yesNoResponses, setYesNoResponses] = useState(
+    yesNoQuestions.map(q => ({ question: q, answer: null }))
+  );
+
   const router = useRouter();
 
   const handleCloseModal = () => setModalOpen(false);
@@ -67,16 +81,25 @@ const AddReviews = ({ data, id }) => {
     setIsAnonymous(event.target.checked);
   };
 
+  const handleYesNoChange = (index, answer) => {
+    setYesNoResponses(prev => 
+      prev.map((item, i) => 
+        i === index ? { ...item, answer } : item
+      )
+    );
+  };
+
   const object = {
-    questions: {
-      recommended: Recommend,
-      paid_fairly: PaidFairly,
-      work_culture: selectedWorkCulture,
+    questions: ["What did you like?", "What could be improved?"],
+    ratings: {
+      work_life_balance: ratings.work_life_balance,
+      compensation: ratings.benefits,
+      management: ratings.stability,
     },
-    ratings: ratings,
     overall_ratings: selectedRating,
     is_anonymous: isAnonymous,
     feedback: comment,
+    yes_no_responses: yesNoResponses.filter(item => item.answer !== null),
   };
 
   const onFeedback = async () => {
@@ -268,6 +291,108 @@ const AddReviews = ({ data, id }) => {
       />
       <RateCompany ratings={ratings} onRatingChange={handleRatingChange} />
       <AddComment comment={comment} onCommentChange={handleCommentChange} />
+
+      {/* Yes/No Questions Section */}
+      <Box sx={{ my: 3 }}>
+        <Typography
+          sx={{
+            fontSize: { xs: "16px", sm: "18px", md: "20px" },
+            lineHeight: { xs: "22px", md: "24px" },
+            fontWeight: 600,
+            color: "#00305B",
+            textTransform: "capitalize",
+            mb: 2,
+          }}
+        >
+          Quick Questions
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: { xs: "12px", sm: "14px", md: "16px" },
+            lineHeight: { xs: "18px", md: "20px" },
+            fontWeight: 400,
+            color: "#666",
+            mb: 3,
+          }}
+        >
+          Help others understand your experience better by answering these quick questions
+        </Typography>
+        {yesNoQuestions.map((question, index) => (
+          <Box
+            key={index}
+            sx={{
+              width: "100%",
+              boxShadow: "0px 0px 3px #00000040",
+              border: "none",
+              outline: "none",
+              padding: "18px 20px",
+              borderRadius: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "flex-start", sm: "center" },
+              my: 2,
+              gap: { xs: 2, sm: 0 },
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: { xs: "13px", sm: "14px", md: "16px" },
+                lineHeight: { xs: "20px", sm: "19px", md: "22px" },
+                fontWeight: 500,
+                color: "#222222",
+                flex: 1,
+              }}
+            >
+              {question}
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button
+                sx={{
+                  backgroundColor: yesNoResponses[index].answer === true ? "#189e33ff" : "#FFFFFF",
+                  fontSize: { xs: "13px", md: "15px" },
+                  lineHeight: "21px",
+                  fontWeight: 700,
+                  color: yesNoResponses[index].answer === true ? "#FFFFFF" : "#189e33ff",
+                  border: "2px solid",
+                  borderColor: "#189e33ff",
+                  minWidth: "80px",
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: yesNoResponses[index].answer === true ? "#126b24ff" : "#f0f9f1",
+                  },
+                }}
+                onClick={() => handleYesNoChange(index, true)}
+              >
+                Yes
+              </Button>
+              <Button
+                sx={{
+                  backgroundColor: yesNoResponses[index].answer === false ? "#d32f2f" : "#FFFFFF",
+                  fontSize: { xs: "13px", md: "15px" },
+                  lineHeight: "21px",
+                  fontWeight: 700,
+                  color: yesNoResponses[index].answer === false ? "#FFFFFF" : "#d32f2f",
+                  border: "2px solid",
+                  borderColor: "#d32f2f",
+                  minWidth: "80px",
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  px: 3,
+                  "&:hover": {
+                    backgroundColor: yesNoResponses[index].answer === false ? "#b71c1c" : "#ffebee",
+                  },
+                }}
+                onClick={() => handleYesNoChange(index, false)}
+              >
+                No
+              </Button>
+            </Box>
+          </Box>
+        ))}
+      </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", my: 2 }}>
         <Checkbox

@@ -336,6 +336,21 @@ const Page = () => {
       }
     }
   }, [Profile]);
+  const handleAddressSelect = (addressDetails) => {
+    // Auto-fill zip code when address is selected
+    if (addressDetails.zipCode) {
+      setProfileDetails((prevDetails) => {
+        const updatedContactDetails = prevDetails.contactDetails.map((item) => {
+          if (item.name === "zip_code") {
+            return { ...item, value: addressDetails.zipCode };
+          }
+          return item;
+        });
+        return { ...prevDetails, contactDetails: updatedContactDetails };
+      });
+    }
+  };
+
   return (
     <EditProfile
       profileDetails={profileDetails}
@@ -354,6 +369,7 @@ const Page = () => {
       formikErrors={formikErrors}
       experienceLevel={experienceLevel}
       data={Profile}
+      onAddressSelect={handleAddressSelect}
     />
   );
 };

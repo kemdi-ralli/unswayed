@@ -15,8 +15,23 @@ const nextConfig = {
   transpilePackages: ["mui-tel-input"],
 
   images: {
-    domains: [url],
+    domains: [url, "unswayed.onrender.com"],
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "unswayed.onrender.com",
+        pathname: "/storage/assets/blogs/**",
+      },
+      {
+        protocol: "https",
+        hostname: "unswayed.onrender.com",
+        pathname: "/storage/assets/posts/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "unswayed.onrender.com",
+        pathname: "/storage/assets/images/profiles/**",
+      },
       {
         protocol: "http",
         hostname: url,

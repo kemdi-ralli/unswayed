@@ -5,6 +5,7 @@ import {
   APPLICANT_DELETE_RESUMES,
   ATTACHED_CV,
   APPLICANT_REPLACE_RESUME,
+  APPLICANT_RENAME_RESUME,
 } from "@/services/apiService/apiEndPoints";
 
 export const getResumes = createAsyncThunk("resumes/getResumes", async () => {
@@ -64,6 +65,24 @@ export const replaceResume = createAsyncThunk(
   }
 );
 
+export const renameResume = createAsyncThunk(
+  "resumes/renameResume",
+  async ({ id, title }, { rejectWithValue }) => {
+    try {
+      const response = await apiInstance.patch(
+        `${APPLICANT_RENAME_RESUME}/${id}`,
+        { title }
+      );
+
+      return response.data.data?.resume;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error renaming resume"
+      );
+    }
+  }
+);
+
 const resumeSlice = createSlice({
   name: "resumes",
   initialState: {
@@ -111,6 +130,19 @@ const resumeSlice = createSlice({
         );
       })
       .addCase(replaceResume.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(renameResume.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(renameResume.fulfilled, (state, action) => {
+        state.loading = false;
+        state.resumes = state.resumes.map((resume) =>
+          resume.id === action.payload.id ? action.payload : resume
+        );
+      })
+      .addCase(renameResume.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

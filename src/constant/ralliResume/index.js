@@ -113,8 +113,16 @@ export const ADD_A_RECENT = {
     {
       name: "type",
       title: "Job Type",
-      placeHolder: "Full Time",
-      type: "field",
+      placeHolder: "Select Job Type",
+      type: "dropdown",
+      options: [
+        { id: "contract", name: "Contract" },
+        { id: "full-time", name: "Full Time" },
+        { id: "part-time", name: "Part Time" },
+        { id: "seasonal", name: "Seasonal" },
+        { id: "internship", name: "Internship" },
+        { id: "temporary", name: "Temporary" },
+      ],
     },
     {
       name: "years_of_experience",

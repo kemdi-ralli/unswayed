@@ -7,6 +7,7 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
   APPLICANT_REGISTRATION,
   CITIES,
+  CITIES_STATES_NAME,
   COUNTRIES,
   ETHNICITIES,
   GENDERS,
@@ -34,10 +35,10 @@ const ApplicantForm = () => {
   const [isLoadingStates, setIsLoadingStates] = useState(false); // ADD THIS LINE
 
   const [experienceLevel, setExperienceLevel] = useState([
-    { name: "Entry", id: "jr" },
-    { name: "Intermediate", id: "III" },
-    { name: "Experienced", id: "IV" },
-    { name: "Advanced", id: "sr" },
+    { name: "Entry", id: "Entry" },
+    { name: "Intermediate", id: "Intermediate" },
+    { name: "Experienced", id: "Experienced" },
+    { name: "Advanced", id: "Advanced" },
   ]);
 
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -205,13 +206,22 @@ const ApplicantForm = () => {
     if (dropdownStates.state) {
       const getCities = async (stateId) => {
         try {
-          const response = await apiInstance.get(`${CITIES}/${stateId}`);
+          // Check if stateId is a US inhabited territory (string name)
+          const isTerritory = typeof stateId === 'string' && US_INHABITED_TERRITORIES.includes(stateId);
+          
+          const response = isTerritory 
+            ? await apiInstance.get(`${CITIES_STATES_NAME}/${stateId}`)
+            : await apiInstance.get(`${CITIES}/${stateId}`);
+            
           setCities(response?.data?.data?.cities || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load cities");
+          setCities([]);
         }
       };
       getCities(dropdownStates.state);
+    } else {
+      setCities([]);
     }
   }, [dropdownStates.state]);
 

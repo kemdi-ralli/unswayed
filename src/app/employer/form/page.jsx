@@ -14,6 +14,7 @@ import {
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
   CITIES,
+  CITIES_STATES_NAME,
   COUNTRIES,
   EMPLOYER_REGISTRATION,
   STATES,
@@ -158,13 +159,29 @@ const Page = () => {
     if (dropdownStates?.state) {
       const getCities = async (stateId) => {
         try {
-          const response = await apiInstance?.get(`${CITIES}/${stateId}`);
+          // Check if stateId is a US inhabited territory (string name)
+          const US_INHABITED_TERRITORIES = [
+            "American Samoa",
+            "Guam",
+            "Northern Mariana Islands",
+            "Puerto Rico",
+            "U.S. Virgin Islands",
+          ];
+          const isTerritory = typeof stateId === 'string' && US_INHABITED_TERRITORIES.includes(stateId);
+          
+          const response = isTerritory 
+            ? await apiInstance?.get(`${CITIES_STATES_NAME}/${stateId}`)
+            : await apiInstance?.get(`${CITIES}/${stateId}`);
+            
           setCities(response?.data?.data?.cities || []);
         } catch (error) {
           setErrors(error?.response?.data?.message || "Failed to load cities");
+          setCities([]);
         }
       };
       getCities(dropdownStates?.state);
+    } else {
+      setCities([]);
     }
   }, [dropdownStates?.state]);
 

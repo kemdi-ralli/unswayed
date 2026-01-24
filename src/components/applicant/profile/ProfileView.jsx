@@ -226,6 +226,31 @@ const ProfileView = ({
             Profile?.last_name}
         </Typography>
 
+        {/* UCN Display - Only for own profile */}
+        {isMyProfile && Profile?.ucn && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 2,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: { xs: "14px", sm: "16px", md: "18px" },
+                fontWeight: 500,
+                color: "#189e33ff",
+                backgroundColor: "rgba(24, 158, 51, 0.1)",
+                borderRadius: "20px",
+                padding: "8px 20px",
+                display: "inline-block",
+              }}
+            >
+              UCN: {Profile?.ucn}
+            </Typography>
+          </Box>
+        )}
+
         {!isMyProfile ? (
           <Box
             sx={{
@@ -236,33 +261,44 @@ const ProfileView = ({
               my: 4,
             }}
           >
-            {/* {!Profile == }
-            <Button
-              sx={{
-                width: { xs: "70%", sm: "130px", md: "200px" },
-                height: "60px",
-                borderRadius: "10px",
-                backgroundColor: Profile?.isFollowed ? "#fff" : "##189e33ff",
-                color: Profile?.isFollowed ? "##189e33ff" : "#fff",
-                border: "2px solid",
-                borderColor: Profile?.isFollowed ? "##189e33ff" : null,
-              }}
-              onClick={() => onPressFollow(Profile.id)}
-            >
-              {Profile?.isFollowed ? "UnFollow" : "Follow"}
-            </Button> */}
-            <Button
-              sx={{
-                width: { xs: "70%", sm: "130px", md: "200px" },
-                height: "60px",
-                borderRadius: "10px",
-                backgroundColor: "#00305B",
-                color: "#fff",
-              }}
-              onClick={() => onPressMessage(Profile?.id)}
-            >
-              Message
-            </Button>
+            {onPressFollow && (
+              <Button
+                sx={{
+                  width: { xs: "70%", sm: "130px", md: "200px" },
+                  height: "60px",
+                  borderRadius: "10px",
+                  backgroundColor: Profile?.isFollowed ? "#fff" : "#189e33ff",
+                  color: Profile?.isFollowed ? "#189e33ff" : "#fff",
+                  border: "2px solid",
+                  borderColor: "#189e33ff",
+                  fontWeight: 600,
+                  "&:hover": {
+                    backgroundColor: Profile?.isFollowed ? "#f3f4f6" : "#147c2cff",
+                  },
+                }}
+                onClick={() => onPressFollow(Profile.id)}
+              >
+                {Profile?.isFollowed ? "Unfollow" : "Follow"}
+              </Button>
+            )}
+            {onPressMessage && (
+              <Button
+                sx={{
+                  width: { xs: "70%", sm: "130px", md: "200px" },
+                  height: "60px",
+                  borderRadius: "10px",
+                  backgroundColor: "#00305B",
+                  color: "#fff",
+                  fontWeight: 600,
+                  "&:hover": {
+                    backgroundColor: "#001C47",
+                  },
+                }}
+                onClick={() => onPressMessage(Profile?.id)}
+              >
+                Message
+              </Button>
+            )}
           </Box>
         ) : (
           <Button
@@ -431,84 +467,88 @@ const ProfileView = ({
         {Profile?.about ? Profile?.about : "No About Found For This Profile"}
       </Typography>
 
-      {/* === UPDATED: Dynamic Subscription Plan Display === */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: "#FFF",
-          border: "none",
-          outline: "none",
-          width: "100%",
-          mb: "20px",
-          mt: "20px",
-          boxShadow: "0px 0px 3px #00000040",
-          padding: "18px 20px",
-          borderRadius: "10px",
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: { xs: "10px", sm: "14px", md: "16px" },
-            lineHeight: { xs: "19px", sm: "22px", md: "25px" },
-            fontWeight: 500,
-            color: "#222222",
-            "@media (max-width: 340px)": {
-              fontSize: "9px",
-              lineHeight: "19px",
-            },
-          }}
-        >
-          Subscription Plan:
-        </Typography>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip
-            label={subscriptionInfo.plan}
-            size="small"
+      {/* === UPDATED: Dynamic Subscription Plan Display (Only for Own Profile) === */}
+      {isMyProfile && (
+        <>
+          <Box
             sx={{
-              backgroundColor: subColors.bg,
-              color: subColors.text,
-              fontWeight: 600,
-              fontSize: { xs: "10px", sm: "12px", md: "14px" },
-            }}
-          />
-          {subscriptionInfo.isOnTrial && subscriptionInfo.daysRemaining > 0 && (
-            <Typography
-              sx={{
-                fontSize: { xs: "9px", sm: "11px", md: "12px" },
-                color: "#d97706",
-                fontWeight: 500,
-              }}
-            >
-              ({subscriptionInfo.daysRemaining} days left)
-            </Typography>
-          )}
-        </Box>
-      </Box>
-
-      {/* === NEW: Upgrade button for own profile === */}
-      {isMyProfile && (subscriptionInfo.plan === "Freemium" || subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
-        <Box sx={{ mb: 2 }}>
-          <Button
-            variant="contained"
-            onClick={() => router.push("/billing")}
-            sx={{
-              backgroundColor: "#189e33ff",
-              color: "#fff",
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              backgroundColor: "#FFF",
+              border: "none",
+              outline: "none",
+              width: "100%",
+              mb: "20px",
+              mt: "20px",
+              boxShadow: "0px 0px 3px #00000040",
+              padding: "18px 20px",
               borderRadius: "10px",
-              textTransform: "none",
-              fontWeight: 600,
-              "&:hover": {
-                backgroundColor: "#147c2cff",
-              },
             }}
           >
-            {subscriptionInfo.plan === "Expired" ? "Renew Subscription" : "Upgrade Plan"}
-          </Button>
-        </Box>
+            <Typography
+              sx={{
+                fontSize: { xs: "10px", sm: "14px", md: "16px" },
+                lineHeight: { xs: "19px", sm: "22px", md: "25px" },
+                fontWeight: 500,
+                color: "#222222",
+                "@media (max-width: 340px)": {
+                  fontSize: "9px",
+                  lineHeight: "19px",
+                },
+              }}
+            >
+              Subscription Plan:
+            </Typography>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Chip
+                label={subscriptionInfo.plan}
+                size="small"
+                sx={{
+                  backgroundColor: subColors.bg,
+                  color: subColors.text,
+                  fontWeight: 600,
+                  fontSize: { xs: "10px", sm: "12px", md: "14px" },
+                }}
+              />
+              {subscriptionInfo.isOnTrial && subscriptionInfo.daysRemaining > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: { xs: "9px", sm: "11px", md: "12px" },
+                    color: "#d97706",
+                    fontWeight: 500,
+                  }}
+                >
+                  ({subscriptionInfo.daysRemaining} days left)
+                </Typography>
+              )}
+            </Box>
+          </Box>
+
+          {/* === NEW: Upgrade button for own profile === */}
+          {(subscriptionInfo.plan === "Freemium" || subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
+            <Box sx={{ mb: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => router.push("/billing")}
+                sx={{
+                  backgroundColor: "#189e33ff",
+                  color: "#fff",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  "&:hover": {
+                    backgroundColor: "#147c2cff",
+                  },
+                }}
+              >
+                {subscriptionInfo.plan === "Expired" ? "Renew Subscription" : "Upgrade Plan"}
+              </Button>
+            </Box>
+          )}
+        </>
       )}
 
       {isMyProfile && (

@@ -33,10 +33,22 @@ const AllowJobSearchNotificationSwitch = () => {
   };
 
   const onToggle = async (isEnabled) => {
+    // Get current job_email_notification setting to preserve it
+    let currentJobEmailNotification = false;
+    try {
+      const currentSettings = await apiInstance.get(GET_SETTINGS);
+      if (currentSettings.status === 200 || currentSettings.status === 201) {
+        currentJobEmailNotification = currentSettings.data.data.setting?.data?.job_email_notification ?? false;
+      }
+    } catch (error) {
+      console.error("Error fetching current settings:", error);
+    }
+
     const object = {
-      type: "notification_setting",
+      type: "notification",
       data: {
         is_enable: isEnabled,
+        job_email_notification: currentJobEmailNotification, // Preserve job email notification setting
       },
     };
 

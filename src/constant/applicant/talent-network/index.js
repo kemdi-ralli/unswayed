@@ -206,7 +206,7 @@ export const SEARCHABLE_RALLIs = {
       id: 1,
       ucNumber: "UCN NUMBER",
       title: "interview invite by empolyer  ",
-      buttonLable: "Offer Latter",
+      buttonLable: "Offer Letter",
       type:'OfferLetter'
       // para: "Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled. Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled lorem lipsum dolor sir amir dummy text.",
     },
@@ -214,7 +214,7 @@ export const SEARCHABLE_RALLIs = {
       id: 2,
       ucNumber: "UCN NUMBER",
       title: "interview decline  ",
-      buttonLable: "Offer Latter",
+      buttonLable: "Offer Letter",
       type:'CounterOfferLetter'
 
       // para: "Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled. Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled lorem lipsum dolor sir amir dummy text.",
@@ -223,7 +223,7 @@ export const SEARCHABLE_RALLIs = {
       id: 3,
       ucNumber: "UCN NUMBER",
       title: "interview decline  ",
-      buttonLable: "Offer Latter",
+      buttonLable: "Offer Letter",
       type:'Interview'
 
       // para: "Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled. Lorem Ipsum is simply dummy text of printing & typesetting industry. Lorem Ipsum has been the industry sxzc standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled lorem lipsum dolor sir amir dummy text.",

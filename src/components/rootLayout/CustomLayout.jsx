@@ -14,6 +14,9 @@ import { NAVBAR_DATA } from "@/constant/applicant/navbar";
 import Footer from "../applicant/dashboard/Footer";
 import { FOOTER_DATA } from "@/constant/applicant/footer";
 import Link from "next/link";
+import SubscriptionBlockerModal from "../Modal/SubscriptionBlockerModal";
+import DeactivatedAccountModal from "../Modal/DeactivatedAccountModal";
+import apiInstance from "@/services/apiService/apiServiceInstance";
 
 const CookieConsent = dynamic(() => import("react-cookie-consent"), {
   ssr: false,
@@ -29,6 +32,12 @@ export default function CustomLayout({ children }) {
   const [hasAcceptedCookies, setHasAcceptedCookies] = useState(
     !!Cookie.get("ralliCookieConsent")
   );
+
+  const [showSubscriptionBlocker, setShowSubscriptionBlocker] = useState(false);
+  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
+  const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
+  const [deactivatedAt, setDeactivatedAt] = useState(null);
+  const [accountChecked, setAccountChecked] = useState(false);
 
   const router = useRouter();
 
@@ -52,6 +61,117 @@ export default function CustomLayout({ children }) {
       setTimeout(() => setIsLoading(false), 3000);
     }
   }, [isAuthenticated]);
+
+  // Check for deactivated account (applies to all user types)
+  useEffect(() => {
+    const checkAccountDeactivation = () => {
+      // Only check for authenticated users
+      if (!isAuthenticated || accountChecked) {
+        return;
+      }
+
+      // Don't block on login/registration pages
+      const allowedPaths = [
+        "/applicant/login",
+        "/applicant/form",
+        "/applicant/form/emailVerification",
+        "/employer/login",
+        "/employer/form",
+        "/employer/form/emailVerification",
+      ];
+
+      if (allowedPaths.some((path) => pathname.startsWith(path))) {
+        return;
+      }
+
+      // Check if user has deactivated_at timestamp
+      const userDeactivatedAt = userData?.user?.deactivated_at;
+
+      if (userDeactivatedAt) {
+        // Account is deactivated
+        setDeactivatedAt(userDeactivatedAt);
+        setShowDeactivatedModal(true);
+      }
+
+      setAccountChecked(true);
+    };
+
+    checkAccountDeactivation();
+  }, [isAuthenticated, userData, pathname, accountChecked]);
+
+  // Check employer subscription status (only if account is NOT deactivated)
+  useEffect(() => {
+    const checkEmployerSubscription = async () => {
+      // Only check for authenticated employers who are NOT deactivated
+      if (!isAuthenticated || userType !== "employer" || subscriptionChecked || showDeactivatedModal) {
+        return;
+      }
+
+      // Don't block on billing pages or login/registration pages
+      const allowedPaths = [
+        "/billing",
+        "/billing/success",
+        "/employer/login",
+        "/employer/form",
+        "/employer/form/emailVerification",
+      ];
+
+      if (allowedPaths.some((path) => pathname.startsWith(path))) {
+        return;
+      }
+
+      try {
+        // Fetch subscription info
+        const response = await apiInstance.get("/subscriptions/current");
+        
+        if (response?.data?.status === "success") {
+          const subscriptionInfo = response.data.data;
+          
+          // Check if trial has expired (days_remaining <= 0 and still on trial)
+          const trialExpired =
+            subscriptionInfo?.is_on_trial &&
+            subscriptionInfo?.days_remaining <= 0;
+
+          // Check if subscription has expired
+          const subscriptionExpired =
+            !subscriptionInfo?.has_active_subscription &&
+            !subscriptionInfo?.is_on_trial;
+
+          // Show blocker if trial or subscription expired
+          if (trialExpired || subscriptionExpired) {
+            setShowSubscriptionBlocker(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking subscription:", error);
+        
+        // Fallback: Check from userData if available
+        const userSubscription = userData?.user?.subscription;
+        const userPlan = userData?.user?.subscription_plan;
+        
+        if (userSubscription || userPlan) {
+          const trialExpired =
+            userSubscription?.is_on_trial &&
+            userSubscription?.days_remaining <= 0;
+
+          const subscriptionExpired =
+            !userSubscription?.has_active_subscription &&
+            !userSubscription?.is_on_trial &&
+            userPlan !== "Tier 1" &&
+            userPlan !== "Tier 2" &&
+            userPlan !== "Tier 3";
+
+          if (trialExpired || subscriptionExpired) {
+            setShowSubscriptionBlocker(true);
+          }
+        }
+      } finally {
+        setSubscriptionChecked(true);
+      }
+    };
+
+    checkEmployerSubscription();
+  }, [isAuthenticated, userType, pathname, subscriptionChecked, userData, showDeactivatedModal]);
 
   const handleAcceptCookies = () => {
     Cookie.set("ralliCookieConsent", "true", { expires: 365 });
@@ -82,6 +202,20 @@ export default function CustomLayout({ children }) {
         minHeight: "100vh",
       }}
     >
+      {/* Deactivated Account Modal (Priority - Shows for ALL user types) */}
+      {showDeactivatedModal && (
+        <DeactivatedAccountModal 
+          open={showDeactivatedModal} 
+          userType={userType}
+          deactivatedAt={deactivatedAt}
+        />
+      )}
+
+      {/* Subscription Blocker Modal for Employers (Only if NOT deactivated) */}
+      {!showDeactivatedModal && showSubscriptionBlocker && userType === "employer" && (
+        <SubscriptionBlockerModal open={showSubscriptionBlocker} userType={userType} />
+      )}
+
       {!hiddenNavbarRoutes.includes(pathname) &&
         (userType === "employer" ? (
           <EmployerNavbar data={EMPLOYER_NAVBAR_DATA} />

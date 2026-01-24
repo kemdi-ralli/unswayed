@@ -165,7 +165,7 @@ const AppliedJobContainer = ({ id }) => {
       );
       if (response?.data?.status === "success") {
         Toast("success", response?.data?.message);
-        router.push("/applicant/career-areas");
+        router.push("/applicant/dashboard");
       }
     } catch (err) {
       setErrors(err);

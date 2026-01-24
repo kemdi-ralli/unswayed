@@ -235,7 +235,7 @@ const EmployerProfile = ({
           <Box sx={styles.detailTab}>
             <Typography sx={styles.detailHeading}>Company Size</Typography>
             <Typography sx={styles.detailText}>
-              {data?.company_size} Employee
+              {data?.company_size <= 1 ? `${data?.company_size} Employee` : `${data?.company_size} Employees`}
             </Typography>
           </Box>
           <Box sx={styles.detailTab}>
@@ -253,7 +253,7 @@ const EmployerProfile = ({
             <Box sx={styles.detailTab}>
               <Typography sx={styles.detailHeading}>Company Number</Typography>
               <Typography sx={styles.detailText}>
-                {data?.phone} Employee
+                {data?.phone}
               </Typography>
             </Box>
           )}
@@ -269,23 +269,6 @@ const EmployerProfile = ({
               {data?.founded ?? ""}
             </Typography>
           </Box>
-
-          {/* === NEW: Subscription Plan in Overview (for non-owner view) === */}
-          {!isMyProfile && (
-            <Box sx={styles.detailTab}>
-              <Typography sx={styles.detailHeading}>Subscription</Typography>
-              <Chip
-                label={subscriptionInfo.plan}
-                size="small"
-                sx={{
-                  backgroundColor: subColors.bg,
-                  color: subColors.text,
-                  fontWeight: 600,
-                  fontSize: "12px",
-                }}
-              />
-            </Box>
-          )}
         </>
       )}
 
@@ -386,18 +369,64 @@ const EmployerProfile = ({
           </Typography>
 
           <Typography sx={styles.reviewType}>
-            Paid Fairly: {item?.questions?.paid_fairly === true ? "Yes" : "No"}
-          </Typography>
-          <Typography sx={styles.reviewType}>
-            Would You Recommend To Others:{" "}
-            {item?.questions?.recommended === true ? "Yes" : "No"}
-          </Typography>
-          <Typography sx={styles.reviewType}>
-            Work Environment: {item?.questions?.work_culture || ""}
-          </Typography>
-          <Typography sx={styles.reviewType}>
             {item?.feedback || "No feedback provided"}
           </Typography>
+
+          {/* Yes/No Responses Display */}
+          {item?.yes_no_responses && item.yes_no_responses.length > 0 && (
+            <Box sx={{ mt: 2, mb: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: { xs: "13px", sm: "14px", md: "15px" },
+                  fontWeight: 600,
+                  color: "#00305B",
+                  mb: 1,
+                }}
+              >
+                Quick Responses:
+              </Typography>
+              {item.yes_no_responses.map((response, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    py: 0.75,
+                    px: 1.5,
+                    mb: 0.75,
+                    borderRadius: "8px",
+                    backgroundColor: "#f8f9fa",
+                    border: "1px solid #e9ecef",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "12px", sm: "13px", md: "14px" },
+                      fontWeight: 400,
+                      color: "#333",
+                      flex: 1,
+                    }}
+                  >
+                    {response.question}
+                  </Typography>
+                  <Chip
+                    label={response.answer ? "Yes" : "No"}
+                    sx={{
+                      backgroundColor: response.answer ? "#189e33ff" : "#d32f2f",
+                      color: "#FFF",
+                      fontWeight: 600,
+                      fontSize: { xs: "11px", sm: "12px" },
+                      height: "24px",
+                      "& .MuiChip-label": {
+                        px: 1.5,
+                      },
+                    }}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
 
           <Box sx={{ display: "flex", gap: { xs: 0.5, sm: 1, md: 2 }, py: 1 }}>
             <Typography sx={styles.reviewType}>

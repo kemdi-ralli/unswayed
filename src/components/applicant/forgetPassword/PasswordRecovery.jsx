@@ -30,9 +30,24 @@ const PasswordRecovery = ({ setUserEmail = () => { } }) => {
         nextStep();
       }
     } catch (err) {
-      const errorMessage = err?.response?.errors?.email || "Please enter a valid email address";
-      setError(errorMessage);
-      Toast("error", errorMessage);
+      // Handle validation errors and API errors
+      if (err?.response?.data?.errors?.email) {
+        const errorMessage = err.response.data.errors.email[0] || "This email address is not registered";
+        setError(errorMessage);
+        Toast("error", errorMessage);
+      } else if (err?.response?.data?.message) {
+        const errorMessage = err.response.data.message;
+        setError(errorMessage);
+        Toast("error", errorMessage);
+      } else if (err?.message) {
+        // Yup validation error
+        setError(err.message);
+        Toast("error", err.message);
+      } else {
+        const errorMessage = "This email address is not registered in our system";
+        setError(errorMessage);
+        Toast("error", errorMessage);
+      }
     } finally {
       setLoading(false);
     }

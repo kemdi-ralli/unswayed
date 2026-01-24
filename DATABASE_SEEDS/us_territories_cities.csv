@@ -1,0 +1,140 @@
+territory_name,city_name,is_capital,population_rank
+American Samoa,Pago Pago,true,1
+American Samoa,Tafuna,false,2
+American Samoa,Leone,false,3
+American Samoa,Fagatogo,false,4
+American Samoa,Vaitogi,false,5
+American Samoa,Vailoatai,false,6
+American Samoa,Vatia,false,7
+American Samoa,Aasu,false,8
+American Samoa,Ili'ili,false,9
+American Samoa,Malaeloa,false,10
+American Samoa,Aua,false,11
+American Samoa,Nu'uuli,false,12
+American Samoa,Mapusaga,false,13
+American Samoa,Fagasa,false,14
+American Samoa,Amouli,false,15
+Guam,Hagåtña (Agana),true,1
+Guam,Dededo,false,2
+Guam,Tamuning,false,3
+Guam,Mangilao,false,4
+Guam,Yigo,false,5
+Guam,Barrigada,false,6
+Guam,Yona,false,7
+Guam,Santa Rita,false,8
+Guam,Sinajana,false,9
+Guam,Mongmong-Toto-Maite,false,10
+Guam,Chalan Pago-Ordot,false,11
+Guam,Talofofo,false,12
+Guam,Inarajan,false,13
+Guam,Merizo,false,14
+Guam,Asan-Maina,false,15
+Guam,Piti,false,16
+Guam,Agat,false,17
+Guam,Umatac,false,18
+Guam,Tumon,false,19
+Northern Mariana Islands,Saipan,true,1
+Northern Mariana Islands,Tinian,false,2
+Northern Mariana Islands,Rota,false,3
+Northern Mariana Islands,Garapan,false,4
+Northern Mariana Islands,Susupe,false,5
+Northern Mariana Islands,San Jose,false,6
+Northern Mariana Islands,Chalan Kanoa,false,7
+Northern Mariana Islands,San Antonio,false,8
+Northern Mariana Islands,Kagman,false,9
+Northern Mariana Islands,Capitol Hill,false,10
+Northern Mariana Islands,Koblerville,false,11
+Northern Mariana Islands,San Roque,false,12
+Northern Mariana Islands,San Vicente,false,13
+Puerto Rico,San Juan,true,1
+Puerto Rico,Bayamón,false,2
+Puerto Rico,Carolina,false,3
+Puerto Rico,Ponce,false,4
+Puerto Rico,Caguas,false,5
+Puerto Rico,Guaynabo,false,6
+Puerto Rico,Mayagüez,false,7
+Puerto Rico,Trujillo Alto,false,8
+Puerto Rico,Arecibo,false,9
+Puerto Rico,Toa Baja,false,10
+Puerto Rico,Toa Alta,false,11
+Puerto Rico,Aguadilla,false,12
+Puerto Rico,Cayey,false,13
+Puerto Rico,Humacao,false,14
+Puerto Rico,Vega Baja,false,15
+Puerto Rico,Manatí,false,16
+Puerto Rico,Fajardo,false,17
+Puerto Rico,Yauco,false,18
+Puerto Rico,Guayama,false,19
+Puerto Rico,Canóvanas,false,20
+Puerto Rico,Río Grande,false,21
+Puerto Rico,Juana Díaz,false,22
+Puerto Rico,Dorado,false,23
+Puerto Rico,Gurabo,false,24
+Puerto Rico,Isabela,false,25
+Puerto Rico,Aibonito,false,26
+Puerto Rico,Coamo,false,27
+Puerto Rico,Hatillo,false,28
+Puerto Rico,Yabucoa,false,29
+Puerto Rico,Corozal,false,30
+Puerto Rico,Salinas,false,31
+Puerto Rico,Vega Alta,false,32
+Puerto Rico,Añasco,false,33
+Puerto Rico,Barceloneta,false,34
+Puerto Rico,Cidra,false,35
+Puerto Rico,Naranjito,false,36
+Puerto Rico,Aguas Buenas,false,37
+Puerto Rico,Camuy,false,38
+Puerto Rico,San Germán,false,39
+Puerto Rico,Cabo Rojo,false,40
+Puerto Rico,Hormigueros,false,41
+Puerto Rico,San Sebastián,false,42
+Puerto Rico,Las Piedras,false,43
+Puerto Rico,Juncos,false,44
+Puerto Rico,Luquillo,false,45
+Puerto Rico,Ceiba,false,46
+Puerto Rico,Naguabo,false,47
+Puerto Rico,Loíza,false,48
+Puerto Rico,Cataño,false,49
+Puerto Rico,Santa Isabel,false,50
+Puerto Rico,Utuado,false,51
+Puerto Rico,Lares,false,52
+Puerto Rico,Adjuntas,false,53
+Puerto Rico,Rincón,false,54
+Puerto Rico,Lajas,false,55
+Puerto Rico,Moca,false,56
+Puerto Rico,Quebradillas,false,57
+Puerto Rico,Peñuelas,false,58
+Puerto Rico,Arroyo,false,59
+Puerto Rico,Maunabo,false,60
+Puerto Rico,Patillas,false,61
+Puerto Rico,Guánica,false,62
+Puerto Rico,Villalba,false,63
+Puerto Rico,Orocovis,false,64
+Puerto Rico,Barranquitas,false,65
+Puerto Rico,Comerío,false,66
+Puerto Rico,Morovis,false,67
+Puerto Rico,Ciales,false,68
+Puerto Rico,Florida,false,69
+Puerto Rico,Jayuya,false,70
+Puerto Rico,Maricao,false,71
+Puerto Rico,Las Marías,false,72
+Puerto Rico,Vieques,false,73
+Puerto Rico,Culebra,false,74
+U.S. Virgin Islands,Charlotte Amalie,true,1
+U.S. Virgin Islands,Christiansted,false,2
+U.S. Virgin Islands,Frederiksted,false,3
+U.S. Virgin Islands,Anna's Hope Village,false,4
+U.S. Virgin Islands,Kingshill,false,5
+U.S. Virgin Islands,Sion Farm,false,6
+U.S. Virgin Islands,Sunny Isle,false,7
+U.S. Virgin Islands,La Grande Princesse,false,8
+U.S. Virgin Islands,Estate Whim,false,9
+U.S. Virgin Islands,Red Hook,false,10
+U.S. Virgin Islands,Smith Bay,false,11
+U.S. Virgin Islands,Tutu,false,12
+U.S. Virgin Islands,Havensight,false,13
+U.S. Virgin Islands,Frenchtown,false,14
+U.S. Virgin Islands,Estate Thomas,false,15
+U.S. Virgin Islands,Bovoni,false,16
+U.S. Virgin Islands,Cruz Bay,false,17
+U.S. Virgin Islands,Coral Bay,false,18

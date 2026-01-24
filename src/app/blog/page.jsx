@@ -1,21 +1,24 @@
 "use client"
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Blogs from "@/components/common/blog/blogs";
 import Container from "@/components/common/Container";
 import { fetchBlogs } from "@/helper/blogGetApiHelper";
 
 const Page = () => {
   const [blogs, setBlogs] = useState([]);
-  useEffect(() => {
-    const getBlogs = async () => {
-      const data = await fetchBlogs();
-      setBlogs(data);
-    };
-    getBlogs();
+  
+  const getBlogs = useCallback(async () => {
+    const data = await fetchBlogs();
+    setBlogs(data);
   }, []);
+
+  useEffect(() => {
+    getBlogs();
+  }, [getBlogs]);
+
   return (
     <Container>
-      <Blogs data={blogs} />
+      <Blogs data={blogs} onRefresh={getBlogs} />
     </Container>
   );
 };

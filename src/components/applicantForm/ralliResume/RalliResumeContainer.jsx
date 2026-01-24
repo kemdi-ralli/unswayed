@@ -18,11 +18,6 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
   APPLICANT_BUILD_RESUME,
   APPLICANT_REBUILD_RESUME,
-  CITIES,
-  CITIES_STATES_NAME,
-  COUNTRIES,
-  COUNTRY_STATES_NAME,
-  STATES,
 } from "@/services/apiService/apiEndPoints";
 import { Toast } from "@/components/Toast/Toast";
 import { useRouter } from "next/navigation";
@@ -40,26 +35,8 @@ const RalliResumeContainer = ({ id }) => {
     projects: [{}],
     skills: [],
   });
-  const [countries, setCountries] = useState([]);
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [errors, setErrors] = useState(null);
 
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedState, setSelectedState] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
-
-  const [selectedCertifcateCountry, setSelectedCertifcateCountry] =
-    useState(null);
-  const [selectedCertifcateState, setSelectedCertifcateState] = useState(null);
-  const [selectedCertifcateCity, setSelectedCertifcateCity] = useState(null);
-
-  const [dropdownStates, setDropdownStates] = useState({
-    state: "",
-    city: "",
-  });
-
-  const [totalExperience, setTotalExperience] = useState([
+  const [totalExperience] = useState([
     { id: 1, name: "1 year" },
     { id: 2, name: "2 years" },
     { id: 3, name: "3 years" },
@@ -75,103 +52,15 @@ const RalliResumeContainer = ({ id }) => {
   const getEditResumes = useSelector(
     (state) => state?.applicantAttachedCv?.attachedCvs
   );
-  console.log(getEditResumes, "GET RESUME EDIT");
   const isEditing = useSelector((state) => state?.getEdit?.isEditing);
+
   const handleDataUpdate = (key, newData) => {
     setWizardData((prev) => ({ ...prev, [key]: newData }));
   };
+
   const router = useRouter();
   const dispatch = useDispatch();
 
-  console.log(selectedCountry, "select count");
-  useEffect(() => {
-    const getCountries = async () => {
-      try {
-        const response = await apiInstance?.get(COUNTRIES);
-        setCountries(response?.data?.data?.countries || []);
-      } catch (error) {
-        setErrors(error?.response?.data?.message || "Failed to load countries");
-      }
-    };
-    getCountries();
-  }, []);
-  useEffect(() => {
-  const US_INHABITED_TERRITORIES = [
-    "American Samoa",
-    "Guam",
-    "Northern Mariana Islands",
-    "Puerto Rico",
-    "U.S. Virgin Islands",
-  ];
-
-  const US_UNINHABITED_TERRITORIES = [
-    "Baker Island",
-    "Howland Island",
-    "Jarvis Island",
-    "Johnston Atoll",
-    "Kingman Reef",
-    "Midway Atoll",
-    "Navassa Island",
-    "Palmyra Atoll",
-    "Wake Island",
-  ];
-
-  const getStates = async () => {
-    
-    try {
-      const response = await apiInstance?.get(
-        `${COUNTRY_STATES_NAME}/${selectedCountry}`
-      );
-      let fetchedStates = response?.data?.data?.states || [];
-
-      // Handle US territories for country 233
-      if (selectedCountry === 233) {
-        const territoryNames = [...US_INHABITED_TERRITORIES, ...US_UNINHABITED_TERRITORIES];
-        const mainStates = fetchedStates.filter(
-          state => !territoryNames.includes(state.name)
-        );
-        
-        const territories = [
-          ...US_INHABITED_TERRITORIES,
-          ...US_UNINHABITED_TERRITORIES,
-        ].map((name) => ({ id: name, name }));
-        
-        fetchedStates = [...mainStates, ...territories];
-      }
-
-      setStates(fetchedStates);
-    } catch (error) {
-      setErrors(error?.response?.data?.message || "Failed to load states");
-      setStates([]);
-    } 
-  };
-
-  if (selectedCountry) {
-    getStates();
-  } else {
-    setStates([]);
-  }
-}, [selectedCountry]);
-
-  useEffect(() => {
-    const getCities = async () => {
-      try {
-        const response = await apiInstance?.get(
-          `${CITIES_STATES_NAME}/${selectedState}`
-        );
-        setCities(response?.data?.data?.cities || []);
-      } catch (error) {
-        setErrors(error?.response?.data?.message || "Failed to load countries");
-      }
-    };
-    getCities();
-  }, [selectedState]);
-  const handleDropdownChange = (key, value) => {
-    setDropdownStates((prevState) => ({
-      ...prevState,
-      [key]: value,
-    }));
-  };
   useEffect(() => {
     const loadProfile = async () => {
       const userProfile = await fetchProfile();
@@ -179,15 +68,16 @@ const RalliResumeContainer = ({ id }) => {
       if (!getEditResumes) {
         setWizardData((prev) => ({
           ...prev,
-          educationDetails: userProfile?.educations?.map((edu) => ({
-            grade: edu.grade,
-            degree: edu.degree,
-            end_date: edu.end_date,
-            start_date: edu.start_date,
-            field_of_study: edu.field_of_study,
-            institution_name: edu.institution_name,
-            is_continue: edu.is_continue ?? null,
-          })) || [{}],
+          educationDetails:
+            userProfile?.educations?.map((edu) => ({
+              grade: edu.grade,
+              degree: edu.degree,
+              end_date: edu.end_date,
+              start_date: edu.start_date,
+              field_of_study: edu.field_of_study,
+              institution_name: edu.institution_name,
+              is_continue: edu.is_continue ?? null,
+            })) || [{}],
         }));
       }
     };
@@ -209,30 +99,6 @@ const RalliResumeContainer = ({ id }) => {
     );
   };
 
-  // const ConvertArray = (data) => {
-  //   const cleanedData = {};
-
-  //   let allFieldsEmpty = true;
-
-  //   for (const [key, value] of Object.entries(data)) {
-  //     if (Array.isArray(value)) {
-  //       const filteredArray = value.filter((item) => {
-  //         if (typeof item === "object") return !isEmptyObject(item);
-  //         return !!item;
-  //       });
-
-  //       cleanedData[key] = filteredArray;
-
-  //       if (filteredArray.length > 0) {
-  //         allFieldsEmpty = false;
-  //       }
-  //     } else {
-  //       cleanedData[key] = value;
-  //     }
-  //   }
-
-  //   return { cleanedData, allFieldsEmpty };
-  // };
   const ConvertArray = (data) => {
     const cleanedData = {};
     let allFieldsEmpty = true;
@@ -312,48 +178,51 @@ const RalliResumeContainer = ({ id }) => {
 
   useEffect(() => {
     if (getEditResumes?.meta_data) {
-      console.log(getEditResumes?.meta_data, "metaaa data");
       setWizardData({
-        educationDetails: getEditResumes?.meta_data?.education?.map((edu) => ({
-          grade: edu.grade,
-          degree: edu.degree,
-          end_date: edu.end_date,
-          start_date: edu.start_date,
-          field_of_study: edu.field_of_study,
-          institution_name: edu.institution_name,
-          is_continue: edu.is_continue ?? null,
-        })) || [{}],
+        educationDetails:
+          getEditResumes?.meta_data?.education?.map((edu) => ({
+            grade: edu.grade,
+            degree: edu.degree,
+            end_date: edu.end_date,
+            start_date: edu.start_date,
+            field_of_study: edu.field_of_study,
+            institution_name: edu.institution_name,
+            is_continue: edu.is_continue ?? null,
+          })) || [{}],
 
-        recentJobs: getEditResumes?.meta_data?.experiences?.map((exp) => ({
-          city: exp.city,
-          type: exp.type,
-          state: exp.state,
-          title: exp.title,
-          company: exp.company,
-          end_date: exp.end_date,
-          years_of_experience: exp.years_of_experience,
-          location: exp.location,
-          start_date: exp.start_date,
-          description: exp.description,
-        })) || [{}],
+        recentJobs:
+          getEditResumes?.meta_data?.experiences?.map((exp) => ({
+            city: exp.city,
+            type: exp.type,
+            state: exp.state,
+            country: exp.country,
+            title: exp.title,
+            company: exp.company,
+            end_date: exp.end_date,
+            years_of_experience: exp.years_of_experience,
+            location: exp.location,
+            start_date: exp.start_date,
+            description: exp.description,
+          })) || [{}],
 
-        certifications: getEditResumes?.meta_data?.certifications?.map(
-          (cert) => ({
+        certifications:
+          getEditResumes?.meta_data?.certifications?.map((cert) => ({
             city: cert.city,
             state: cert.state,
+            country: cert.country,
             title: cert.title,
             end_date: cert.end_date,
             location: cert.location,
             start_date: cert.start_date,
             description: cert.description,
             institution_name: cert.institution_name,
-          })
-        ) || [{}],
+          })) || [{}],
 
-        projects: getEditResumes?.meta_data?.projects?.map((proj) => ({
-          name: proj.name,
-          description: proj.description,
-        })) || [{}],
+        projects:
+          getEditResumes?.meta_data?.projects?.map((proj) => ({
+            name: proj.name,
+            description: proj.description,
+          })) || [{}],
 
         skills: getEditResumes?.meta_data?.skills || [],
       });
@@ -371,28 +240,12 @@ const RalliResumeContainer = ({ id }) => {
         data={ADD_A_RECENT}
         onNext={(data) => handleDataUpdate("recentJobs", data)}
         recentJobs={wizardData.recentJobs}
-        setSelectedCountry={setSelectedCountry}
-        setSelectedState={setSelectedState}
-        setSelectedCity={setSelectedCity}
-        countries={countries}
-        states={states}
-        cities={cities}
-        setStates={setStates}
-        setCities={setCities}
         totalExperience={totalExperience}
       />
       <Certifications
         data={ADD_A_CERTIFICATIONS}
         onNext={(data) => handleDataUpdate("certifications", data)}
         certifications={wizardData.certifications}
-        setSelectedCertifcateCountry={setSelectedCertifcateCountry}
-        setSelectedCertifcateCity={setSelectedCertifcateCity}
-        setSelectedCertifcateState={setSelectedCertifcateState}
-        countries={countries}
-        states={states}
-        cities={cities}
-        setStates={setStates}
-        setCities={setCities}
       />
       <ProjectWorked
         data={PROJECT_WORKED}

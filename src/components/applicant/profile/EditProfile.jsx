@@ -12,6 +12,7 @@ import RalliDropdown from "../applied/RalliDropdown";
 import { useSelector } from "react-redux";
 import BackButtonWithTitle from "../dashboard/BackButtonWithTitle";
 import { useRouter } from "next/navigation";
+import AddressAutocomplete from "@/components/common/AddressAutocomplete";
 
 const EditProfile = ({
   profileDetails,
@@ -30,6 +31,7 @@ const EditProfile = ({
   error,
   formikErrors,
   data,
+  onAddressSelect,
 }) => {
   const router = useRouter()
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
@@ -506,6 +508,39 @@ const EditProfile = ({
                 </Typography>
               )}
             </>
+          );
+        }
+        if (item.name === "address") {
+          return (
+            <Box key={item.name} sx={{ mb: "20px" }}>
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  lineHeight: "18px",
+                  color: "#222222",
+                  mb: "10px",
+                }}
+              >
+                {item?.title}
+                {item?.required && <span style={{ color: "red" }}>*</span>}
+              </Typography>
+              <AddressAutocomplete
+                value={item?.value || ""}
+                onChange={(value) => handleFieldChange(item.name, value)}
+                onAddressSelect={(addressDetails) => {
+                  handleFieldChange(item.name, addressDetails.address);
+                  if (addressDetails.zipCode) {
+                    handleFieldChange("zip_code", addressDetails.zipCode);
+                  }
+                  if (onAddressSelect) {
+                    onAddressSelect(addressDetails);
+                  }
+                }}
+                placeholder={item?.placeholder || "Enter your address"}
+                error={formikErrors[item.name]}
+              />
+            </Box>
           );
         }
         return (

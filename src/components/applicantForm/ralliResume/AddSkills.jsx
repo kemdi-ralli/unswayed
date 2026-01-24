@@ -8,7 +8,15 @@ import { useWizard } from "react-use-wizard";
 import RalliButton from "@/components/button/RalliButton";
 import Header from "./Header";
 
-const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, loading }) => {
+const AddSkills = ({
+  data,
+  onNext,
+  skill,
+  handleSubmit,
+  wizardData,
+  isEditing,
+  loading,
+}) => {
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState(skill);
   const { nextStep, previousStep } = useWizard();
@@ -25,10 +33,10 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
     nextStep();
   };
 
-
   const handleBack = () => {
     previousStep();
   };
+
   const handleAddSkill = (skill) => {
     if (
       typeof skill === "string" &&
@@ -44,7 +52,15 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
     }
   };
 
-  const handleClossItem = (skillToRemove) => {
+  // Handle Enter key press to add skill
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddSkill(skillInput);
+    }
+  };
+
+  const handleCloseItem = (skillToRemove) => {
     setSkills((prevSkills) =>
       prevSkills.filter((skill) => skill !== skillToRemove)
     );
@@ -87,10 +103,15 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
             color: "#222222",
             mb: 2,
             mr: 2,
+            outline: "none",
+            "&:focus": {
+              boxShadow: "0px 0px 5px #00305B80",
+            },
           }}
-          placeholder="Start Typing To Search"
+          placeholder="Start Typing To Search (Press Enter to add)"
           value={skillInput}
           onChange={(e) => setSkillInput(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
         <Box
           sx={{
@@ -107,6 +128,13 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
             justifyContent: "center",
             alignItems: "center",
             cursor: "pointer",
+            transition: "all 0.2s ease",
+            "&:hover": {
+              backgroundColor: "#f5f5f5",
+            },
+            "&:active": {
+              transform: "scale(0.95)",
+            },
           }}
           onClick={() => {
             handleAddSkill(skillInput);
@@ -123,6 +151,7 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
           />
         </Box>
       </Box>
+
       {skills?.length > 0 && (
         <Box
           sx={{
@@ -145,6 +174,10 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
                 px: 2,
                 mb: "15px",
                 mx: 2,
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  boxShadow: "0px 2px 8px #00000060",
+                },
               }}
             >
               <Typography
@@ -159,8 +192,15 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
                 {skill}
               </Typography>
               <CloseIcon
-                onClick={() => handleClossItem(skill)}
-                sx={{ cursor: "pointer" }}
+                onClick={() => handleCloseItem(skill)}
+                sx={{
+                  cursor: "pointer",
+                  color: "#666",
+                  transition: "color 0.2s ease",
+                  "&:hover": {
+                    color: "#d32f2f",
+                  },
+                }}
               />
             </Box>
           ))}
@@ -200,6 +240,12 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
                 borderRadius: "6px",
                 border: "0.8px solid #999999",
                 px: 2,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: "#f8f9ff",
+                  borderColor: "#00305B",
+                },
               }}
               onClick={() => handleAddSkill(item.placeHolder)}
             >
@@ -218,7 +264,6 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
                   width: "100%",
                   display: "block",
                   padding: "18px 10px",
-
                   fontSize: { xs: "12px", sm: "15px", md: "16px" },
                   fontWeight: 300,
                   lineHeight: { xs: "12px", sm: "20px" },
@@ -236,7 +281,11 @@ const AddSkills = ({ data, onNext, skill, handleSubmit, wizardData, isEditing, l
           pb: 3,
         }}
       >
-        <RalliButton label={isEditing ? 'Update & Submit' : "Save & Continue"} onClick={handleNext}  loading={loading}/>
+        <RalliButton
+          label={isEditing ? "Update & Submit" : "Save & Continue"}
+          onClick={handleNext}
+          loading={loading}
+        />
       </Box>
     </Box>
   );

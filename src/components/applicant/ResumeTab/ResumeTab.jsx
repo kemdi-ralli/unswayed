@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import renderMenu from "@/helper/MenuHelpers";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -9,22 +9,28 @@ import DownloadIcon from "@mui/icons-material/Download";
 import EditIcon from "@mui/icons-material/Edit";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import ResumeInput from "@/components/applicant/ResumeTab/ResumeInput";
 import {
   attachResume,
   deleteResume,
   replaceResume,
+  renameResume,
 } from "@/redux/slices/getResumesSlice";
 import { usePathname, useRouter } from "next/navigation";
 import { setCvs } from "@/redux/slices/applicantCv";
 import { setEditMode } from "@/redux/slices/editSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Toast } from "@/components/Toast/Toast";
 
 dayjs.extend(relativeTime);
 
 const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
   const [anchorEls, setAnchorEls] = useState({});
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [currentResumeId, setCurrentResumeId] = useState(null);
+  const [newResumeName, setNewResumeName] = useState("");
   const dispatch = useDispatch();
   const pathName = usePathname();
   const route = useRouter();
@@ -36,6 +42,34 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
 
   const handleMenuClose = (id) => {
     setAnchorEls((prev) => ({ ...prev, [id]: null }));
+  };
+  
+  const handleRenameClick = (resume) => {
+    setCurrentResumeId(resume.id);
+    setNewResumeName(resume.title || "");
+    setRenameDialogOpen(true);
+    handleMenuClose(resume.id);
+  };
+
+  const handleRenameClose = () => {
+    setRenameDialogOpen(false);
+    setCurrentResumeId(null);
+    setNewResumeName("");
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!newResumeName.trim()) {
+      Toast("error", "Resume name cannot be empty");
+      return;
+    }
+
+    try {
+      await dispatch(renameResume({ id: currentResumeId, title: newResumeName.trim() })).unwrap();
+      Toast("success", "Resume renamed successfully");
+      handleRenameClose();
+    } catch (error) {
+      Toast("error", error || "Failed to rename resume");
+    }
   };
   const handleDeleteResume = (id) => {
     dispatch(deleteResume(id));
@@ -104,6 +138,11 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
           }
           handleMenuClose(el.id);
         },
+      },
+      {
+        label: "Rename",
+        icon: <DriveFileRenameOutlineIcon />,
+        onClick: () => handleRenameClick(el),
       },
       {
         label: "Download",
@@ -343,6 +382,106 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
           ))}
         </>
       )}
+
+      {/* Rename Dialog */}
+      <Dialog
+        open={renameDialogOpen}
+        onClose={handleRenameClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "16px",
+            padding: "8px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontSize: "24px",
+            fontWeight: 700,
+            color: "#00305B",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <DriveFileRenameOutlineIcon sx={{ fontSize: "28px" }} />
+          Rename Resume
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{
+              fontSize: "14px",
+              color: "#666",
+              mb: 2,
+            }}
+          >
+            Enter a new name for your resume
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            value={newResumeName}
+            onChange={(e) => setNewResumeName(e.target.value)}
+            placeholder="e.g., Software Engineer Resume"
+            variant="outlined"
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleRenameSubmit();
+              }
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+                fontSize: "16px",
+                "&:hover fieldset": {
+                  borderColor: "#189e33ff",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#00305B",
+                  borderWidth: "2px",
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ padding: "16px 24px" }}>
+          <Button
+            onClick={handleRenameClose}
+            sx={{
+              color: "#666",
+              textTransform: "none",
+              fontSize: "16px",
+              fontWeight: 600,
+              px: 3,
+              "&:hover": {
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRenameSubmit}
+            variant="contained"
+            sx={{
+              backgroundColor: "#189e33ff",
+              color: "#FFF",
+              textTransform: "none",
+              fontSize: "16px",
+              fontWeight: 600,
+              px: 3,
+              borderRadius: "8px",
+              "&:hover": {
+                backgroundColor: "#126b24ff",
+              },
+            }}
+          >
+            Rename
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

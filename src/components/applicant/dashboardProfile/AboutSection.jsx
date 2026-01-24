@@ -98,6 +98,28 @@ const AboutSection = ({ data, authUser }) => {
           >
             {authUser?.username}
           </Typography>
+          
+          {/* UCN Display */}
+          {authUser?.ucn && (
+            <Typography
+              sx={{
+                fontSize: { xs: "12px", sm: "14px", lg: "16px" },
+                lineHeight: { md: "17px", lg: "20px" },
+                fontWeight: 500,
+                textAlign: "center",
+                color: "#189e33ff",
+                backgroundColor: "rgba(24, 158, 51, 0.1)",
+                borderRadius: "20px",
+                padding: "6px 16px",
+                display: "inline-block",
+                width: "fit-content",
+                margin: "0 auto",
+              }}
+            >
+              UCN: {authUser?.ucn}
+            </Typography>
+          )}
+          
           <Typography
             sx={{
               fontSize: { xs: "10px", sm: "12px", lg: "16px" },
@@ -105,6 +127,7 @@ const AboutSection = ({ data, authUser }) => {
               fontWeight: 300,
               textAlign: "center",
               py: 1,
+              mt: authUser?.ucn ? 2 : 0,
             }}
           >
             {/* {data?.userDetails} */}

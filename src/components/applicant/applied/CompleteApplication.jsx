@@ -1,5 +1,6 @@
+
 "use client";
-import React, { useState, useEffect } from "react"; // ✅ Added useEffect
+import React, { useState, useEffect } from "react";
 import { Box, Grid, Typography } from "@mui/material";
 import AppliedJobs from "../dashboard/AppliedJobs";
 import RalliButton from "@/components/button/RalliButton";
@@ -28,14 +29,12 @@ const CompleteApplication = ({
 }) => {
   const [inputData, setInputData] = useState({});
   const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("");
-  const [disable, setDisable] = useState("");
   const router = useRouter();
 
   const getApplied = useSelector((state) => state?.appliedJobs?.appliedData);
   const getUserData = useSelector((state) => state?.auth?.userData);
 
-  // ✅ Define the fields that should be retained
+  /* ---------------- Retained Fields ---------------- */
   const retainedFields = [
     "is_adult",
     "authorized_to_work",
@@ -46,9 +45,9 @@ const CompleteApplication = ({
     "is_veteran",
   ];
 
-  // ✅ On mount, load retained checkbox states (if any) from localStorage
   useEffect(() => {
-    const savedResponses = JSON.parse(localStorage.getItem("ralli_retained_fields")) || {};
+    const savedResponses =
+      JSON.parse(localStorage.getItem("ralli_retained_fields")) || {};
     if (Object.keys(savedResponses).length > 0) {
       retainedFields.forEach((field) => {
         if (savedResponses[field]) {
@@ -56,18 +55,19 @@ const CompleteApplication = ({
         }
       });
     }
-  }, []); // only on first render
+  }, []);
 
-  // ✅ On submit, persist the retained responses to localStorage
   const handleSubmitWithRetention = () => {
     const responsesToSave = {};
     retainedFields.forEach((field) => {
       responsesToSave[field] = checkboxStates[field];
     });
 
-    localStorage.setItem("ralli_retained_fields", JSON.stringify(responsesToSave));
+    localStorage.setItem(
+      "ralli_retained_fields",
+      JSON.stringify(responsesToSave)
+    );
 
-    // Continue with original submit
     handleSubmit();
   };
 
@@ -80,95 +80,142 @@ const CompleteApplication = ({
     router.push("/applicant/career-areas");
   };
 
-  const handleModal = () => {
-    handleCloseModal();
-  };
+  /* ---------------- Country Grammar Logic ---------------- */
+  const countryName = getAppliedData?.country?.name || "United States";
 
+  const countriesRequiringThe = ["United States", "United Kingdom", "Netherlands", "Philippines", "Czech Republic", "Dominican Republic", "United Arab Emirates", "Bahamas", "Gambia", "Maldives", "Seychelles", "Central African Republic", "Congo", "Czechia", "Ivory Coast", "Lebanon", "Sudan", "Vatican City", "West Indies"];
+
+  const countryLabel = countryName
+    ? countriesRequiringThe.includes(countryName)
+      ? `the ${countryName}`
+      : countryName
+    : "";
+
+  /* ---------------- Display Data ---------------- */
   const collectData = [
     { title: getUserData?.user?.ucn, name: "UCN" },
     { title: getApplied?.title, name: "Position Title" },
     { title: getApplied?.requisition_number, name: "Requisition Number" },
-    { title: getApplied?.job_types?.map((item) => item?.name).join(", "), name: "Employment Type" },
-    { title: getApplied?.job_locations?.map((item) => item?.name).join(", "), name: "Work Location" },
+    {
+      title: getApplied?.job_types?.map((item) => item?.name).join(", "),
+      name: "Employment Type",
+    },
+    {
+      title: getApplied?.job_locations
+        ?.map((item) => item?.name)
+        .join(", "),
+      name: "Work Location",
+    },
     { title: getUserData?.user?.gender?.name, name: "Gender" },
     { title: getUserData?.user?.ethnicity?.name, name: "Ethnicity" },
   ];
-
-  const handleInputChange = (name, value) => {
-    setInputData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
 
   return (
     <Box sx={{ minHeight: "100vh" }}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6} sx={{ backgroundColor: "#FFFFFF", pr: "25px" }}>
           <BackbuttonWithTitle title={data?.title} />
+
           <Box sx={{ pb: 4 }}>
             <BorderLinearProgress variant="determinate" value={100} />
           </Box>
 
-          {collectData?.map((item) => (
+          {collectData.map((item) => (
             <Box key={item.name} sx={{ mb: "20px" }}>
-              <Typography sx={{ fontSize: { xs: "12px", sm: "14px", md: "16px" }, fontWeight: 500, color: "#222", mb: "5px" }}>
-                {item?.name}
+              <Typography
+                sx={{
+                  fontSize: { xs: "12px", sm: "14px", md: "16px" },
+                  fontWeight: 500,
+                  color: "#222",
+                  mb: "5px",
+                }}
+              >
+                {item.name}
               </Typography>
               <Typography
                 sx={{
-                  width: "100%",
-                  display: "block",
                   padding: "18px 20px",
                   borderRadius: "10px",
                   fontSize: "16px",
                   fontWeight: 300,
-                  lineHeight: "18px",
-                  color: "#222",
                   backgroundColor: "#FFFFFF",
                   boxShadow: "0px 1px 5px #00000040",
                 }}
               >
-                {item?.title || "N/A"}
+                {item.title || "N/A"}
               </Typography>
             </Box>
           ))}
 
-          {/* --- Checkbox Section --- */}
+          {/* ---------------- Checkboxes ---------------- */}
+
           <FormCheckbox
             required
             selectedOption={checkboxStates.is_adult}
-            handleCheckboxChange={(option) => handleCheckboxChange("is_adult", option)}
+            handleCheckboxChange={(option) =>
+              handleCheckboxChange("is_adult", option)
+            }
             label={"Are You 18 Years or Older?"}
           />
 
           <FormCheckbox
             selectedOption={checkboxStates.authorized_to_work}
-            handleCheckboxChange={(option) => handleCheckboxChange("authorized_to_work", option)}
-            label={`Are You a US Citizen Authorized to Work in The ${getAppliedData?.country?.name}?`}
+            handleCheckboxChange={(option) =>
+              handleCheckboxChange("authorized_to_work", option)
+            }
+            label={`Are You Authorized to Work in ${countryLabel}?`}
           />
 
           <FormCheckbox
             selectedOption={checkboxStates.have_visa}
-            handleCheckboxChange={(option) => handleCheckboxChange("have_visa", option)}
+            handleCheckboxChange={(option) =>
+              handleCheckboxChange("have_visa", option)
+            }
             label={"Do you have a work Visa or will you require one in the future?"}
           />
 
           <FormCheckbox
             required
             selectedOption={checkboxStates.meet_qualifications}
-            handleCheckboxChange={(option) => handleCheckboxChange("meet_qualifications", option)}
+            handleCheckboxChange={(option) =>
+              handleCheckboxChange("meet_qualifications", option)
+            }
             label={"Do You Meet the Must Have Qualifications?"}
+            tooltip={
+              <>
+                <strong>Accountability & Integrity</strong>
+                <p>
+                  By checking “Yes”, you agree that you meet the employer’s must
+                  have qualifications for this role. Any false or misleading
+                  information will disqualify you from applying for future
+                  positions on Unswayed and your profile will be flagged
+                  accordingly as knowingly submitting false information.
+                </p>
+              </>
+            }
           />
 
           <FormCheckbox
             required
             selectedOption={checkboxStates.meet_educations}
-            handleCheckboxChange={(option) => handleCheckboxChange("meet_educations", option)}
+            handleCheckboxChange={(option) =>
+              handleCheckboxChange("meet_educations", option)
+            }
             label={"Do You Meet the Education Requirements?"}
+            tooltip={
+              <>
+                <strong>Accountability & Integrity</strong>
+                <p>
+                  By checking “Yes”, you agree that you meet the employer’s
+                  educational requirements for this role. Any false or
+                  misleading information will disqualify you from applying for
+                  future positions on Unswayed and your profile will be flagged
+                  accordingly as knowingly submitting false information.
+                </p>
+              </>
+            }
           />
 
-          {/* --- Disability --- */}
           <FormCheckbox
             required
             selectedOption={checkboxStates.have_disability}
@@ -287,7 +334,7 @@ const CompleteApplication = ({
             </>
           )}
 
-          <FormCheckbox
+           <FormCheckbox
                       required
                       selectedOption={checkboxStates.is_veteran}
                       handleCheckboxChange={(option) =>
@@ -337,29 +384,35 @@ const CompleteApplication = ({
                         </>
                       }
                     />
-
           {isDisable && (
-            <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+            <Typography color="error" sx={{ fontSize: "12px", mt: 1 }}>
               You are not eligible for this position
             </Typography>
           )}
 
-          {/* --- Submit with Retention --- */}
           <Box sx={{ pt: 4 }}>
-            <RalliButton disableValue={isDisable} label="Submit Application" onClick={handleSubmitWithRetention} />
+            <RalliButton
+              disableValue={isDisable}
+              label="Submit Application"
+              onClick={handleSubmitWithRetention}
+            />
           </Box>
 
-          <Box sx={{ py: 2, pb: 2 }}>
+          <Box sx={{ py: 2 }}>
             <RalliButton label="Cancel" onClick={handleCancel} bg="#00305B" />
           </Box>
 
-          <TremsOfUse error={formikErrors.terms} agreeTerms={agreeTerms} setAgreeTerms={setAgreeTerms} />
+          <TremsOfUse
+            error={formikErrors.terms}
+            agreeTerms={agreeTerms}
+            setAgreeTerms={setAgreeTerms}
+          />
         </Grid>
 
         <RalliModal
-          onClick={handleModal}
           open={isModalOpen}
           onClose={handleCloseModal}
+          onClick={handleCloseModal}
           para="Thank you! Your application has been successfully submitted. We’ll review it shortly and keep you updated on the next steps."
           imageSrc="/assets/images/confirmation.png"
           buttonLabel="Done"
@@ -374,3 +427,4 @@ const CompleteApplication = ({
 };
 
 export default CompleteApplication;
+

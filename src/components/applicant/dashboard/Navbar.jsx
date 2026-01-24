@@ -33,6 +33,8 @@ import { useEffect } from "react";
 import { Avatar, Badge } from "@mui/material";
 import { setType } from "@/redux/slices/NotificationSlice";
 import { object } from "yup";
+import ZoomableSlideshow from "@/components/common/ZoomableSlideshow";
+import RalliModal from "@/components/Modal/RalliModal";
 
 const iconStyle = { color: "#189e33ff", fontSize: "16px" };
 
@@ -159,8 +161,8 @@ const profileMenuItems = [
   //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   // },
   {
-    name: "Blog (Coming Soon)",
-    link: "/applicant/upcoming",
+    name: "Blog",
+    link: "/blog",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   { divider: true },
@@ -217,6 +219,7 @@ function Navbar({ data }) {
   const [openVirtualModal, setOpenVirtualModal] = React.useState(false);
   const [openStarModal, setOpenStarModal] = React.useState(false);
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [showProPlanModal, setShowProPlanModal] = React.useState(false);
 
   const handleOpenOverview = () => {
     setCurrentSlide(0);
@@ -313,6 +316,27 @@ function Navbar({ data }) {
   };
   const handleCloseStar = () => {
     setOpenStarModal(false);
+  };
+
+  // Check if user is on Pro Plan
+  const isProPlanUser = () => {
+    if (userData?.user?.type !== "applicant") return false;
+    const subscriptionPlan = userData?.user?.subscription_plan || "Freemium";
+    return (
+      subscriptionPlan === "Pro Plan" ||
+      subscriptionPlan?.includes("Pro") ||
+      subscriptionPlan === "Tier 2" ||
+      subscriptionPlan === "Tier 3"
+    );
+  };
+
+  const handleToolkitAccess = (toolkitName, openHandler) => {
+    if (isProPlanUser()) {
+      openHandler();
+    } else {
+      setShowProPlanModal(true);
+      Toast("info", "Pro Plan required to access Toolkit slides");
+    }
   };
 
   const showChatDot = type?.isChat;
@@ -733,22 +757,22 @@ function Navbar({ data }) {
                           : item.name === "Master Body Language"
                           ? () => {
                               handleCloseProfileMenu();
-                              handleOpenBodyLanguage();
+                              handleToolkitAccess("Master Body Language", handleOpenBodyLanguage);
                             }
                           : item.name === "Interview Preparation"
                           ? () => {
                               handleCloseProfileMenu();
-                              handleOpenPreparation();
+                              handleToolkitAccess("Interview Preparation", handleOpenPreparation);
                             }
                           : item.name === "Virtual Interview"
                           ? () => {
                               handleCloseProfileMenu();
-                              handleOpenVirtual();
+                              handleToolkitAccess("Virtual Interview", handleOpenVirtual);
                             }
                           : item.name === "Star Method Interview"
                           ? () => {
                               handleCloseProfileMenu();
-                              handleOpenStar();
+                              handleToolkitAccess("Star Method Interview", handleOpenStar);
                             }
                           : () => handleMenuItemClick(item.link)
                       }
@@ -783,390 +807,69 @@ function Navbar({ data }) {
           </Box>
         </Toolbar>
       </Container>
-      <Modal
+      {/* Zoomable Slideshows - Replaced 5 modal implementations */}
+      <ZoomableSlideshow
         open={openOverviewModal}
         onClose={handleCloseOverview}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "70%", md: "55%" },
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 2,
-            position: "relative",
-          }}
-        >
-          {/* CLOSE BUTTON */}
-          <IconButton
-            onClick={handleCloseOverview}
-            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
-          >
-            ✕
-          </IconButton>
-
-          {/* IMAGE */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 2,
-              width: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "800px", // matches your original width
-                aspectRatio: "800 / 500", // preserves original shape perfectly
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={overviewSlides[currentSlide]}
-                alt="Overview Slide"
-                fill
-                style={{
-                  objectFit: "contain", // prevents elongation
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* NAVIGATION */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Button variant="contained" onClick={handlePrev}>
-              Previous
-            </Button>
-
-            <Typography>
-              {currentSlide + 1}/{overviewSlides.length}
-            </Typography>
-
-            <Button variant="contained" onClick={handleNext}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-      <Modal
+        slides={overviewSlides}
+        currentSlide={currentSlide}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        title="Unswayed Overview"
+      />
+      
+      <ZoomableSlideshow
         open={openBodyLanguageModal}
         onClose={handleCloseBodyLanguage}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "70%", md: "55%" },
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 2,
-            position: "relative",
-          }}
-        >
-          {/* CLOSE BUTTON */}
-          <IconButton
-            onClick={handleCloseBodyLanguage}
-            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
-          >
-            ✕
-          </IconButton>
-
-          {/* IMAGE */}
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 2,
-              width: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "800px", // matches your original width
-                aspectRatio: "800 / 500", // preserves original shape perfectly
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={bodyLanguageSlides[currentSlide]}
-                alt="Overview Slide"
-                fill
-                style={{
-                  objectFit: "contain", // prevents elongation
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* NAVIGATION */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Button variant="contained" onClick={handlePrevLang}>
-              Previous
-            </Button>
-
-            <Typography>
-              {currentSlide + 1}/{bodyLanguageSlides.length}
-            </Typography>
-
-            <Button variant="contained" onClick={handleNextLang}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-      <Modal
+        slides={bodyLanguageSlides}
+        currentSlide={currentSlide}
+        onNext={handleNextLang}
+        onPrev={handlePrevLang}
+        title="Master Body Language"
+      />
+      
+      <ZoomableSlideshow
         open={openPreparationModal}
         onClose={handleClosePreparation}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "70%", md: "55%" },
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 2,
-            position: "relative",
-          }}
-        >
-          {/* CLOSE BUTTON */}
-          <IconButton
-            onClick={handleClosePreparation}
-            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
-          >
-            ✕
-          </IconButton>
-
-          {/* IMAGE */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 2,
-              width: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "800px", // matches your original width
-                aspectRatio: "800 / 500", // preserves original shape perfectly
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={preparationSlides[currentSlide]}
-                alt="Overview Slide"
-                fill
-                style={{
-                  objectFit: "contain", // prevents elongation
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* NAVIGATION */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Button variant="contained" onClick={handlePrevPreparation}>
-              Previous
-            </Button>
-
-            <Typography>
-              {currentSlide + 1}/{preparationSlides.length}
-            </Typography>
-
-            <Button variant="contained" onClick={handleNextPreparation}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-      <Modal
+        slides={preparationSlides}
+        currentSlide={currentSlide}
+        onNext={handleNextPreparation}
+        onPrev={handlePrevPreparation}
+        title="Interview Preparation"
+      />
+      
+      <ZoomableSlideshow
         open={openVirtualModal}
         onClose={handleCloseVirtual}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "70%", md: "55%" },
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 2,
-            position: "relative",
-          }}
-        >
-          {/* CLOSE BUTTON */}
-          <IconButton
-            onClick={handleCloseVirtual}
-            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
-          >
-            ✕
-          </IconButton>
-
-          {/* IMAGE */}
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 2,
-              width: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "800px", // matches your original width
-                aspectRatio: "800 / 500", // preserves original shape perfectly
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={virtualSlides[currentSlide]}
-                alt="Overview Slide"
-                fill
-                style={{
-                  objectFit: "contain", // prevents elongation
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* NAVIGATION */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Button variant="contained" onClick={handlePrevVirtual}>
-              Previous
-            </Button>
-
-            <Typography>
-              {currentSlide + 1}/{virtualSlides.length}
-            </Typography>
-
-            <Button variant="contained" onClick={handleNextVirtual}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-      <Modal
+        slides={virtualSlides}
+        currentSlide={currentSlide}
+        onNext={handleNextVirtual}
+        onPrev={handlePrevVirtual}
+        title="Virtual Interview"
+      />
+      
+      <ZoomableSlideshow
         open={openStarModal}
         onClose={handleCloseStar}
-        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-      >
-        <Box
-          sx={{
-            width: { xs: "90%", sm: "70%", md: "55%" },
-            bgcolor: "#fff",
-            borderRadius: "12px",
-            boxShadow: 24,
-            p: 2,
-            position: "relative",
-          }}
-        >
-          {/* CLOSE BUTTON */}
-          <IconButton
-            onClick={handleCloseStar}
-            sx={{ position: "absolute", top: 10, right: 10, zIndex: 3 }}
-          >
-            ✕
-          </IconButton>
+        slides={starSlides}
+        currentSlide={currentSlide}
+        onNext={handleNextStar}
+        onPrev={handlePrevStar}
+        title="STAR Method Interview"
+      />
 
-          {/* IMAGE */}
-          
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 2,
-              width: "100%",
-            }}
-          >
-            <Box
-              sx={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "800px", // matches your original width
-                aspectRatio: "800 / 500", // preserves original shape perfectly
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                src={starSlides[currentSlide]}
-                alt="Overview Slide"
-                fill
-                style={{
-                  objectFit: "contain", // prevents elongation
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* NAVIGATION */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: 2,
-            }}
-          >
-            <Button variant="contained" onClick={handlePrevStar}>
-              Previous
-            </Button>
-
-            <Typography>
-              {currentSlide + 1}/{starSlides.length}
-            </Typography>
-
-            <Button variant="contained" onClick={handleNextStar}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+      {/* Pro Plan Required Modal */}
+      <RalliModal
+        open={showProPlanModal}
+        onClose={() => setShowProPlanModal(false)}
+        title="Pro Plan Required"
+        para="Access to Toolkit slides is available exclusively for Pro Plan subscribers. Upgrade your plan to unlock all premium features including interview preparation guides, body language tips, and more."
+        buttonLabel="Upgrade to Pro Plan"
+        onClick={() => {
+          setShowProPlanModal(false);
+          router.push("/billing");
+        }}
+      />
     </AppBar>
   );
 }

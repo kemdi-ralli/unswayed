@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import RalliButton from "@/components/button/RalliButton";
 import { useSelector } from "react-redux";
 import RalliDropdown from "@/components/applicant/applied/RalliDropdown";
+import AddressAutocomplete from "@/components/common/AddressAutocomplete";
 
 const EditEmployerProfile = ({
   data,
@@ -22,6 +23,7 @@ const EditEmployerProfile = ({
   updateDetails,
   formikErrors,
   loading,
+  onAddressSelect,
 }) => {
   const [profilePic, setProfilePic] = useState(data?.userProfile);
   const getUserData = useSelector((state) => state?.auth?.userData);
@@ -303,6 +305,39 @@ const EditEmployerProfile = ({
                 </Typography>
               )}
             </>
+          );
+        }
+        if (item.name === "address") {
+          return (
+            <Box key={item.name} sx={{ mb: "20px" }}>
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  lineHeight: "18px",
+                  color: "#222222",
+                  mb: "10px",
+                }}
+              >
+                {item?.title}
+                {item?.required && <span style={{ color: "red" }}>*</span>}
+              </Typography>
+              <AddressAutocomplete
+                value={item?.value || ""}
+                onChange={(value) => handleChange(item.name, value)}
+                onAddressSelect={(addressDetails) => {
+                  handleChange(item.name, addressDetails.address);
+                  if (addressDetails.zipCode) {
+                    handleChange("zip_code", addressDetails.zipCode);
+                  }
+                  if (onAddressSelect) {
+                    onAddressSelect(addressDetails);
+                  }
+                }}
+                placeholder={item?.placeHolder || "Enter your address"}
+                error={formikErrors[item.name]}
+              />
+            </Box>
           );
         }
         return (

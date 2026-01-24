@@ -289,13 +289,13 @@ const MyPosting = ({
                 minWidth: { xs: "60px", sm: "100px", lg: "170px" },
                 py: 1,
               }}
-              startIcon={
-                item?.isLiked ? (
-                  <ThumbUpIcon color="primary" />
+                startIcon={
+                  item?.isLiked ? (
+                  <ThumbUpIcon sx={{ color: "#189e33ff" }} />
                 ) : (
                   <ThumbUpOffAltIcon />
                 )
-              }
+                }
             >
               Like {item?.total_likes || 0}
             </Button>

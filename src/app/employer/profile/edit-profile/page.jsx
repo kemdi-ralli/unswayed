@@ -305,6 +305,21 @@ const Page = () => {
     }
   }, [employerGetProfile]);
 
+  const handleAddressSelect = (addressDetails) => {
+    // Auto-fill zip code when address is selected
+    if (addressDetails.zipCode) {
+      setEmployerProfileDetail((prevDetails) => {
+        const updatedContactDetails = prevDetails.contactDetails.map((item) => {
+          if (item.name === "zip_code") {
+            return { ...item, value: addressDetails.zipCode };
+          }
+          return item;
+        });
+        return { ...prevDetails, contactDetails: updatedContactDetails };
+      });
+    }
+  };
+
   return (
     <Container>
       <BackButtonWithTitle label="Employer Profile" />
@@ -321,6 +336,7 @@ const Page = () => {
         updateDetails={updateDetails}
         formikErrors={formikErrors}
         loading={loading}
+        onAddressSelect={handleAddressSelect}
       />
     </Container>
   );

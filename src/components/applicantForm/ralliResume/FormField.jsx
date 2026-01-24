@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -10,24 +10,138 @@ import {
   Select,
   Button,
   Avatar,
+  CircularProgress,
+  Autocomplete,
 } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import AssistantIcon from "@mui/icons-material/Assistant";
 
+const DEBOUNCE_MS = 300;
+
+/**
+ * FormField Component with Immediate Field-Level Validation
+ * 
+ * New Props:
+ * - handleBlur: Function to handle blur events for validation
+ * - error: Boolean indicating if field has error
+ * - errorMessage: Error message to display
+ * - loadingStates: Boolean for state dropdown loading
+ * - loadingCities: Boolean for city dropdown loading
+ */
 const FormField = ({
   item,
   form,
   index,
   handleChange,
+  handleBlur,
   handleEnhanceAi,
   countries,
   states,
   cities,
   checkedLabel,
-  totalExperience
+  totalExperience,
+  loadingStates = false,
+  loadingCities = false,
+  error = false,
+  errorMessage = "",
 }) => {
+  // ========== University Autocomplete State (for institution_name) ==========
+  const [univOptions, setUnivOptions] = useState([]);
+  const [uLoading, setULoading] = useState(false);
+  const [uError, setUError] = useState(null);
+  const fetchAbortRef = useRef(null);
+  const debounceTimerRef = useRef(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (fetchAbortRef.current) {
+        fetchAbortRef.current.abort();
+      }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch universities from API
+  const fetchUniversities = async (q) => {
+    try {
+      if (fetchAbortRef.current) {
+        fetchAbortRef.current.abort();
+      }
+      fetchAbortRef.current = new AbortController();
+      setULoading(true);
+      setUError(null);
+
+      const url = `/api/universities?q=${encodeURIComponent(q)}`;
+      const res = await fetch(url, { signal: fetchAbortRef.current.signal });
+      if (!res.ok) throw new Error("Failed to fetch universities");
+      const resp = await res.json();
+      setUnivOptions(
+        resp.map((u) => ({ label: u.name, country: u.country || "" }))
+      );
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        console.error("fetchUniversities error", err);
+        setUError("Unable to load schools");
+        setUnivOptions([]);
+      }
+    } finally {
+      setULoading(false);
+    }
+  };
+
+  // Debounced input handler
+  const onUnivInputChange = (value) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    if (value && value.length >= 2) {
+      debounceTimerRef.current = setTimeout(() => {
+        fetchUniversities(value);
+      }, DEBOUNCE_MS);
+    } else {
+      setUnivOptions([]);
+    }
+  };
+
+  // Get error styling for inputs
+  const getErrorSx = () => ({
+    boxShadow: error
+      ? "0px 0px 3px 2px #ff000040"
+      : "0px 0px 3px 0.4px #00000040",
+    border: error ? "1px solid #ff0000" : "none",
+  });
+
+  // Handle blur event
+  const onBlur = (e) => {
+    if (handleBlur) {
+      handleBlur(index, item.name, e?.target?.value ?? form[item.name]);
+    }
+  };
+
+  // Error message component
+  const ErrorMessage = () => {
+    if (!error || !errorMessage) return null;
+    return (
+      <Typography
+        sx={{
+          color: "red",
+          fontSize: "12px",
+          mt: "5px",
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+        }}
+      >
+        ⚠ {errorMessage}
+      </Typography>
+    );
+  };
+
+  // ========== CHECKBOX (is_continue) ==========
   if (item.name === "is_continue") {
     return (
       <>
@@ -48,9 +162,8 @@ const FormField = ({
           sx={{
             width: "100%",
             borderRadius: "10px",
-            boxShadow: "0px 0px 3px 0.4px #00000040",
-            border: "none",
-            mb: "20px",
+            ...getErrorSx(),
+            mb: "10px",
             padding: "6px 20px",
           }}
         >
@@ -61,6 +174,7 @@ const FormField = ({
                 onChange={(e) =>
                   handleChange(index, "is_continue", e.target.checked)
                 }
+                onBlur={onBlur}
                 sx={{
                   color: "#189e33ff",
                 }}
@@ -77,10 +191,12 @@ const FormField = ({
             }}
           />
         </Box>
+        <ErrorMessage />
       </>
     );
   }
 
+  // ========== DATE PICKER (start_date, end_date) ==========
   if (item.name === "start_date" || item.name === "end_date") {
     return (
       <Box sx={{ py: 0.5, my: 0.5 }}>
@@ -95,6 +211,11 @@ const FormField = ({
           }}
         >
           {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
         </Typography>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
@@ -110,24 +231,22 @@ const FormField = ({
             }
             slotProps={{
               textField: {
+                onBlur: onBlur,
+                error: error,
                 sx: {
                   width: "100%",
                   borderRadius: "10px",
-                  boxShadow: "0px 0px 3px 0.4px #00000040",
-                  border: "none",
+                  ...getErrorSx(),
                   "& input": {
                     color: "#000",
                     padding: "13px 10px",
                     width: "100%",
                     border: "none",
-                    outline: "none ",
+                    outline: "none",
                     fontSize: { xs: "12px", sm: "15px", md: "16px" },
                     fontWeight: 300,
                     lineHeight: { xs: "12px", sm: "20px" },
-                    outline: "none",
-                    border: "none",
                   },
-
                   "& input::placeholder": {
                     color: "#00000040",
                     fontSize: "16px",
@@ -149,10 +268,12 @@ const FormField = ({
             }}
           />
         </LocalizationProvider>
+        <ErrorMessage />
       </Box>
     );
   }
 
+  // ========== TEXTAREA (description) ==========
   if (item?.name === "description") {
     return (
       <Box key={item.name} sx={{ position: "relative", py: 0.5, my: 0.5 }}>
@@ -167,6 +288,11 @@ const FormField = ({
           }}
         >
           {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
         </Typography>
         <TextField
           multiline
@@ -175,6 +301,8 @@ const FormField = ({
           placeholder={item?.placeHolder}
           value={form[item.name] || ""}
           onChange={(e) => handleChange(index, item.name, e.target.value)}
+          onBlur={onBlur}
+          error={error}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -209,9 +337,9 @@ const FormField = ({
             fontSize: { xs: "12px", sm: "15px", md: "16px" },
             fontWeight: 300,
             lineHeight: { xs: "12px", sm: "20px" },
-            boxShadow: "0px 0px 3px 0.4px #00000040",
+            ...getErrorSx(),
             color: "#222222",
-            "& .css-w4nesw-MuiInputBase-input-MuiOutlinedInput-input": {
+            "& .MuiInputBase-input": {
               border: "none !important",
               outline: "none",
               color: "#222222",
@@ -224,14 +352,13 @@ const FormField = ({
               padding: "13px 10px",
               width: "100%",
               border: "none",
-              outline: "none ",
+              outline: "none",
               fontSize: { xs: "12px", sm: "15px", md: "16px" },
               fontWeight: 300,
               lineHeight: { xs: "12px", sm: "20px" },
             },
             "&:hover": {
               outline: "none",
-              border: "none",
             },
             "& .MuiInputBase-input::placeholder": {
               color: "rgba(0, 0, 0, 0.3)",
@@ -242,6 +369,11 @@ const FormField = ({
               "& fieldset": {
                 border: "none",
               },
+            },
+            "&:focus-within": {
+              boxShadow: error
+                ? "0px 0px 3px 2px #ff000060"
+                : "0px 0px 5px #00305B80",
             },
           }}
           inputProps={{
@@ -254,137 +386,278 @@ const FormField = ({
             },
           }}
         />
+        <ErrorMessage />
       </Box>
     );
   }
 
-  // if (item?.name === "state" || item?.name === "city" || item?.name === "country") {
-  //     return (
-  //         <Box
-  //             key={item.name}
-  //             sx={{ position: "relative", py: 0.5, my: 0.5 }}
-  //         >
-  //             <Typography
-  //                 sx={{
-  //                     fontSize: { xs: "12px", sm: "15px", md: "16px" },
-  //                     fontWeight: 600,
-  //                     lineHeight: { xs: "12px", sm: "20px" },
-  //                     color: "#222222",
-  //                     mb: "10px",
-  //                     textTransform: "capitalize",
-  //                 }}
-  //             >
-  //                 {item?.title}
-  //             </Typography>
-  //             <Select
-  //                 value={form[item.name] || ""}
-  //                 onChange={(e) => {
-  //                     handleChange(index, item.name, e.target.value, e);
-  //                 }}
-  //                 displayEmpty
-  //                 fullWidth
-  //                 sx={{
-  //                     ".MuiOutlinedInput-notchedOutline": { border: "none" },
-  //                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-  //                         border: "none",
-  //                     },
-  //                     boxShadow: "0px 0px 3px 0.4px #00000040",
-  //                     width: "100%",
-  //                     borderRadius: "10px",
-  //                     fontSize: { xs: "12px", sm: "15px", md: "16px" },
-  //                     fontWeight: 400,
-  //                     lineHeight: { xs: "12px", sm: "20px" },
-  //                     fontWeight: 400,
-  //                     color: "#222222",
-  //                     backgroundColor: "#FFFFFF",
-  //                     height: '54px',
-  //                     pt: "-66px !important"
-  //                 }}
-  //             >
-  //                 <MenuItem value="">
-  //                     <em style={{
-  //                         color: "rgba(0, 0, 0, 0.31)",
-  //                     }}>Select {item.label}</em>
-  //                 </MenuItem>
-  //                 {(item.name === "state"
-  //                     ? states
-  //                     : item.name === "city"
-  //                         ? cities
-  //                         : ""
-  //                 )?.map((option) => (
-  //                     <MenuItem key={option.id} value={option.name}>
-  //                         {option.name}
-  //                     </MenuItem>
-  //                 ))}
-  //             </Select>
-  //         </Box>
-  //     );
-  // }
-if (["country", "state", "city"].includes(item?.name)) {
-  return (
-    <Box key={item.name} sx={{ position: "relative", py: 0.5, my: 0.5 }}>
-      <Typography
-        sx={{
-          fontSize: { xs: "12px", sm: "15px", md: "16px" },
-          fontWeight: 600,
-          lineHeight: { xs: "12px", sm: "20px" },
-          color: "#222222",
-          mb: "10px",
-          textTransform: "capitalize",
-        }}
-      >
-        {item?.title}
-      </Typography>
+  // ========== LOCATION DROPDOWNS (country, state, city) ==========
+  if (["country", "state", "city"].includes(item?.name)) {
+    const isLoading = 
+      (item.name === "state" && loadingStates) || 
+      (item.name === "city" && loadingCities);
 
-      <Select
-        value={form[item.name] || ""}
-        onChange={(e) => {
-          handleChange(index, item.name, e.target.value, e);
-        }}
-        displayEmpty
-        fullWidth
-        sx={{
-          ".MuiOutlinedInput-notchedOutline": { border: "none" },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: "none",
-          },
-          boxShadow: "0px 0px 3px 0.4px #00000040",
-          width: "100%",
-          borderRadius: "10px",
-          fontSize: { xs: "12px", sm: "15px", md: "16px" },
-          fontWeight: 400,
-          lineHeight: { xs: "12px", sm: "20px" },
-          color: "#222222",
-          backgroundColor: "#FFFFFF",
-          height: "54px",
-          pt: "-66px !important",
-        }}
-      >
-        <MenuItem value="">
-          <em style={{ color: "rgba(0, 0, 0, 0.31)" }}>
-            Select {item.label}
-          </em>
-        </MenuItem>
+    const options = 
+      item.name === "state"
+        ? states
+        : item.name === "city"
+        ? cities
+        : item.name === "country"
+        ? countries
+        : [];
 
-        {(
-          item.name === "state"
-            ? states
-            : item.name === "city"
-            ? cities
-            : item.name === "country"
-            ? countries
-            : []
-        )?.map((option) => (
-          <MenuItem key={option.id} value={option.name}>
-            {option.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
-  );
-}
+    return (
+      <Box key={item.name} sx={{ position: "relative", py: 0.5, my: 0.5 }}>
+        <Typography
+          sx={{
+            fontSize: { xs: "12px", sm: "15px", md: "16px" },
+            fontWeight: 600,
+            lineHeight: { xs: "12px", sm: "20px" },
+            color: "#222222",
+            mb: "10px",
+            textTransform: "capitalize",
+          }}
+        >
+          {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
+        </Typography>
 
+        <Box sx={{ position: "relative" }}>
+          <Select
+            value={form[item.name] || ""}
+            onChange={(e) => {
+              handleChange(index, item.name, e.target.value, e);
+            }}
+            onBlur={onBlur}
+            displayEmpty
+            fullWidth
+            disabled={isLoading}
+            error={error}
+            sx={{
+              ".MuiOutlinedInput-notchedOutline": { 
+                border: error ? "1px solid #ff0000" : "none" 
+              },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                border: error ? "1px solid #ff0000" : "none",
+              },
+              ...getErrorSx(),
+              width: "100%",
+              borderRadius: "10px",
+              fontSize: { xs: "12px", sm: "15px", md: "16px" },
+              fontWeight: 400,
+              lineHeight: { xs: "12px", sm: "20px" },
+              color: "#222222",
+              backgroundColor: "#FFFFFF",
+              height: "54px",
+              pt: "-66px !important",
+            }}
+          >
+            <MenuItem value="">
+              <em style={{ color: "rgba(0, 0, 0, 0.31)" }}>
+                {isLoading ? "Loading..." : `Select ${item.label}`}
+              </em>
+            </MenuItem>
+
+            {options?.map((option) => (
+              <MenuItem key={option.id} value={option.name}>
+                {option.name}
+              </MenuItem>
+            ))}
+          </Select>
+          
+          {isLoading && (
+            <CircularProgress
+              size={20}
+              sx={{
+                position: "absolute",
+                right: 40,
+                top: "50%",
+                transform: "translateY(-50%)",
+              }}
+            />
+          )}
+        </Box>
+        <ErrorMessage />
+      </Box>
+    );
+  }
+
+  // ========== TEXT INPUT (type: "field") ==========
   if (item.type === "field") {
+    // ===== SPECIAL: Institution Name with Autocomplete =====
+    if (item.name === "institution_name") {
+      return (
+        <Box key={item.name} sx={{ mb: "20px" }}>
+          <Typography
+            sx={{
+              fontSize: { xs: "12px", sm: "15px", md: "16px" },
+              fontWeight: 600,
+              lineHeight: { xs: "12px", sm: "20px" },
+              color: "#222222",
+              mb: "10px",
+              textTransform: "capitalize",
+            }}
+          >
+            {item?.title}
+            {item?.required && (
+              <Typography component="span" sx={{ color: "red" }}>
+                *
+              </Typography>
+            )}
+          </Typography>
+
+          {uError ? (
+            // Fallback to regular TextField if API fails
+            <Box
+              component="input"
+              sx={{
+                width: "100%",
+                borderRadius: "10px",
+                ...getErrorSx(),
+                padding: "16px 20px",
+                fontSize: { xs: "12px", sm: "15px", md: "16px" },
+                fontWeight: 300,
+                lineHeight: { xs: "12px", sm: "20px" },
+                color: "#222222",
+                "&::placeholder": {
+                  color: "#00000040",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                },
+                "&:focus": {
+                  outline: "none",
+                  boxShadow: error
+                    ? "0px 0px 3px 2px #ff000060"
+                    : "0px 0px 5px #00305B80",
+                },
+              }}
+              placeholder={item?.placeHolder}
+              value={form[item.name] || ""}
+              onChange={(e) => handleChange(index, item.name, e.target.value)}
+              onBlur={onBlur}
+            />
+          ) : (
+            // Autocomplete with university search
+            <Autocomplete
+              freeSolo
+              options={univOptions}
+              getOptionLabel={(opt) =>
+                typeof opt === "string" ? opt : opt.label
+              }
+              filterOptions={(x) => x} // Server-side filtering
+              inputValue={form[item.name] || ""}
+              onInputChange={(e, newValue, reason) => {
+                handleChange(index, item.name, newValue);
+                if (reason === "input") onUnivInputChange(newValue);
+              }}
+              onChange={(e, value) => {
+                const val = typeof value === "string" ? value : value?.label || "";
+                handleChange(index, item.name, val);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={item?.placeHolder || "Start typing your school..."}
+                  error={error}
+                  onBlur={onBlur}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {uLoading ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                  sx={{
+                    width: "100%",
+                    borderRadius: "10px",
+                    ...getErrorSx(),
+                    "& input": {
+                      color: "#222222",
+                      padding: "16px 20px",
+                      fontSize: { xs: "12px", sm: "15px", md: "16px" },
+                      fontWeight: 300,
+                      lineHeight: { xs: "12px", sm: "20px" },
+                    },
+                    "& input::placeholder": {
+                      color: "#00000040",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        border: "none",
+                      },
+                    },
+                    "&:focus-within": {
+                      boxShadow: error
+                        ? "0px 0px 3px 2px #ff000060"
+                        : "0px 0px 5px #00305B80",
+                    },
+                  }}
+                />
+              )}
+              renderOption={(props, option) => (
+                <li {...props} key={option.label}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      width: "100%",
+                      padding: "8px 4px",
+                    }}
+                  >
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                      {option.label}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "12px",
+                        color: "#6b7280",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {option.country}
+                    </Typography>
+                  </Box>
+                </li>
+              )}
+              ListboxProps={{
+                sx: {
+                  maxHeight: "300px",
+                  "& .MuiAutocomplete-option": {
+                    padding: "8px 16px",
+                    "&:hover": {
+                      backgroundColor: "rgba(24, 158, 51, 0.08)",
+                    },
+                  },
+                },
+              }}
+            />
+          )}
+          <ErrorMessage />
+          <Typography
+            sx={{
+              fontSize: "11px",
+              color: "#6b7280",
+              mt: "5px",
+              fontStyle: "italic",
+            }}
+          >
+            💡 Start typing to search universities worldwide
+          </Typography>
+        </Box>
+      );
+    }
+
+    // ===== REGULAR TEXT INPUT (non-institution fields) =====
     return (
       <Box key={item.name} sx={{ mb: "20px" }}>
         <Typography
@@ -398,14 +671,18 @@ if (["country", "state", "city"].includes(item?.name)) {
           }}
         >
           {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
         </Typography>
         <Box
           component="input"
           sx={{
             width: "100%",
             borderRadius: "10px",
-            boxShadow: "0px 0px 3px 0.4px #00000040",
-            border: "none",
+            ...getErrorSx(),
             padding: "16px 20px",
             fontSize: { xs: "12px", sm: "15px", md: "16px" },
             fontWeight: 300,
@@ -416,14 +693,24 @@ if (["country", "state", "city"].includes(item?.name)) {
               fontSize: "16px",
               fontWeight: 400,
             },
+            "&:focus": {
+              outline: "none",
+              boxShadow: error
+                ? "0px 0px 3px 2px #ff000060"
+                : "0px 0px 5px #00305B80",
+            },
           }}
           placeholder={item?.placeHolder}
           value={form[item.name] || ""}
           onChange={(e) => handleChange(index, item.name, e.target.value)}
+          onBlur={onBlur}
         />
+        <ErrorMessage />
       </Box>
     );
   }
+
+  // ========== TEXT INPUT (type: "text") ==========
   if (item.type === "text") {
     return (
       <Box key={item.name} sx={{ mb: "20px" }}>
@@ -438,14 +725,18 @@ if (["country", "state", "city"].includes(item?.name)) {
           }}
         >
           {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
         </Typography>
         <Box
           component="input"
           sx={{
             width: "100%",
             borderRadius: "10px",
-            boxShadow: "0px 0px 3px 0.4px #00000040",
-            border: "none",
+            ...getErrorSx(),
             padding: "18px 20px",
             fontSize: { xs: "12px", sm: "15px", md: "16px" },
             fontWeight: 300,
@@ -456,15 +747,28 @@ if (["country", "state", "city"].includes(item?.name)) {
               fontSize: "16px",
               fontWeight: 400,
             },
+            "&:focus": {
+              outline: "none",
+              boxShadow: error
+                ? "0px 0px 3px 2px #ff000060"
+                : "0px 0px 5px #00305B80",
+            },
           }}
           placeholder={item?.placeHolder}
           value={form[item?.name] || ""}
           onChange={(e) => handleChange(index, item.name, e.target.value)}
+          onBlur={onBlur}
         />
+        <ErrorMessage />
       </Box>
     );
   }
+
+  // ========== DROPDOWN (type: "dropdown" - for years of experience and job type) ==========
   if (item.type === "dropdown") {
+    // Determine options source: item.options for job type, totalExperience for years
+    const dropdownOptions = item.options || totalExperience || [];
+    
     return (
       <Box key={item.name} sx={{ position: "relative", py: 0.5, my: 0.5 }}>
         <Typography
@@ -478,26 +782,34 @@ if (["country", "state", "city"].includes(item?.name)) {
           }}
         >
           {item?.title}
+          {item?.required && (
+            <Typography component="span" sx={{ color: "red" }}>
+              *
+            </Typography>
+          )}
         </Typography>
         <Select
           value={form[item.name] || ""}
           onChange={(e) => {
             handleChange(index, item.name, e.target.value, e);
           }}
+          onBlur={onBlur}
           displayEmpty
           fullWidth
+          error={error}
           sx={{
-            ".MuiOutlinedInput-notchedOutline": { border: "none" },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              border: "none",
+            ".MuiOutlinedInput-notchedOutline": { 
+              border: error ? "1px solid #ff0000" : "none" 
             },
-            boxShadow: "0px 0px 3px 0.4px #00000040",
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              border: error ? "1px solid #ff0000" : "none",
+            },
+            ...getErrorSx(),
             width: "100%",
             borderRadius: "10px",
             fontSize: { xs: "12px", sm: "15px", md: "16px" },
             fontWeight: 400,
             lineHeight: { xs: "12px", sm: "20px" },
-            fontWeight: 400,
             color: "#222222",
             backgroundColor: "#FFFFFF",
             height: "54px",
@@ -510,15 +822,16 @@ if (["country", "state", "city"].includes(item?.name)) {
                 color: "rgba(0, 0, 0, 0.31)",
               }}
             >
-              Select {item.label}
+              {item.placeHolder || `Select ${item.label || item.title}`}
             </em>
           </MenuItem>
-          {totalExperience?.map((option) => (
+          {dropdownOptions?.map((option) => (
             <MenuItem key={option.id} value={option.name}>
               {option.name}
             </MenuItem>
           ))}
         </Select>
+        <ErrorMessage />
       </Box>
     );
   }

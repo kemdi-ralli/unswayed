@@ -13,9 +13,11 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
+import VideocamIcon from "@mui/icons-material/Videocam";
 import RalliButton from "@/components/button/RalliButton";
 import SelectPostType from "./SelectPostType";
 
@@ -27,11 +29,17 @@ const style = {
   maxWidth: "790px",
   width: { xs: "90%" },
   height: "auto",
+  maxHeight: "90vh",
+  overflow: "auto",
   bgcolor: "#FFFFFF",
   boxShadow: "0px 1px 5px #00000040",
   p: 4,
   borderRadius: "15px",
 };
+
+// File size limits in bytes
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
 
 const CreatePostModal = ({
   open,
@@ -60,19 +68,63 @@ const CreatePostModal = ({
   isDelete,
   isEdit,
   isCreatePost,
-  loading
+  loading,
 }) => {
   const handleClose = () => onClose();
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
+
   const getAcceptType = () => {
     const type = dropdownStates?.postType;
     if (type === "post") return "image/*";
     if (type === "reel") return "video/*";
     return "image/*,video/*";
   };
+
+  // Enhanced media change handler with file size validation
+  const handleMediaChangeWithValidation = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith("video");
+    const isImage = file.type.startsWith("image");
+    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+    const maxSizeLabel = isVideo ? "100MB" : "10MB";
+
+    // Validate file size
+    if (file.size > maxSize) {
+      alert(`File too large. Maximum size for ${isVideo ? "videos" : "images"} is ${maxSizeLabel}.`);
+      e.target.value = null;
+      return;
+    }
+
+    // Validate file type matches post type
+    const postType = dropdownStates?.postType;
+    if (postType === "reel" && !isVideo) {
+      alert("Reels must be video content. Please select a video file.");
+      e.target.value = null;
+      return;
+    }
+
+    if (postType === "post" && isVideo) {
+      // Allow videos in regular posts, but warn about size
+      console.log("Video selected for regular post");
+    }
+
+    // Call the original handler
+    handleMediaChange(e);
+  };
+
+  // Format file size for display
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
   return (
     <Modal
       open={open}
@@ -91,9 +143,9 @@ const CreatePostModal = ({
           >
             <Box
               sx={{
-                display: 'flex',
+                display: "flex",
                 justifyContent: "flex-end",
-                cursor: "pointer"
+                cursor: "pointer",
               }}
               onClick={handleClose}
             >
@@ -118,14 +170,26 @@ const CreatePostModal = ({
                   value={selectedOption}
                   onChange={handleOptionChange}
                 >
-                  <FormControlLabel value="spam" control={<Radio />} label="Spam" />
-                  <FormControlLabel value="abusive" control={<Radio />} label="Abusive" />
+                  <FormControlLabel
+                    value="spam"
+                    control={<Radio />}
+                    label="Spam"
+                  />
+                  <FormControlLabel
+                    value="abusive"
+                    control={<Radio />}
+                    label="Abusive"
+                  />
                   <FormControlLabel
                     value="irrelevant"
                     control={<Radio />}
                     label="Irrelevant"
                   />
-                  <FormControlLabel value="other" control={<Radio />} label="Others" />
+                  <FormControlLabel
+                    value="other"
+                    control={<Radio />}
+                    label="Others"
+                  />
                 </RadioGroup>
               </FormControl>
             </Box>
@@ -173,7 +237,9 @@ const CreatePostModal = ({
 
         {isDelete && (
           <Box sx={{ textAlign: "center", p: 3 }}>
-            <Typography sx={{ mb: 2 }}>Are you sure you want to delete?</Typography>
+            <Typography sx={{ mb: 2 }}>
+              Are you sure you want to delete?
+            </Typography>
             <Button variant="contained" color="error" onClick={handlePost}>
               Yes, Delete
             </Button>
@@ -190,7 +256,14 @@ const CreatePostModal = ({
               }}
             >
               <Box>
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                  }}
+                >
                   <Avatar
                     src={user?.photo}
                     alt="user"
@@ -241,9 +314,22 @@ const CreatePostModal = ({
               </Box>
             </Box>
             <Divider sx={{ pt: 2 }} />
+
+            {/* File size info */}
+            <Box sx={{ mt: 1, mb: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: "#666", fontSize: "12px" }}
+              >
+                {dropdownStates?.postType === "reel"
+                  ? "📹 Reels: Video required (max 100MB)"
+                  : "📷 Posts: Images up to 10MB, Videos up to 100MB"}
+              </Typography>
+            </Box>
+
             <Box
               sx={{
-                mt: 2,
+                mt: 1,
                 mb: mediaPreview ? 2 : 0,
                 width: "100%",
                 boxShadow: "0px 0px 3px #00000040",
@@ -278,8 +364,8 @@ const CreatePostModal = ({
                 <Box sx={{ mt: 2, position: "relative" }}>
                   <IconButton
                     onClick={() => {
-                      setMedia(null)
-                      setMediaPreview(null)
+                      setMedia(null);
+                      setMediaPreview(null);
                       if (fileInputRef.current) {
                         fileInputRef.current.value = null;
                       }
@@ -322,6 +408,21 @@ const CreatePostModal = ({
                       }}
                     />
                   ) : null}
+
+                  {/* Show file size */}
+                  {media && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: "block",
+                        mt: 1,
+                        color: "#666",
+                        textAlign: "right",
+                      }}
+                    >
+                      File size: {formatFileSize(media?.size)}
+                    </Typography>
+                  )}
                 </Box>
               )}
             </Box>
@@ -343,21 +444,27 @@ const CreatePostModal = ({
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    cursor: "pointer",
+                    cursor: dropdownStates?.postType ? "pointer" : "not-allowed",
+                    opacity: dropdownStates?.postType ? 1 : 0.5,
                   }}
                 >
                   <IconButton
                     component="label"
                     aria-label="Add Media"
                     sx={{ width: "100%", height: "100%" }}
+                    disabled={!dropdownStates?.postType}
                   >
-                    <ImageIcon />
+                    {dropdownStates?.postType === "reel" ? (
+                      <VideocamIcon />
+                    ) : (
+                      <ImageIcon />
+                    )}
                     <input
                       ref={fileInputRef}
                       type="file"
                       accept={getAcceptType()}
                       hidden
-                      onChange={handleMediaChange}
+                      onChange={handleMediaChangeWithValidation}
                       disabled={!dropdownStates?.postType}
                     />
                   </IconButton>
@@ -368,12 +475,37 @@ const CreatePostModal = ({
                   variant="contained"
                   color="primary"
                   onClick={handlePost}
-                  disabled={loading || (!inputValue && !media)}
+                  disabled={
+                    loading ||
+                    (!inputValue && !media) ||
+                    (dropdownStates?.postType === "reel" && !media)
+                  }
+                  startIcon={
+                    loading ? <CircularProgress size={16} color="inherit" /> : null
+                  }
                 >
-                  {isEdit ? 'Update' : 'Post'}
+                  {loading
+                    ? "Uploading..."
+                    : isEdit
+                    ? "Update"
+                    : "Post"}
                 </Button>
               </Box>
             </Box>
+
+            {/* Reel warning if no video */}
+            {dropdownStates?.postType === "reel" && !media && (
+              <Typography
+                sx={{
+                  color: "#d32f2f",
+                  fontSize: "12px",
+                  mt: 1,
+                  textAlign: "right",
+                }}
+              >
+                * Reels require a video
+              </Typography>
+            )}
           </>
         )}
       </Box>
