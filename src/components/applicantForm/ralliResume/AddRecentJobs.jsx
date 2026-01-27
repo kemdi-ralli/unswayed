@@ -89,9 +89,14 @@ const AddRecentJobs = ({
     const fetchCountries = async () => {
       try {
         const response = await apiInstance.get(COUNTRIES);
-        setCountries(response?.data?.data?.countries || []);
+        // Handle multiple possible response structures
+        const countries = response?.data?.data?.countries || 
+                         response?.data?.countries || 
+                         response?.data || 
+                         [];
+        setCountries(Array.isArray(countries) ? countries : []);
       } catch (error) {
-        console.error("Failed to load countries:", error);
+        console.error("Failed to load countries:", error?.response?.data || error);
       }
     };
     fetchCountries();
@@ -160,7 +165,12 @@ const AddRecentJobs = ({
       const response = await apiInstance.get(
         `${COUNTRY_STATES_NAME}/${countryValue}`
       );
-      let fetchedStates = response?.data?.data?.states || [];
+      // Handle multiple possible response structures
+      let fetchedStates = response?.data?.data?.states || 
+                         response?.data?.states || 
+                         response?.data || 
+                         [];
+      fetchedStates = Array.isArray(fetchedStates) ? fetchedStates : [];
 
       // Handle US territories
       if (countryValue === 233 || countryValue === "233") {

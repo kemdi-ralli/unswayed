@@ -35,10 +35,10 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
 
       setDeclineLoading(true);
       try {
-        const formData = new FormData();
-        formData.append("type", 'decline');
-        formData.append("reason", finalReason); 
-        const response = await applicantInterviewResponse(item?.id, formData);
+        const response = await applicantInterviewResponse(item?.id, {
+          type: 'decline',
+          reason: finalReason,
+        });
         if (response?.data?.status === 'success') {
           window.location.href = window.location.href;
         }
@@ -69,10 +69,10 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
       }
       setAcceptLoading(true);
       try {
-        const formData = new FormData();
-        formData.append("type", 'accept');
-        formData.append("selected_date", selectedDate);
-        const response = await applicantInterviewResponse(item?.id, formData);
+        const response = await applicantInterviewResponse(item?.id, {
+          type: 'accept',
+          selected_date: selectedDate,
+        });
         if (response?.data?.status === 'success') {
           window.location.href = window.location.href;
         }

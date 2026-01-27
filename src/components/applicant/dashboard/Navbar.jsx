@@ -150,6 +150,11 @@ const profileMenuItems = [
     heading: "HR Insights",
     icon: <GroupsIcon />,
   },
+  {
+    name: "Blog",
+    link: "/blogs",
+    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  },
   // {
   //   name: "Microaggressions",
   //   link: "/applicant/upcoming",
@@ -160,11 +165,6 @@ const profileMenuItems = [
   //   link: "/applicant/upcoming",
   //   icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   // },
-  {
-    name: "Blog",
-    link: "/blog",
-    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
-  },
   { divider: true },
   { heading: "Toolkits", icon: <SettingsIcon /> },
   {

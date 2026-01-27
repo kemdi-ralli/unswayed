@@ -86,8 +86,10 @@ const RegistrationInfo = ({
 
   const [showPassword, setShowPassword] = useState({
     password: false,
-    confirmPassword: false,
+    password_confirmation: false,
   });
+  const passwordFieldKey = (name) =>
+    name === "password_confirmation" ? "password_confirmation" : "password";
 
   const [validationErrors, setValidationErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
@@ -123,19 +125,20 @@ const RegistrationInfo = ({
     }
   };
 
-  // Validate password match
-  const validatePasswordMatch = (password, confirmPassword) => {
-    if (confirmPassword && password !== confirmPassword) {
+  // Validate password match (use password_confirmation to match form field name)
+  const validatePasswordMatch = (password, confirmValue) => {
+    if (confirmValue && password !== confirmValue) {
       setValidationErrors((prev) => ({
         ...prev,
-        confirmPassword: "Passwords must match",
+        password_confirmation: "Passwords must match",
       }));
       return false;
-    } else if (confirmPassword && password === confirmPassword) {
+    }
+    if (confirmValue && password === confirmValue) {
       setValidationErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors.confirmPassword;
-        return newErrors;
+        const next = { ...prev };
+        delete next.password_confirmation;
+        return next;
       });
       return true;
     }
@@ -144,34 +147,43 @@ const RegistrationInfo = ({
 
   const handleChange = (name, value) => {
     onFieldChange(name, value);
-    
-    // Mark field as touched
     setTouchedFields((prev) => ({ ...prev, [name]: true }));
-    
-    // Immediate validation on change
-    validateField(name, value);
-    
-    // Special handling for password confirmation
+
+    // When confirm matches, clear error immediately and skip schema validation for this field
+    if (name === "password_confirmation") {
+      if (value && formData.password === value) {
+        setValidationErrors((prev) => {
+          const next = { ...prev };
+          delete next.password_confirmation;
+          return next;
+        });
+      } else {
+        validatePasswordMatch(formData.password, value);
+      }
+      return;
+    }
     if (name === "password") {
-      validatePasswordMatch(value, formData.confirmPassword);
+      validateField(name, value);
+      validatePasswordMatch(value, formData.password_confirmation);
+      return;
     }
-    if (name === "confirmPassword") {
-      validatePasswordMatch(formData.password, value);
-    }
+
+    validateField(name, value);
   };
 
   // Validate on blur
   const handleBlur = (name, value) => {
     setTouchedFields((prev) => ({ ...prev, [name]: true }));
-    validateField(name, value);
-    
-    // Validate password match on blur
-    if (name === "password" || name === "confirmPassword") {
-      validatePasswordMatch(
-        name === "password" ? value : formData.password,
-        name === "confirmPassword" ? value : formData.confirmPassword
-      );
+    if (name === "password_confirmation") {
+      validatePasswordMatch(formData.password, value);
+      return;
     }
+    if (name === "password") {
+      validateField(name, value);
+      validatePasswordMatch(value, formData.password_confirmation);
+      return;
+    }
+    validateField(name, value);
   };
 
   const handleBack = () => {
@@ -292,7 +304,7 @@ const RegistrationInfo = ({
                 component="input"
                 type={
                   item.name.toLowerCase().includes("password") &&
-                  !showPassword[item.name.toLowerCase()]
+                  !showPassword[passwordFieldKey(item.name)]
                     ? "password"
                     : "text"
                 }
@@ -322,7 +334,7 @@ const RegistrationInfo = ({
 
               {item.name.toLowerCase().includes("password") && (
                 <IconButton
-                  onClick={() => handleTogglePassword(item.name.toLowerCase())}
+                  onClick={() => handleTogglePassword(passwordFieldKey(item.name))}
                   sx={{
                     position: "absolute",
                     right: "10px",
@@ -331,7 +343,7 @@ const RegistrationInfo = ({
                     color: "#222222",
                   }}
                 >
-                  {showPassword[item.name.toLowerCase()] ? (
+                  {showPassword[passwordFieldKey(item.name)] ? (
                     <VisibilityOff />
                   ) : (
                     <Visibility />

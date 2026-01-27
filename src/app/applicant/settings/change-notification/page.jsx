@@ -62,9 +62,16 @@ const Page = () => {
     const fetchMasterData = async () => {
       try {
         const response = await apiInstance.get(COUNTRIES);
-        setCountries(response?.data?.data?.countries || []);
+        // Handle multiple possible response structures
+        const countries = response?.data?.data?.countries || 
+                         response?.data?.countries || 
+                         response?.data || 
+                         [];
+        setCountries(Array.isArray(countries) ? countries : []);
       } catch (error) {
+        console.error("Error fetching countries:", error?.response?.data || error);
         setErrors(error?.response?.data?.message || "Failed to load countries");
+        Toast("error", error?.response?.data?.message || "Failed to load countries");
       }
 
       try {
@@ -130,7 +137,12 @@ const Page = () => {
       
       try {
         const response = await apiInstance.get(`${STATES}/${dropdownStates.selectedCountry}`);
-        let _states = response?.data?.data?.states || [];
+        // Handle multiple possible response structures
+        let _states = response?.data?.data?.states || 
+                     response?.data?.states || 
+                     response?.data || 
+                     [];
+        _states = Array.isArray(_states) ? _states : [];
 
         // Handle US territories for country 233
         if (dropdownStates.selectedCountry === 233) {

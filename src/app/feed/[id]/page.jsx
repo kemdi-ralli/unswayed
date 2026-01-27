@@ -75,11 +75,7 @@ const CommentScreen = ({ params }) => {
     formData.append("comment", replyState[item.id]?.replyText || "");
 
     try {
-      const response = await apiInstance.post(`/comments`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await apiInstance.post(`/comments`, formData);
       if (response?.status === 200 || response?.status === 201) {
         Toast("success", response?.data?.message);
         setReplyState((prevState) => ({
@@ -134,12 +130,7 @@ const CommentScreen = ({ params }) => {
     try {
       const response = await apiInstance.post(
         `${REPORT_POST}/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       if (response?.status === 200 || response?.status === 201) {
@@ -179,10 +170,8 @@ const CommentScreen = ({ params }) => {
   // Unfollow work
   const handleFollowUnfollow = async (userId) => {
     handleMenuClose();
-    const formData = new FormData();
-    formData.append("following_user_id", userId);
     try {
-      const response = await apiInstance.post(FOLLOW_USER, formData);
+      const response = await apiInstance.post(FOLLOW_USER, { following_user_id: userId });
       if (response.status === 200 || 201) {
         Toast("success", response?.data?.message);
         setIsFollowing((prevState) => !prevState);
@@ -419,11 +408,7 @@ const CommentScreen = ({ params }) => {
 
     if (isCreatePost) {
       try {
-        const response = await apiInstance.post("posts", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await apiInstance.post("posts", formData);
         Toast("success", response?.data?.message);
         setInputValue("");
         setMedia(null);
@@ -563,11 +548,7 @@ const CommentScreen = ({ params }) => {
     const formData = new FormData();
     formData.append("post_id", postId);
     try {
-      const response = await apiInstance?.post("/post/like", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await apiInstance?.post("/post/like", formData);
       if (response?.status === 200 || response?.status === 201) {
         Toast("success", response?.data?.message || "Post liked successfully");
         setLikedPostIds(postId);

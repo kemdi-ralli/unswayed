@@ -17,10 +17,17 @@ const apiInstance = axios.create({
 
 apiInstance.interceptors.request.use(
   (config) => {
+    if (config.skipAuth) return config;
     const token = Cookies.get("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // CRITICAL FIX: Remove Content-Type for FormData to let browser set boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+    
     return config;
   },
   (error) => {

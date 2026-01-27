@@ -99,7 +99,12 @@ const AddReviews = ({ data, id }) => {
     overall_ratings: selectedRating,
     is_anonymous: isAnonymous,
     feedback: comment,
-    yes_no_responses: yesNoResponses.filter(item => item.answer !== null),
+    yes_no_responses: yesNoResponses
+      .filter(item => item.answer !== null)
+      .map(item => ({
+        question: item.question,
+        answer: item.answer === true ? "Yes" : "No"
+      })),
   };
 
   const onFeedback = async () => {

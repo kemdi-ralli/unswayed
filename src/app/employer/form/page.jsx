@@ -89,9 +89,16 @@ const Page = () => {
     const getCountries = async () => {
       try {
         const response = await apiInstance?.get(COUNTRIES);
-        setCountries(response?.data?.data?.countries || []);
+        // Handle multiple possible response structures
+        const countries = response?.data?.data?.countries || 
+                         response?.data?.countries || 
+                         response?.data || 
+                         [];
+        setCountries(Array.isArray(countries) ? countries : []);
       } catch (error) {
+        console.error("Error fetching countries:", error?.response?.data || error);
         setErrors(error?.response?.data?.message || "Failed to load countries");
+        Toast("error", error?.response?.data?.message || "Failed to load countries");
       }
     };
     getCountries();
@@ -123,7 +130,12 @@ const Page = () => {
       
       try {
         const response = await apiInstance.get(`${STATES}/${countryId}`);
-        const fetchedStates = response?.data?.data?.states || [];
+        // Handle multiple possible response structures
+        let fetchedStates = response?.data?.data?.states || 
+                           response?.data?.states || 
+                           response?.data || 
+                           [];
+        fetchedStates = Array.isArray(fetchedStates) ? fetchedStates : [];
 
         if (countryId === 233) {
           // Filter out territories from the main states list
@@ -200,8 +212,7 @@ const Page = () => {
 
       const response = await apiInstance.post(
         EMPLOYER_REGISTRATION,
-        formDataToSubmit,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        formDataToSubmit
       );
 
       if (response?.data?.status === "success") {

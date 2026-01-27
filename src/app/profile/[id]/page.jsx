@@ -77,11 +77,8 @@ const Page = ({ params }) => {
   }, [userId]);
 
   const onPressFollow = async (_userId) => {
-    const formData = new FormData();
-    formData.append("following_user_id", _userId);
-
     try {
-      const response = await apiInstance.post(FOLLOW_USER, formData);
+      const response = await apiInstance.post(FOLLOW_USER, { following_user_id: _userId });
       if (response.status === 200 || response.status === 201) {
         setProfile((prev) => ({
           ...prev,

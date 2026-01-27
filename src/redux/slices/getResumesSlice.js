@@ -6,6 +6,7 @@ import {
   ATTACHED_CV,
   APPLICANT_REPLACE_RESUME,
   APPLICANT_RENAME_RESUME,
+  APPLICANT_UPDATE_RESUME_TITLE,
 } from "@/services/apiService/apiEndPoints";
 
 export const getResumes = createAsyncThunk("resumes/getResumes", async () => {
@@ -28,9 +29,7 @@ export const attachResume = createAsyncThunk(
       const formData = new FormData();
       formData.append("resume", file);
 
-      const response = await apiInstance.post(ATTACHED_CV, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await apiInstance.post(ATTACHED_CV, formData);
 
       return response.data.data?.resume;
     } catch (error) {
@@ -50,10 +49,7 @@ export const replaceResume = createAsyncThunk(
 
       const response = await apiInstance.post(
         `${APPLICANT_REPLACE_RESUME}/${id}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        formData
       );
 
       return response.data.data?.resume;
@@ -69,8 +65,9 @@ export const renameResume = createAsyncThunk(
   "resumes/renameResume",
   async ({ id, title }, { rejectWithValue }) => {
     try {
+      // Use new update-title endpoint
       const response = await apiInstance.patch(
-        `${APPLICANT_RENAME_RESUME}/${id}`,
+        `${APPLICANT_UPDATE_RESUME_TITLE}/${id}`,
         { title }
       );
 

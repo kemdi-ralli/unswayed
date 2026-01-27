@@ -71,11 +71,8 @@ const UserCard = () => {
   }, [Search]);
 
   const onFollow = async (id) => {
-    const formData = new FormData();
-    formData.append("following_user_id", id);
-
     try {
-      const response = await apiInstance.post(FOLLOW_USER, formData);
+      const response = await apiInstance.post(FOLLOW_USER, { following_user_id: id });
       if (response.status === 200 || response.status === 201) {
         setTalentNetwork((prevData) =>
           prevData.map((el) =>

@@ -117,9 +117,16 @@ const ApplicantForm = () => {
     const getCountries = async () => {
       try {
         const response = await apiInstance.get(COUNTRIES);
-        setCountries(response?.data?.data?.countries || []);
+        // Handle multiple possible response structures
+        const countries = response?.data?.data?.countries || 
+                         response?.data?.countries || 
+                         response?.data || 
+                         [];
+        setCountries(Array.isArray(countries) ? countries : []);
       } catch (error) {
+        console.error("Error fetching countries:", error?.response?.data || error);
         setErrors(error?.response?.data?.message || "Failed to load countries");
+        Toast("error", error?.response?.data?.message || "Failed to load countries");
       }
     };
     getCountries();
@@ -167,7 +174,12 @@ const ApplicantForm = () => {
         setIsLoadingStates(true);
         try {
           const response = await apiInstance.get(`${STATES}/${countryId}`);
-          let fetchedStates = response?.data?.data?.states || [];
+          // Handle multiple possible response structures
+          let fetchedStates = response?.data?.data?.states || 
+                             response?.data?.states || 
+                             response?.data || 
+                             [];
+          fetchedStates = Array.isArray(fetchedStates) ? fetchedStates : [];
 
           if (countryId === 233) {
             // Filter out territories from the main states list
@@ -203,6 +215,14 @@ const ApplicantForm = () => {
 
   /** Fetch Cities */
   useEffect(() => {
+    const US_INHABITED_TERRITORIES = [
+      "American Samoa",
+      "Guam",
+      "Northern Mariana Islands",
+      "Puerto Rico",
+      "U.S. Virgin Islands",
+    ];
+
     if (dropdownStates.state) {
       const getCities = async (stateId) => {
         try {
@@ -230,9 +250,16 @@ const ApplicantForm = () => {
     const getGenders = async () => {
       try {
         const response = await apiInstance.get(GENDERS);
-        setGenders(response?.data?.data?.genders || []);
+        // Handle multiple possible response structures
+        const genders = response?.data?.data?.genders || 
+                       response?.data?.genders || 
+                       response?.data || 
+                       [];
+        setGenders(Array.isArray(genders) ? genders : []);
       } catch (error) {
+        console.error("Error fetching genders:", error?.response?.data || error);
         setErrors(error?.response?.data?.message || "Failed to load genders");
+        Toast("error", error?.response?.data?.message || "Failed to load genders");
       }
     };
     getGenders();
@@ -292,25 +319,69 @@ const ApplicantForm = () => {
         formDataToSubmit.append(`skills[${index}]`, skill);
       });
 
-      const response = await apiInstance.post(
-        APPLICANT_REGISTRATION,
-        formDataToSubmit,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      // Use Next.js API proxy to avoid CORS issues
+      const response = await fetch("/api/applicant/register", {
+        method: "POST",
+        body: formDataToSubmit,
+        // Don't set Content-Type - browser will set it with boundary for FormData
+      });
 
-      if (response?.data?.status === "success") {
-        Cookie.set("token", response.data.data.token);
-        Cookie.set("isVerified", response.data.data.is_verified);
+      if (!response.ok) {
+        // Handle HTTP errors (4xx, 5xx)
+        const errorData = await response.json().catch(() => ({
+          status: "error",
+          message: "Registration failed",
+          errors: {}
+        }));
+        const errors = errorData?.errors || {};
+        setApiErrors(errors);
+        Object.values(errors).forEach((msg) => {
+          if (Array.isArray(msg)) {
+            msg.forEach(m => Toast("error", m));
+          } else {
+            Toast("error", msg);
+          }
+        });
+        Toast("error", errorData?.message || "Registration failed");
+        return;
+      }
+
+      const responseData = await response.json();
+
+      if (responseData?.status === "success") {
+        Cookie.set("token", responseData.data.token);
+        Cookie.set("isVerified", responseData.data.is_verified);
         Cookie.set("userType", "applicant");
         router.push("/applicant/form/emailVerification");
-        Toast("success", response.data.message);
+        Toast("success", responseData.message);
+      } else {
+        // Handle validation errors from backend
+        const errors = responseData?.errors || {};
+        setApiErrors(errors);
+        Object.values(errors).forEach((msg) => {
+          if (Array.isArray(msg)) {
+            msg.forEach(m => Toast("error", m));
+          } else {
+            Toast("error", msg);
+          }
+        });
+        Toast("error", responseData?.message || "Registration failed");
       }
     } catch (error) {
-      const errors = error.response?.data?.errors || {};
+      console.error("Registration error:", error);
+      const errors = error?.errors || {};
       setApiErrors(errors);
-      Object.values(errors).forEach((msg) => {
-        Toast("error", msg);
-      });
+      if (Object.keys(errors).length > 0) {
+        Object.values(errors).forEach((msg) => {
+          if (Array.isArray(msg)) {
+            msg.forEach(m => Toast("error", m));
+          } else {
+            Toast("error", msg);
+          }
+        });
+      } else {
+        Toast("error", error?.message || "Registration failed. Please try again.");
+      }
     }
   };
 

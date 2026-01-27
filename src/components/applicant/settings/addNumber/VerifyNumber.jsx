@@ -25,14 +25,10 @@ const VerifyNumber = ({ type }) => {
       setErrors({});
       setLoading(true);
 
-      const formData = new FormData();
-      formData.append("type", type);
-      formData.append("otp", OTP);
-
-      const response = await apiInstance.post(
-        VERIFICATION_SETTING_OTP,
-        formData
-      );
+      const response = await apiInstance.post(VERIFICATION_SETTING_OTP, {
+        type,
+        otp: OTP,
+      });
 
       if (response.status === 201 || response.status === 200) {
         router.push("/applicant/settings");

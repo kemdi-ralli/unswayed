@@ -23,18 +23,17 @@ const Following = ({ data }) => {
   }, [data]);
 
   const onFollow = async (id) => {
-    const formData = new FormData();
-    formData.append("following_user_id", id);
-    if (formData) {
-      const response = await apiInstance.post(FOLLOW_USER, formData);
-      console.log(response);
-      if (response.status === 200 || 201) {
+    try {
+      const response = await apiInstance.post(FOLLOW_USER, { following_user_id: id });
+      if (response.status === 200 || response.status === 201) {
         setFollowData((prevData) =>
           prevData.map((el) =>
             el.id === id ? { ...el, isFollowed: !el.isFollowed } : el
           )
         );
       }
+    } catch (err) {
+      console.error(err);
     }
   };
 

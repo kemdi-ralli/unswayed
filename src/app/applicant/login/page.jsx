@@ -37,12 +37,27 @@ const Page = () => {
     validationSchema: AuthSchema,
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        const formData = new FormData();
-        formData.append("email", values.email);
-        formData.append("password", values.password);
+        // Use Next.js API proxy to avoid CORS issues
+        const response = await fetch("/api/applicant/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: values.email,
+            password: values.password,
+          }),
+        });
 
-        const response = await apiInstance?.post(APPLICANT_LOGIN, formData);
-        const loginData = response?.data?.data;
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({
+            message: "Login failed"
+          }));
+          throw new Error(errorData?.message || "Login failed");
+        }
+
+        const responseData = await response.json();
+        const loginData = responseData?.data;
 
         if (loginData?.is_verified) {
           router.push("/applicant/career-areas");
@@ -53,10 +68,11 @@ const Page = () => {
         Cookie.set("token", loginData?.token);
         Cookie.set("isVerified", loginData?.is_verified);
         Cookie.set("userType", loginData?.user?.type);
-        Toast("success", response?.data?.message);
+        Toast("success", responseData?.message);
       } catch (error) {
-        setErrors({ email: error?.response?.data?.message || "Login failed" });
-        Toast("error", error?.response?.data?.message || "Failed to login");
+        const errorMessage = error?.message || "Login failed";
+        setErrors({ email: errorMessage });
+        Toast("error", errorMessage);
       } finally {
         setSubmitting(false);
       }

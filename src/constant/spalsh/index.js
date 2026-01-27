@@ -47,10 +47,6 @@ export const SPLASH_SCREEN_DATA = {
       label: "Personality Traits",
       link: "/upcoming",
     },
-    {
-      label: "Blog",
-      link: "/blog",
-    },
   ],
   toolikitsTitle: "Toolkits",
   toolkitItems: [

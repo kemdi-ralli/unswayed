@@ -156,12 +156,7 @@ const AppliedJobContainer = ({ id }) => {
       });
       const response = await apiInstance.post(
         `${APPLICANT_APPLY_JOB}/${getAppliedData?.id}/apply`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
       if (response?.data?.status === "success") {
         Toast("success", response?.data?.message);

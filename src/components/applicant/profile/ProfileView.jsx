@@ -130,12 +130,10 @@ const ProfileView = ({
           `${APPLICANT_EDUCATION}/${editId}`,
           formData,
           {
-            headers: { "Content-Type": "multipart/form-data" },
           }
         );
       } else {
         response = await apiInstance.post(APPLICANT_EDUCATION, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 

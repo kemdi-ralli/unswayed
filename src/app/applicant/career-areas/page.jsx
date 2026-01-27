@@ -15,7 +15,7 @@ import {
 } from "@/helper/MasterGetApiHelper";
 import { useRouter } from "next/navigation";
 import { Toast } from "@/components/Toast/Toast";
-import { CAREER_JOBS, SAVE_JOB } from "@/services/apiService/apiEndPoints";
+import { CAREER_JOBS, EXTERNAL_JOBS, SAVE_JOB } from "@/services/apiService/apiEndPoints";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { encode } from "@/helper/GeneralHelpers";
 import FormTitle from "@/components/applicant/dashboard/FormTitle";
@@ -86,83 +86,120 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
     }
 
     setIsLoadingJobs(true);
+    setErrors(null);
     try {
-      // Build query params with filters including salary and job_kind
-      const params = new URLSearchParams({
-        limit: pageSize.toString(),
-        page: targetBackendPage.toString(),
-        search: encodeURIComponent(query),
-      });
-
-      // Add job_kind filter (all, internal, external)
-      if (dropdownStates.job_kind && dropdownStates.job_kind !== "all") {
-        params.append("job_kind", dropdownStates.job_kind);
+      // Build params object for axios (serialized correctly by axios)
+      const params = {
+        limit: pageSize,
+        page: targetBackendPage,
+      };
+      if (query != null && String(query).trim() !== "") {
+        params.search = String(query).trim();
       }
-
-      // Add salary filters if present
+      if (dropdownStates.job_kind && dropdownStates.job_kind !== "all") {
+        params.job_kind = dropdownStates.job_kind;
+      }
       if (dropdownStates.salary) {
-        params.append("salary", dropdownStates.salary);
+        params.salary_min = dropdownStates.salary;
       }
       if (dropdownStates.salary_max) {
-        params.append("salary_max", dropdownStates.salary_max);
+        params.salary_max = dropdownStates.salary_max;
       }
-
-      // Add salary_currency based on selected country
       if (dropdownStates.country && countries.length > 0) {
-        const selectedCountry = countries.find(c => c.id === dropdownStates.country);
+        const selectedCountry = countries.find((c) => c.id === dropdownStates.country);
         if (selectedCountry) {
-          const currency = countryToCurrency[selectedCountry.name] || "USD";
-          params.append("salary_currency", currency);
+          params.salary_currency = countryToCurrency[selectedCountry.name] || "USD";
         }
       }
-
-      // Add other filters as needed
       if (dropdownStates.country) {
-        params.append("country", dropdownStates.country);
+        params.country = dropdownStates.country;
       }
       if (Array.isArray(dropdownStates.state) && dropdownStates.state.length > 0) {
-        // Backend expects state[] array notation
-        dropdownStates.state.forEach(stateId => {
-          params.append("state[]", stateId);
-        });
+        params.state = dropdownStates.state;
       }
       if (dropdownStates.city) {
-        // Handle city as single value or array
-        if (Array.isArray(dropdownStates.city)) {
-          dropdownStates.city.forEach(cityId => {
-            params.append("city[]", cityId);
-          });
-        } else {
-          params.append("city[]", dropdownStates.city);
-        }
+        params.city = Array.isArray(dropdownStates.city) ? dropdownStates.city : [dropdownStates.city];
       }
       if (Array.isArray(dropdownStates.job_category) && dropdownStates.job_category.length > 0) {
-        params.append("job_category", dropdownStates.job_category.join(","));
+        params.job_category = dropdownStates.job_category.join(",");
       }
       if (dropdownStates.job_location) {
-        params.append("job_location", dropdownStates.job_location);
+        params.job_location = dropdownStates.job_location;
       }
       if (dropdownStates.job_type) {
-        params.append("job_type", dropdownStates.job_type);
+        params.job_type = dropdownStates.job_type;
       }
       if (dropdownStates.job_shift) {
-        params.append("job_shift", dropdownStates.job_shift);
+        params.job_shift = dropdownStates.job_shift;
       }
       if (dropdownStates.experience_level) {
-        params.append("experience_level", dropdownStates.experience_level);
+        params.experience_level = dropdownStates.experience_level;
       }
       if (Array.isArray(dropdownStates.skills) && dropdownStates.skills.length > 0) {
-        params.append("skills", dropdownStates.skills.join(","));
+        params.skills = dropdownStates.skills.join(",");
       }
 
       let backendJobs = [];
+      let pagination = null;
+      const includeExternal =
+        !dropdownStates.job_kind || dropdownStates.job_kind === "all" || dropdownStates.job_kind === "external";
+
       try {
-        const resp = await apiInstance.get(`${CAREER_JOBS}?${params.toString()}`);
-        backendJobs = resp?.data?.data?.jobs || [];
+        const resp = await apiInstance.get(CAREER_JOBS, { params });
+        const d = resp?.data?.data;
+        backendJobs =
+          (Array.isArray(d?.jobs) && d.jobs) ||
+          (Array.isArray(resp?.data?.jobs) && resp.data.jobs) ||
+          (Array.isArray(d) && d) ||
+          [];
+        pagination = d?.pagination || resp?.data?.pagination || null;
       } catch (err) {
         console.error("Backend CAREER_JOBS fetch failed:", err);
         setErrors(err?.response?.data?.message || err?.message || err);
         Toast("error", "Failed to load jobs");
+      }
+
+      if (includeExternal) {
+        try {
+          const extParams = { limit: pageSize, page: targetBackendPage };
+          if (query != null && String(query).trim() !== "") extParams.search = String(query).trim();
+          // external-jobs has optional auth; call without token so unauthenticated/expired users still see jobs
+          const extResp = await apiInstance.get(EXTERNAL_JOBS, {
+            params: extParams,
+            skipAuth: true,
+          });
+          const raw = extResp?.data;
+          const extList =
+            (Array.isArray(raw?.data?.jobs) && raw.data.jobs) ||
+            (Array.isArray(raw?.jobs) && raw.jobs) ||
+            (Array.isArray(raw?.data) && raw.data) ||
+            (Array.isArray(raw) && raw) ||
+            [];
+          const normalized = extList.map((j) => ({
+            ...j,
+            id: j.id ?? j.job_id,
+            title: j.title ?? j.job_title,
+            job_apply_link: j.apply_link ?? j.job_apply_link ?? j.job_link ?? j.application_url,
+            type: "external",
+            _source: "external",
+            job_kind: "external",
+            country: j.country ?? (typeof j.country === "string" ? j.country : null),
+            job_city: j.city ?? j.job_city ?? j.location,
+            is_saved: !!j.is_saved,
+            is_applied: !!j.is_applied,
+          }));
+          const seen = new Set((backendJobs || []).map((x) => x?.id));
+          for (const n of normalized) {
+            const id = n?.id ?? n?.title;
+            if (id && !seen.has(id)) {
+              backendJobs = backendJobs || [];
+              backendJobs.push(n);
+              seen.add(id);
+            }
+          }
+        } catch (err) {
+          console.error("Backend EXTERNAL_JOBS fetch failed:", err);
+        }
       }
 
       // Set jobs (reset or append)
@@ -172,8 +209,10 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
         setJobs((prev) => [...prev, ...backendJobs]);
       }
 
-      // Compute hasMore
-      const backendHasMore = backendJobs.length === pageSize;
+      // Compute hasMore: use data.pagination when present (per spec), else fallback
+      const backendHasMore = pagination != null
+        ? (pagination.current_page ?? targetBackendPage) < (pagination.last_page ?? 1)
+        : backendJobs.length === pageSize;
       setHasMore(backendHasMore);
 
       if (!reset && backendHasMore) {
@@ -181,8 +220,6 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
       } else if (reset && backendHasMore) {
         setBackendPage(2);
       }
-
-      if (reset) Toast("success", "Filters applied");
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setErrors(err?.message || err);
@@ -203,8 +240,9 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
         setJobTypes(await getJobTypes());
         setCountries(await getCountries());
       } catch (error) {
-        console.error("Error fetching master data:", error);
-        setErrors(error);
+        console.error("Error fetching master data:", error?.response?.data || error);
+        setErrors(error?.response?.data?.message || error?.message || "Failed to load data");
+        Toast("error", error?.response?.data?.message || "Failed to load master data");
       }
     };
     fetchData();
@@ -259,8 +297,9 @@ useEffect(() => {
 
       setStates([]);
     } catch (error) {
-      console.error("Error fetching states:", error);
-      setErrors(error);
+      console.error("Error fetching states:", error?.response?.data || error);
+      setErrors(error?.response?.data?.message || "Failed to load states");
+      Toast("error", error?.response?.data?.message || "Failed to load states");
       setStates([]);
     } finally {
       // Always reset dependent fields
@@ -322,6 +361,7 @@ setIsLoadingCities(false);
     setSearch(q === null ? search : q);
     setBackendPage(1);
     await fetchAndAppendJobs({ reset: true, searchQuery: q === null ? search : q });
+    Toast("success", "Filters applied");
   };
 
   const handleClearFilters = async () => {

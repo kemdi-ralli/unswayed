@@ -1,9 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
 import Image from "next/image";
 import FormTitle from "../applicant/dashboard/FormTitle";
+
+const COUNTDOWN_SECONDS = 3 * 60; // 3 minutes
+
+const formatCountdown = (seconds) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+};
 
 const EmailVerification = ({
   data,
@@ -17,6 +25,22 @@ const EmailVerification = ({
   loading,
   required,
 }) => {
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(COUNTDOWN_SECONDS);
+
+  useEffect(() => {
+    if (resendSecondsLeft <= 0) return;
+    const id = setInterval(() => setResendSecondsLeft((prev) => prev - 1), 1000);
+    return () => clearInterval(id);
+  }, [resendSecondsLeft]);
+
+  const onResendClick = () => {
+    if (resendSecondsLeft > 0) return;
+    handleResendCode?.();
+    setResendSecondsLeft(COUNTDOWN_SECONDS);
+  };
+
+  const resendDisabled = resendSecondsLeft > 0;
+
   return (
     <Box
       sx={{
@@ -106,19 +130,32 @@ const EmailVerification = ({
             pb: 4,
           }}
         >
+          {resendDisabled && (
+            <Typography
+              sx={{
+                fontSize: "14px",
+                lineHeight: "18px",
+                color: "#00305B",
+                mb: 0.5,
+              }}
+            >
+              Resend in {formatCountdown(resendSecondsLeft)}
+            </Typography>
+          )}
           <Button
             type="button"
+            disabled={resendDisabled}
             sx={{
               fontSize: "16px",
               lineHeight: "18px",
               textDecoration: "underline",
               color: "#00305B",
-              cursor: "pointer",
+              cursor: resendDisabled ? "default" : "pointer",
               "&:hover": {
                 textDecoration: "underline",
               },
             }}
-            onClick={handleResendCode}
+            onClick={onResendClick}
           >
             Resend Verification Code
           </Button>

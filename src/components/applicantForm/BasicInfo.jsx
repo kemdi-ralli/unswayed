@@ -28,7 +28,8 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { Loader } from "@googlemaps/js-api-loader";
 import * as Yup from "yup";
-import { formatPhoneNumber, extractPhoneNumbers } from "@/utils/phoneFormatter";
+import PhoneNumberField from "./PhoneNumberField";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 const BasicInfo = ({
   data,
@@ -59,25 +60,28 @@ const BasicInfo = ({
       : applicantBasicInfoValidationSchema;
   };
 
-  // Validate a single field
+  // Validate a single field (skip if schema has no path for this field to avoid "schema does not contain the path" errors)
   const validateField = async (fieldName, value) => {
     try {
       const schema = getSchema();
+      if (!schema.fields || !(fieldName in schema.fields)) {
+        setValidationErrors((prev) => {
+          const next = { ...prev };
+          delete next[fieldName];
+          return next;
+        });
+        return true;
+      }
       const fieldSchema = Yup.reach(schema, fieldName);
       await fieldSchema.validate(value);
-      
-      // Clear error for this field if valid
       setValidationErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[fieldName];
-        return newErrors;
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
       });
       return true;
     } catch (error) {
-      setValidationErrors((prev) => ({
-        ...prev,
-        [fieldName]: error.message,
-      }));
+      setValidationErrors((prev) => ({ ...prev, [fieldName]: error.message }));
       return false;
     }
   };
@@ -98,24 +102,36 @@ const BasicInfo = ({
   };
 
   const validateForm = async () => {
+    const newErrors = {};
+    // Phone: max 15 digits excluding country code (dashes not counted)
+    if (formData.phone) {
+      const parsed = parsePhoneNumberFromString(formData.phone);
+      if (parsed) {
+        const nationalDigits = String(parsed.nationalNumber || "").replace(/\D/g, "");
+        if (nationalDigits.length > 15) {
+          newErrors.phone = "Phone number must have at most 15 digits (excluding country code).";
+        }
+      }
+    }
     try {
       const schema = getSchema();
       await schema.validate(formData, { abortEarly: false });
+      if (Object.keys(newErrors).length > 0) {
+        setTouchedFields((prev) => ({ ...prev, phone: true }));
+        setValidationErrors(newErrors);
+        return false;
+      }
       setValidationErrors({});
       return true;
     } catch (validationErrors) {
-      const newErrors = validationErrors.inner.reduce((acc, error) => {
-        acc[error.path] = error.message;
-        return acc;
-      }, {});
-      
-      // Mark all fields as touched
+      validationErrors.inner?.forEach((err) => {
+        newErrors[err.path] = err.message;
+      });
       const allTouched = {};
       data?.form?.forEach((item) => {
         allTouched[item.name] = true;
       });
       setTouchedFields(allTouched);
-      
       setValidationErrors(newErrors);
       return false;
     }
@@ -306,62 +322,40 @@ const BasicInfo = ({
                 />
               </LocalizationProvider>
             ) : item.name === "phone" ? (
-              // Phone Number with Auto-Formatting: (+1)-234-567-8900
-              <Box
-                component="input"
-                type="tel"
-                placeholder="(+1)-234-567-8900"
-                value={formData[item.name] || ""}
-                onChange={(e) => {
-                  const formatted = formatPhoneNumber(e.target.value);
-                  onFieldChange(item.name, formatted);
-                  setTouchedFields((prev) => ({ ...prev, phone: true }));
-                  
-                  // Validate phone (must be 11 digits: 1 country code + 10 number)
-                  const numbers = extractPhoneNumbers(formatted);
-                  if (numbers.length > 0 && numbers.length < 11) {
-                    setValidationErrors((prev) => ({
-                      ...prev,
-                      phone: "Phone number must be 11 digits in format (+1)-234-567-8900",
-                    }));
-                  } else {
-                    setValidationErrors((prev) => {
-                      const { phone, ...rest } = prev;
-                      return rest;
-                    });
-                  }
-                }}
-                onBlur={() => {
-                  setTouchedFields((prev) => ({ ...prev, phone: true }));
-                  const numbers = extractPhoneNumbers(formData[item.name] || "");
-                  if (numbers.length > 0 && numbers.length < 11) {
-                    setValidationErrors((prev) => ({
-                      ...prev,
-                      phone: "Phone number must be 11 digits in format (+1)-234-567-8900",
-                    }));
-                  }
-                }}
-                sx={{
-                  width: "100%",
-                  border: "none",
-                  outline: "none",
-                  fontSize: "16px",
-                  fontWeight: 300,
-                  padding: "18px 20px",
-                  borderRadius: "10px",
-                  color: "#222222",
-                  ...getInputErrorSx("phone"),
-                  "&::placeholder": {
-                    color: "#00000040",
-                    fontSize: "16px",
-                  },
-                  "&:focus": {
-                    boxShadow: shouldShowError("phone")
-                      ? "0px 0px 3px 2px #ff000060"
-                      : "0px 0px 5px #00305B80",
-                  },
-                }}
-              />
+              // Phone with country-code selector; validation: max 15 digits excluding country code (dashes not counted)
+              <Box sx={{ "& .PhoneInput": { width: "100%" } }}>
+                <PhoneNumberField
+                  value={formData[item.name] || ""}
+                  placeholder={item.placeHolder || "Phone number"}
+                  error={shouldShowError("phone") ? mergedErrors.phone : undefined}
+                  handlePhoneNumberChange={(phone) => {
+                    onFieldChange(item.name, phone || "");
+                    setTouchedFields((prev) => ({ ...prev, phone: true }));
+                    if (!phone) {
+                      setValidationErrors((prev) => {
+                        const { phone: _p, ...rest } = prev;
+                        return rest;
+                      });
+                      return;
+                    }
+                    const parsed = parsePhoneNumberFromString(phone);
+                    if (parsed) {
+                      const nationalDigits = String(parsed.nationalNumber || "").replace(/\D/g, "");
+                      if (nationalDigits.length > 15) {
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          phone: "Phone number must have at most 15 digits (excluding country code).",
+                        }));
+                      } else {
+                        setValidationErrors((prev) => {
+                          const { phone: _p, ...rest } = prev;
+                          return rest;
+                        });
+                      }
+                    }
+                  }}
+                />
+              </Box>
             ) : ["country", "state", "city", "ethnicity", "gender"].includes(
                 item.name
               ) ? (

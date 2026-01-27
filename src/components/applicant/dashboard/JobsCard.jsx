@@ -23,7 +23,7 @@ const JobsCard = ({ item, handleEasyApply, handleCard, handleJobSaved }) => {
    *    - These jobs have job_apply_link for external application
    *****************************************************************************************/
 
-  const isExternal = item?.type === "external" || item?.job_kind === "external";
+  const isExternal = item?.type === "external" || item?.job_kind === "external" || item?._source === "external";
 
   /****************************************************************************************
    * EXTRACT EXTERNAL APPLY LINK

@@ -36,7 +36,7 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
   const today = new Date().toISOString().split("T")[0];
 
   // Detect external jobs from backend
-  const isExternal = data?.type === "external" || data?.job_kind === "external";
+  const isExternal = data?.type === "external" || data?.job_kind === "external" || data?._source === "external";
 
   // Format salary
   const addCommaToString = (num) => {

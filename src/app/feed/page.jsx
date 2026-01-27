@@ -71,10 +71,8 @@ const Page = () => {
   // Unfollow work
   const handleFollowUnfollow = async (userId) => {
     handleMenuClose();
-    const formData = new FormData();
-    formData.append("following_user_id", userId);
     try {
-      const response = await apiInstance.post(FOLLOW_USER, formData);
+      const response = await apiInstance.post(FOLLOW_USER, { following_user_id: userId });
       if (response.status === 200 || 201) {
         Toast("success", response?.data?.message);
         setIsFollowing((prevState) => !prevState);
@@ -120,14 +118,8 @@ const Page = () => {
 
     setLikeLoading((prev) => ({ ...prev, [postId]: true }));
 
-    const formData = new FormData();
-    formData.append("post_id", postId);
     try {
-      const response = await apiInstance?.post("/post/like", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await apiInstance?.post("/post/like", { post_id: postId });
       if (response?.status === 200 || response?.status === 201) {
         Toast("success", response?.data?.message || "Post liked successfully");
         setLikedPostIds(response?.data?.message);
@@ -201,12 +193,7 @@ const Page = () => {
 
       const response = await apiInstance.post(
         `${REPORT_POST}/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        formData
       );
 
       if (response?.status === 200 || response?.status === 201) {
@@ -360,11 +347,7 @@ const Page = () => {
     if (isCreatePost) {
       try {
         setLoading(true);
-        const response = await apiInstance.post("posts", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await apiInstance.post("posts", formData);
         Toast("success", response?.data?.message);
         setInputValue("");
         setMedia(null);
@@ -384,11 +367,7 @@ const Page = () => {
     } else {
       try {
         setLoading(true);
-        const response = await apiInstance.post(`posts/${id}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await apiInstance.post(`posts/${id}`, formData);
         Toast("success", response?.data?.message);
         setInputValue("");
         setMedia(null);

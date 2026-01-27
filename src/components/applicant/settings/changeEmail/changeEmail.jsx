@@ -98,12 +98,12 @@ const ChangeEmail = ({ type }) => {
 
     if (!isValid) return;
 
-    const formData = new FormData();
-    formData.append("email", Email);
-    formData.append("password", CurrentPassword);
     setLoading(true);
     try {
-      const response = await apiInstance.post(CHANGE_EMAIL, formData);
+      const response = await apiInstance.post(CHANGE_EMAIL, {
+        email: Email,
+        password: CurrentPassword,
+      });
       if (response.status === 200 || response.status === 201) {
         Toast("success", response.data.message);
         nextStep();

@@ -20,11 +20,6 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "unswayed.onrender.com",
-        pathname: "/storage/assets/blogs/**",
-      },
-      {
-        protocol: "https",
-        hostname: "unswayed.onrender.com",
         pathname: "/storage/assets/posts/media/**",
       },
       {

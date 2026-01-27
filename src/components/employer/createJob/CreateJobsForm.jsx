@@ -319,9 +319,16 @@ const CreateJobsForm = ({
   const getCountries = async () => {
     try {
       const response = await apiInstance.get(COUNTRIES);
-      setCountries(response?.data?.data?.countries || []);
+      // Handle multiple possible response structures
+      const countries = response?.data?.data?.countries || 
+                       response?.data?.countries || 
+                       response?.data || 
+                       [];
+      setCountries(Array.isArray(countries) ? countries : []);
     } catch (error) {
+      console.error("Error fetching countries:", error?.response?.data || error);
       setErrors(error?.response?.data?.message || "Failed to load countries");
+      Toast("error", error?.response?.data?.message || "Failed to load countries");
     }
   };
 
@@ -466,7 +473,12 @@ const CreateJobsForm = ({
         setLoadingStates(true);
         try {
           const response = await apiInstance.get(`${STATES}/${form?.country}`);
-          let _states = response?.data?.data?.states || [];
+          // Handle multiple possible response structures
+          let _states = response?.data?.data?.states || 
+                       response?.data?.states || 
+                       response?.data || 
+                       [];
+          _states = Array.isArray(_states) ? _states : [];
 
           // Handle US territories for country 233
           if (form?.country === 233) {
@@ -639,7 +651,7 @@ const CreateJobsForm = ({
 
   const handleModal = () => {
     setModalOpen(false);
-    router.push(`/employer/manage-jobs`);
+    router.push(`/employer/my-posts`);
   };
 
   // --- Validation / Submit: filter out "Other" placeholder IDs before sending to backend ---

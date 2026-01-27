@@ -35,6 +35,7 @@ export const ANOTHER_EMAIL = "/correct-email";
 // Applicant endpoints
 
 export const CAREER_JOBS = "applicant/career-jobs";
+export const EXTERNAL_JOBS = "applicant/external-jobs";
 export const CAREER_JOBS_DETAILS = "job-detail";
 export const ATTACHED_CV = "applicant/resume/upload";
 export const COUNTRIES = "/countries";
@@ -55,6 +56,7 @@ export const APPLICANT_GET_RESUMES = "/applicant/resume/resumes";
 export const APPLICANT_DELETE_RESUMES = "/applicant/resume/delete";
 export const APPLICANT_REPLACE_RESUME = "/applicant/resume/update";
 export const APPLICANT_RENAME_RESUME = "/applicant/resume/rename";
+export const APPLICANT_UPDATE_RESUME_TITLE = "/applicant/resume/update-title";
 export const APPLICANT_APPLY_JOB = "/applicant/job";
 export const DISABILITIES = "/disabilities";
 export const SAVE_JOB = "/applicant/job-save";
@@ -71,12 +73,6 @@ export const CHANGE_SETTING = "/settings/change-setting";
 export const UPDATE_PROFILE_PIC = "/applicant/change-profile-pic";
 export const ETHNICITIES = "/ethnicities";
 export const APPLICANT_EDUCATION = "/applicant/education";
-export const BLOGS = "/blogs";
-export const BLOG_CATEGORIES = "/blogs/categories";
-export const BLOG_LIKE = "/blog-like";
-export const BLOG_COMMENT = "/blog-comment";
-export const BLOG_SHARE_STAT = "/blog-share";
-export const BLOG_SHARE_CHAT = "/blogs/share";
 
 // Employer EndPoints
 export const EMPLOYER_REGISTRATION = "/employer/register";
@@ -96,3 +92,11 @@ export const REPORT_POST = "/post/report-post"
 export const EMPLOYER_SOCIAL_LOGIN = "/employer/social-login";
 export const DEACTIVATE_ACCOUNT = "/settings/deactivate-account";
 export const REACTIVATE_ACCOUNT = "/settings/reactivate-account";
+
+// Blog (public list/detail; auth for like and comments CUD)
+export const BLOGS = "blogs";
+export const BLOG_LIKE = "blogs/like";
+export const blogDetail = (id) => `blogs/${id}`;
+export const blogComments = (id) => `blogs/${id}/comments`;
+export const blogCommentUpdate = (id) => `blogs/comments/${id}`;
+export const blogCommentDelete = (id) => `blogs/comments/${id}`;

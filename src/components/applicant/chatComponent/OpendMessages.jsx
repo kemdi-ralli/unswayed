@@ -108,13 +108,11 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
   }, [Messages]);
 
   const onSendMessage = async () => {
-    const formData = new FormData();
-    formData.append("content", newMessage);
     if (EditMessage) {
       try {
         const response = await apiInstance.post(
           `chats/${chatUser.id}/update-message/${EditMessage.id}`,
-          formData
+          { content: newMessage }
         );
         if (response.status === 200 || response.status === 201) {
           Toast("success", response.data.message);
@@ -129,7 +127,7 @@ const OpendMessages = ({ chatUser, toggleDrawer }) => {
       try {
         const response = await apiInstance.post(
           `chats/${chatUser.id}/send-message`,
-          formData
+          { content: newMessage }
         );
         if (response.status === 200 || response.status === 201) {
           setNewMessage("");

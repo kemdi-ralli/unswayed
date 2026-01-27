@@ -20,10 +20,7 @@ const PasswordRecovery = ({ setUserEmail = () => { } }) => {
       await emailValidation.validate(email);
       setLoading(true);
   
-      const formData = new FormData();
-      formData.append("email", email);
-  
-      const response = await apiInstance.post(SEND_RESET_OTP, formData);
+      const response = await apiInstance.post(SEND_RESET_OTP, { email });
       if (response.status === 200 || response.status === 201) {
         setUserEmail(email);
         Toast("success", response?.data?.message);

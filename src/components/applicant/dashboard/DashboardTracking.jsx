@@ -67,9 +67,7 @@ const DashboardTracking = () => {
   const getTracking = async (req_num = '') => {
     if (!req_num) return;
     try {
-      const formData = new FormData();
-      formData.append("requisition_number", req_num);
-      const response = await apiInstance?.post(APPLICATION_TRACKING, formData);
+      const response = await apiInstance?.post(APPLICATION_TRACKING, { requisition_number: req_num });
       const application = response?.data?.data?.application;
       if (application) {
         Toast("success", response?.data?.message);

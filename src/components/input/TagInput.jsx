@@ -30,7 +30,7 @@ const Tag = ({ data, handleDelete }) => {
 export default function TagInput({
   tags = [],
   setTags = () => {},
-  placeholder = "Enter tags",
+  placeholder = "Enter Skills Here",
 }) {
   const tagRef = useRef();
 

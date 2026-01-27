@@ -21,12 +21,11 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
     ) {
       type === 'accept' ? setAcceptLoading(true) : setDeclineLoading(true);
       try {
-        const formData = new FormData();
-        formData.append("type", type);
+        const payload = { type };
         if (type === 'decline') {
-          formData.append("reason", reason); // ✅ add reason when declining
+          payload.reason = reason;
         }
-        const response = await applicantOfferResponse(item?.id, formData);
+        const response = await applicantOfferResponse(item?.id, payload);
         if (response?.data?.status === 'success') {
           window.location.href = window.location.href;
         }

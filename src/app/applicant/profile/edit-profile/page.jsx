@@ -79,7 +79,6 @@ const Page = () => {
 
       const response = await apiInstance.post(UPDATE_PROFILE_PIC, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
         },
       });
       if (response.status === 200 || response.status === 201) {

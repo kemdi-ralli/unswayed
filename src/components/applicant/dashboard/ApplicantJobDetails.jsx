@@ -28,17 +28,7 @@ const ApplicantJobDetails = ({
   };
 
   const visibleJobs = Array.isArray(data)
-    ? data.filter(
-        (job) =>
-          !job?.is_applied &&
-          isOpen(job) &&
-          !(
-            (job?.job_apply_link && job.job_apply_link.includes("linkedin.com")) ||
-            (job?.job_apply_link && job.job_apply_link.includes("indeed.com")) ||
-            (job?._raw && ((job._raw.job_apply_link || "").includes("linkedin.com"))) ||
-            (job?._raw && ((job._raw.job_apply_link || "").includes("indeed.com")))
-          )
-      )
+    ? data.filter((job) => !job?.is_applied && isOpen(job))
     : [];
 
   return (

@@ -61,8 +61,19 @@ export const getJobTypes = async () => {
 export const getCountries = async () => {
   try {
     const response = await apiInstance.get(COUNTRIES);
-    return response?.data?.data?.countries || [];
+    // Handle multiple possible response structures
+    const countries = response?.data?.data?.countries || 
+                     response?.data?.countries || 
+                     response?.data || 
+                     [];
+    console.log("Countries response structure:", { 
+      hasDataData: !!response?.data?.data, 
+      hasData: !!response?.data,
+      count: Array.isArray(countries) ? countries.length : 0 
+    });
+    return Array.isArray(countries) ? countries : [];
   } catch (error) {
+    console.error("getCountries error:", error?.response?.data || error);
     throw error?.response?.data?.message || "Failed to load countries";
   }
 };
@@ -77,17 +88,43 @@ export const getEthnicity = async () => {
 export const getGenders = async () => {
   try {
     const response = await apiInstance.get(GENDERS);
-    return response?.data?.data?.genders || [];
+    // Handle multiple possible response structures
+    const genders = response?.data?.data?.genders || 
+                   response?.data?.genders || 
+                   response?.data || 
+                   [];
+    console.log("Genders response structure:", { 
+      hasDataData: !!response?.data?.data, 
+      hasData: !!response?.data,
+      count: Array.isArray(genders) ? genders.length : 0 
+    });
+    return Array.isArray(genders) ? genders : [];
   } catch (error) {
-    throw error?.response?.data?.message || "Failed to load countries";
+    console.error("getGenders error:", error?.response?.data || error);
+    throw error?.response?.data?.message || "Failed to load genders";
   }
 };
 
 export const getStates = async (countryId) => {
   try {
     const response = await apiInstance.get(`${STATES}/${countryId}`);
-    return response?.data?.data?.states || [];
+    // Handle multiple possible response structures
+    const states = response?.data?.data?.states || 
+                  response?.data?.states || 
+                  response?.data || 
+                  [];
+    console.log("States response structure:", { 
+      countryId,
+      hasDataData: !!response?.data?.data, 
+      hasData: !!response?.data,
+      count: Array.isArray(states) ? states.length : 0 
+    });
+    return Array.isArray(states) ? states : [];
   } catch (error) {
+    console.error("getStates error:", { 
+      countryId, 
+      error: error?.response?.data || error 
+    });
     throw error?.response?.data?.message || "Failed to load states";
   }
 };

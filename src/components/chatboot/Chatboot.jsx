@@ -20,11 +20,8 @@ const Chatboot = () => {
         const userMessage = { sender: "user", text: newMessage };
         setConversation(prev => [...prev, userMessage]);
 
-        const formData = new FormData();
-        formData.append("question", newMessage);
-
         try {
-            const response = await apiInstance.post(`/ai/assistant`, formData);
+            const response = await apiInstance.post(`/ai/assistant`, { question: newMessage });
             if (response.status === 200 || response.status === 201) {
                 const data = response?.data?.data?.answer;
                 const botReply = { sender: "bot", text: data };
