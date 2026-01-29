@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -17,11 +17,23 @@ import { useDispatch } from "react-redux";
 import { clearUserDataLogout } from "@/redux/slices/authSlice";
 import { Toast } from "@/components/Toast/Toast";
 
+const PRELOADER_DELAY_MS = 300;
+
 const DeactivatedAccountModal = ({ open, userType = "applicant", deactivatedAt }) => {
   const [loading, setLoading] = useState(false);
   const [reactivationRequested, setReactivationRequested] = useState(false);
+  const [contentReady, setContentReady] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
 
   // Format deactivation date
   const formatDate = (timestamp) => {
@@ -122,7 +134,11 @@ const DeactivatedAccountModal = ({ open, userType = "applicant", deactivatedAt }
           },
         }}
       >
-        {!reactivationRequested ? (
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 280 }}>
+            <CircularProgress size={48} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : !reactivationRequested ? (
           <>
             {/* Header Section */}
             <Box sx={{ textAlign: "center", mb: 4 }}>

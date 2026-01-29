@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { 
   Box, Button, Typography, Dialog, DialogTitle, DialogContent, 
-  TextField, DialogActions, RadioGroup, FormControlLabel, Radio 
+  TextField, DialogActions, RadioGroup, FormControlLabel, Radio, CircularProgress 
 } from "@mui/material";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { Toast } from "@/components/Toast/Toast";
 import { applicantInterviewResponse } from "@/helper/ApplicationActionHelper";
+
+const PRELOADER_DELAY_MS = 300;
 
 const DECLINE_REASONS = [
   "Scheduling conflict",
@@ -54,6 +56,16 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
   // decline popup state
   const [openDeclinePopup, setOpenDeclinePopup] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [declineDialogContentReady, setDeclineDialogContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!openDeclinePopup) {
+      setDeclineDialogContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setDeclineDialogContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [openDeclinePopup]);
 
   const handleSelect = (date) => {
     if (userType !== 'employer' && item?.status === 'pending') {
@@ -222,6 +234,12 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
       >
         <DialogTitle sx={{ fontWeight: 700, color: "#00305B" }}>Decline Interview</DialogTitle>
         <DialogContent>
+          {!declineDialogContentReady ? (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200, py: 3 }}>
+              <CircularProgress size={40} sx={{ color: "#00305B" }} />
+            </Box>
+          ) : (
+            <>
           <Typography sx={{ fontSize: "14px", mb: 2, color: "#555" }}>
             Please select a reason for declining this interview invite:
           </Typography>
@@ -250,6 +268,8 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
             />
+          )}
+            </>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>

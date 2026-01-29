@@ -1,11 +1,14 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Close } from '@mui/icons-material';
 import { employerApplicationAction } from '@/helper/ApplicationActionHelper';
 import CandidateReject from '../employer/dashboard/CandidateReject';
 import InterviewInvite from '../employer/dashboard/InterviewInvite';
 import OfferLetter from '../employer/dashboard/OfferLetter';
+
+const PRELOADER_DELAY_MS = 350;
 
 const style = {
     position: 'absolute',
@@ -29,9 +32,19 @@ const ApplicationActionModal = ({
     onClose, 
     actionType = '', 
     applicationId = null,
-    rejectionReason = '' // NEW PROP: Receive rejection reason from parent
+    rejectionReason = ''
 }) => {
-    
+    const [contentLoading, setContentLoading] = React.useState(true);
+    React.useEffect(() => {
+        if (open) {
+            setContentLoading(true);
+            const t = setTimeout(() => setContentLoading(false), PRELOADER_DELAY_MS);
+            return () => clearTimeout(t);
+        } else {
+            setContentLoading(true);
+        }
+    }, [open]);
+
     const onAction = async (payload) => {
         // If rejecting, ensure the reason is included in the payload
         if (actionType === 'Reject' && rejectionReason) {
@@ -69,24 +82,23 @@ const ApplicationActionModal = ({
                         onClick={() => onClose()}
                     />
                 </Box>
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    py: 4.5
-                }}>
-                    {actionType === "Reject" && (
-                        <CandidateReject 
-                            onAction={onAction} 
-                            onClose={onClose} 
-                            rejectionReason={rejectionReason} // Pass reason to CandidateReject if needed
-                        />
-                    )}
-                    {actionType === "Interview" && (
-                        <InterviewInvite ucn={ucn} onAction={onAction} />
-                    )}
-                    {(actionType === "OfferLetter" || actionType === "CounterOfferLetter") && (
-                        <OfferLetter ucn={ucn} type={actionType} onAction={onAction} />
+                <Box sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', py: 4.5, minHeight: 200 }}>
+                    {contentLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
+                            <CircularProgress sx={{ color: '#189e33ff' }} />
+                        </Box>
+                    ) : (
+                        <>
+                            {actionType === "Reject" && (
+                                <CandidateReject onAction={onAction} onClose={onClose} rejectionReason={rejectionReason} />
+                            )}
+                            {actionType === "Interview" && (
+                                <InterviewInvite ucn={ucn} onAction={onAction} />
+                            )}
+                            {(actionType === "OfferLetter" || actionType === "CounterOfferLetter") && (
+                                <OfferLetter ucn={ucn} type={actionType} onAction={onAction} />
+                            )}
+                        </>
                     )}
                 </Box>
             </Box>

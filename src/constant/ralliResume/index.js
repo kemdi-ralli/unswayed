@@ -174,7 +174,7 @@ export const ADD_A_RECENT = {
 };
 export const ADD_A_CERTIFICATIONS = {
   pages: "Build Your Resume (3 of 5)",
-  title: "Do You Want To Add Certification?",
+  title: "Do You Want To Add A Certification?",
 
   form: [
     {

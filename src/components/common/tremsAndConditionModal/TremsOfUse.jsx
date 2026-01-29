@@ -87,7 +87,7 @@ const TremsOfUse = ({
               }}
               onClick={handleOpenTermsModal}
             >
-              RALLi Technologies Terms of Use
+              User Agreement & Consent Form
             </Typography>
           </>
         )}

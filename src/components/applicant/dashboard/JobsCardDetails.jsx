@@ -287,7 +287,13 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
       {displayRequirements && (
         <Box sx={styles.detailsSection}>
           <Typography sx={styles.sectionHeading}>Requirements</Typography>
-          <Typography sx={styles.description}>{displayRequirements}</Typography>
+          <Typography
+            sx={styles.description}
+            component="div"
+            style={{ whiteSpace: "pre-line" }}
+          >
+            {displayRequirements}
+          </Typography>
         </Box>
       )}
 

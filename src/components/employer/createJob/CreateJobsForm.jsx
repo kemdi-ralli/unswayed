@@ -45,7 +45,20 @@ import { useExternalLink } from "@/hooks/useExternalLink";
 const OTHER_CATEGORY_ID = "other_category";
 const OTHER_BENEFIT_ID = "other_benefit";
 
-const PayTransparencyModal = ({ open, onClose }) => (
+const PRELOADER_DELAY_MS = 300;
+
+const PayTransparencyModal = ({ open, onClose }) => {
+  const [contentReady, setContentReady] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  return (
   <Modal open={open} onClose={onClose}>
     <Box
       sx={{
@@ -62,6 +75,12 @@ const PayTransparencyModal = ({ open, onClose }) => (
         p: 4,
       }}
     >
+      {!contentReady ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 240 }}>
+          <CircularProgress size={40} sx={{ color: "#001C63" }} />
+        </Box>
+      ) : (
+        <>
       <Box
         sx={{
           display: "flex",
@@ -135,9 +154,12 @@ const PayTransparencyModal = ({ open, onClose }) => (
       >
         I Understand
       </Button>
+        </>
+      )}
     </Box>
   </Modal>
-);
+  );
+};
 
 const CreateJobsForm = ({
   data,

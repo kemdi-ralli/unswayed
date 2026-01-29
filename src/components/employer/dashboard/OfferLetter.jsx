@@ -105,7 +105,7 @@ const OfferLetter = ({ ucn = '',type = 'OfferLetter', onAction = () => {}}) => {
                 color: "#00305B",
               }}
             >
-              {type === "CounterOfferLetter" ? "Counter Offer Letter" : "Offer Letter"}
+              {type === "CounterOfferLetter" ? "Counteroffer Letter" : "Offer Letter"}
             </Typography>
             <Typography
               sx={{

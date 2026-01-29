@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { Modal, Box, IconButton, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Modal, Box, IconButton, Typography, CircularProgress } from "@mui/material";
 import Image from "next/image";
 import CloseIcon from "@mui/icons-material/Close";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -18,6 +18,8 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
  * - Keyboard navigation (Arrow keys, +/-, 0)
  * - Touch gestures support
  */
+const PRELOADER_DELAY_MS = 300;
+
 const ZoomableSlideshow = ({
   open,
   onClose,
@@ -31,6 +33,16 @@ const ZoomableSlideshow = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
 
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 3;
@@ -159,6 +171,10 @@ const ZoomableSlideshow = ({
           justifyContent: "center",
         }}
       >
+        {!contentReady ? (
+          <CircularProgress size={48} sx={{ color: "white" }} />
+        ) : (
+          <>
         {/* Header Controls */}
         <Box
           sx={{
@@ -364,6 +380,8 @@ const ZoomableSlideshow = ({
               Use + / - to zoom • Arrow keys to navigate • Click and drag when zoomed
             </Typography>
           </Box>
+        )}
+        </>
         )}
       </Box>
     </Modal>

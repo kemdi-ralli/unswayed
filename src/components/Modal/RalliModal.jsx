@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
+import CircularProgress from "@mui/material/CircularProgress";
 import RalliButton from "../button/RalliButton";
 import FilterCareerJobs from "../applicant/dashboard/FilterCareerJobs";
 import { usePathname } from "next/navigation";
 import AddEducation from "../applicant/profile/AddEducation";
+
+const PRELOADER_DELAY_MS = 300;
 
 
 const style = {
@@ -64,6 +67,17 @@ const RalliModal = ({
 
 }) => {
   const pathName = usePathname();
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
   return (
     <Modal
       open={open}
@@ -72,6 +86,12 @@ const RalliModal = ({
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200, py: 4 }}>
+            <CircularProgress size={40} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : (
+          <>
         <Box
           sx={{
             display: "flex",
@@ -146,6 +166,8 @@ const RalliModal = ({
         <Box sx={{pt:1.5}}>
           <RalliButton label={buttonLabel} onClick={onClick} />
         </Box>
+        </>
+        )}
       </Box>
     </Modal>
   );

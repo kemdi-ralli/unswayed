@@ -1,6 +1,6 @@
 //RegistrationInfo.jsx
 import React, { useState, useEffect } from "react";
-import { Box, Button, Typography, IconButton, Modal } from "@mui/material";
+import { Box, Button, Typography, IconButton, Modal, CircularProgress } from "@mui/material";
 import ArrowCircleLeftRoundedIcon from "@mui/icons-material/ArrowCircleLeftRounded";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -15,8 +15,21 @@ import FormTitle from "@/components/applicant/dashboard/FormTitle";
 import Container from "@/components/common/Container";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
 
+const PRELOADER_DELAY_MS = 300;
+
 // UCN Disclaimer Modal Component
-const UCNDisclaimerModal = ({ open, onClose }) => (
+const UCNDisclaimerModal = ({ open, onClose }) => {
+  const [contentReady, setContentReady] = useState(false);
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  return (
   <Modal open={open} onClose={onClose}>
     <Box
       sx={{
@@ -33,6 +46,12 @@ const UCNDisclaimerModal = ({ open, onClose }) => (
         p: 4,
       }}
     >
+      {!contentReady ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
+          <CircularProgress size={40} sx={{ color: "#00305B" }} />
+        </Box>
+      ) : (
+        <>
       <Box
         sx={{
           display: "flex",
@@ -68,9 +87,12 @@ const UCNDisclaimerModal = ({ open, onClose }) => (
       >
         I Understand
       </Button>
+        </>
+      )}
     </Box>
   </Modal>
-);
+  );
+};
 
 const EmployerRegistrationInfo = ({
   data,

@@ -94,7 +94,11 @@ const EducationRalliInfo = ({ data, onNext, educationDetails }) => {
     let isValid = true;
     let errorMessage = "";
 
-    if (rule.required && (!value || (typeof value === "string" && !value.trim()))) {
+    // is_continue: "No" (false) is valid — no error when user did not graduate
+    if (name === "is_continue" && (value === true || value === false)) {
+      isValid = true;
+      errorMessage = "";
+    } else if (rule.required && (value === null || value === undefined || (typeof value === "string" && !value.trim()))) {
       isValid = false;
       errorMessage = rule.message;
     } else if (rule.minLength && value && value.length < rule.minLength) {
@@ -221,7 +225,11 @@ const EducationRalliInfo = ({ data, onNext, educationDetails }) => {
         let fieldValid = true;
         let errorMessage = "";
 
-        if (rule.required && (value === null || value === undefined || value === "")) {
+        // is_continue: "No" (false) is valid — no error when user did not graduate
+        if (fieldName === "is_continue" && (value === true || value === false)) {
+          fieldValid = true;
+          errorMessage = "";
+        } else if (rule.required && (value === null || value === undefined || value === "")) {
           fieldValid = false;
           errorMessage = rule.message;
         } else if (rule.minLength && value && value.length < rule.minLength) {

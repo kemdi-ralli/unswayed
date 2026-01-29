@@ -1,15 +1,13 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography, Modal, Button } from "@mui/material";
 import AppliedJobs from "../dashboard/AppliedJobs";
 import RalliButton from "@/components/button/RalliButton";
 import { BorderLinearProgress } from "@/helper/progressbar";
 import FormCheckbox from "./FormCheckbox";
 import { useSelector } from "react-redux";
-import RalliModal from "@/components/Modal/RalliModal";
 import { useRouter } from "next/navigation";
-import SelectDropdown from "@/components/applicantForm/SelectDropdown";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
 import BackbuttonWithTitle from "./BackbuttonWithTitle";
 
@@ -26,21 +24,20 @@ const CompleteApplication = ({
   isDisable,
   agreeTerms,
   setAgreeTerms,
+  showSuccessModal = false,
+  setShowSuccessModal,
 }) => {
   const [inputData, setInputData] = useState({});
-  const [isModalOpen, setModalOpen] = useState(false);
   const router = useRouter();
 
   const getApplied = useSelector((state) => state?.appliedJobs?.appliedData);
   const getUserData = useSelector((state) => state?.auth?.userData);
 
-  /* ---------------- Retained Fields ---------------- */
+  /* ---------------- Retained Fields (exclude meet_qualifications & meet_educations so new apps are not pre-selected) ---------------- */
   const retainedFields = [
     "is_adult",
     "authorized_to_work",
     "have_visa",
-    "meet_qualifications",
-    "meet_educations",
     "have_disability",
     "is_veteran",
   ];
@@ -71,8 +68,15 @@ const CompleteApplication = ({
     handleSubmit();
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal?.(false);
+  };
+  const handleGoToDashboard = () => {
+    handleCloseSuccessModal();
+    router.push("/applicant/dashboard");
+  };
+  const handleGoToFeaturedJobs = () => {
+    handleCloseSuccessModal();
     router.push("/applicant/career-areas");
   };
 
@@ -305,35 +309,6 @@ const CompleteApplication = ({
               </>
             }
           />
-          {checkboxStates.have_disability === "yes" && (
-            <>
-              <SelectDropdown
-                disability={disability}
-                dropdownStates={dropdownStates}
-                handleDropdownChange={handleDropdownChange}
-              />
-              <input
-                type="text"
-                name="other_disability"
-                placeholder="Please specify your disability"
-                value={dropdownStates.other_disability || ""}
-                onChange={(e) => handleDropdownChange("other_disability", e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  marginTop: "10px",
-                  border: "1px solid #189e33ff",
-                  borderRadius: "8px",
-                  fontSize: "15px",
-                  outline: "none",
-                  transition: "border-color 0.2s ease",
-                }}
-                onFocus={(e) => (e.target.style.borderColor = "#007bff")}
-                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
-              />
-            </>
-          )}
-
            <FormCheckbox
                       required
                       selectedOption={checkboxStates.is_veteran}
@@ -409,14 +384,47 @@ const CompleteApplication = ({
           />
         </Grid>
 
+        <Modal open={!!showSuccessModal} onClose={handleCloseSuccessModal} aria-labelledby="success-modal-title">
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              maxWidth: 440,
+              width: "90%",
+              bgcolor: "#fff",
+              boxShadow: 24,
+              p: 3,
+              borderRadius: 2,
+              textAlign: "center",
+            }}
+          >
+            <Typography id="success-modal-title" variant="h6" sx={{ fontWeight: 700, color: "#00305B", mb: 1 }}>
+              Application Submitted
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: "#111", mb: 2 }}>
+              Thank you! Your application has been successfully submitted.
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 2 }}>
+              <Button fullWidth variant="contained" sx={{ bgcolor: "#189e33ff", fontWeight: 600 }} onClick={handleGoToDashboard}>
+                Return to Dashboard
+              </Button>
+              <Button fullWidth variant="outlined" sx={{ borderColor: "#00305B", color: "#00305B", fontWeight: 600 }} onClick={handleGoToFeaturedJobs}>
+                Featured Jobs
+              </Button>
+            </Box>
+          </Box>
+        </Modal>
+        {/* Success modal above - RalliModal removed
         <RalliModal
-          open={isModalOpen}
-          onClose={handleCloseModal}
-          onClick={handleCloseModal}
+          open={showSuccessModal}
+          onClose={handleCloseSuccessModal}
+          onClick={handleCloseSuccessModal}
           para="Thank you! Your application has been successfully submitted. We’ll review it shortly and keep you updated on the next steps."
           imageSrc="/assets/images/confirmation.png"
           buttonLabel="Done"
-        />
+        */}
 
         <Grid item xs={12} md={6} sx={{ backgroundColor: "#FAF9F8" }}>
           <AppliedJobs data={getAppliedData} />

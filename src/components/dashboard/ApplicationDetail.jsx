@@ -34,6 +34,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
   const [isRejectionReasonModalOpen, setIsRejectionReasonModalOpen] =
     useState(false);
   const [actionType, setActionType] = useState("");
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState("");
   const [historyData, setHistoryData] = useState({});
 
   const menuId = "primary-search-account-menu";
@@ -83,6 +84,9 @@ const ApplicationDetail = ({ applicationId = null }) => {
     setIsApplicationModalOpen(false);
   };
 
+  const hasOfferDeclined = applicationDetail?.histories?.some(
+    (h) => h?.type === "offer_decline"
+  );
   const menuItems = [
     {
       label: "Candidate Is Not A Match",
@@ -101,10 +105,10 @@ const ApplicationDetail = ({ applicationId = null }) => {
       },
     },
     {
-      label: "Offer Letter",
+      label: hasOfferDeclined ? "Counteroffer Letter" : "Offer Letter",
       icon: <EmailIcon />,
       onClick: () => {
-        handleApplicationAction("OfferLetter");
+        handleApplicationAction(hasOfferDeclined ? "CounterOfferLetter" : "OfferLetter");
         handleMenuClose();
       },
     },
@@ -119,6 +123,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
 
   const handleCloseApplicationActionModal = () => {
     setIsApplicationActionModalOpen(false);
+    setSelectedRejectionReason("");
   };
 
   const handleCloseRejectionReasonModal = () => {
@@ -127,8 +132,8 @@ const ApplicationDetail = ({ applicationId = null }) => {
 
   const handleRejectWithReason = (reason) => {
     setActionType("Reject");
+    setSelectedRejectionReason(reason ?? "");
     setIsRejectionReasonModalOpen(false);
-    // Pass the selected reason to the action modal or handle rejection directly
     setIsApplicationActionModalOpen(true);
   };
 
@@ -471,6 +476,7 @@ const ApplicationDetail = ({ applicationId = null }) => {
             onClose={handleCloseApplicationActionModal}
             actionType={actionType}
             applicationId={applicationId}
+            rejectionReason={selectedRejectionReason}
           />
           <ApplicationDetailModal
             open={isApplicationModalOpen}

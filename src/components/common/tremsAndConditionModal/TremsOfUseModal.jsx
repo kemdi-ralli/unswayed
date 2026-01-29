@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogActions,
@@ -6,8 +6,12 @@ import {
   DialogTitle,
   Button,
   Typography,
+  Box,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+
+const PRELOADER_DELAY_MS = 300;
 
 const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
   [theme.breakpoints.up("xs")]: {
@@ -57,10 +61,27 @@ const StyledDescription = styled(Typography)(({ theme }) => ({
 
 
 const TermsOfUseModal = ({ open, onClose, handleAgree }) => {
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
   return (
     <Dialog open={open} onClose={onClose}>
       <StyledDialogTitle>RALLi Terms of Use</StyledDialogTitle>
       <DialogContent>
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 280, py: 4 }}>
+            <CircularProgress size={40} sx={{ color: "#189e33ff" }} />
+          </Box>
+        ) : (
+          <>
         <StyledDescription>
           Terms of Use for Employers Posting Jobs on UNSWAYED, RALLi
           Technologies, LLC Effective Date: January 1, 2025
@@ -179,6 +200,8 @@ const TermsOfUseModal = ({ open, onClose, handleAgree }) => {
           you have read, understood, and agree to comply with these Terms of
           Use.
         </StyledDescription>
+        </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleAgree} color="primary">

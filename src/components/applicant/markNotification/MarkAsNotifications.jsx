@@ -139,6 +139,21 @@ const MarkAsNotifications = ({ data }) => {
             >
               {item?.description}
             </Typography>
+            {(item?.reason ?? item?.data?.reason) && (
+              <Typography
+                sx={{
+                  fontSize: { xs: "9px", sm: "11px", md: "13px", lg: "14px" },
+                  lineHeight: { xs: "18px", md: "22px" },
+                  fontWeight: 500,
+                  color: "#00305B",
+                  py: 0.5,
+                  pl: 1,
+                  borderLeft: "3px solid #189e33ff",
+                }}
+              >
+                Reason: {item?.reason ?? item?.data?.reason}
+              </Typography>
+            )}
             <Box
               sx={{
                 display: "flex",

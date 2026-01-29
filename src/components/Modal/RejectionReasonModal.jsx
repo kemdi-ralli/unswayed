@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +11,10 @@ import {
   Box,
   Typography,
   TextField,
+  CircularProgress,
 } from "@mui/material";
+
+const PRELOADER_DELAY_MS = 300;
 
 const RejectionReasonModal = ({
   open,
@@ -21,6 +24,16 @@ const RejectionReasonModal = ({
 }) => {
   const [selectedReason, setSelectedReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
 
   const handleReasonChange = (event) => {
     setSelectedReason(event.target.value);
@@ -78,6 +91,11 @@ const RejectionReasonModal = ({
       </DialogTitle>
 
       <DialogContent>
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200, py: 4 }}>
+            <CircularProgress size={40} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : (
         <Box sx={{ pt: 1 }}>
           <Typography
             sx={{
@@ -159,6 +177,7 @@ const RejectionReasonModal = ({
             </Box>
           )}
         </Box>
+        )}
       </DialogContent>
 
       <DialogActions

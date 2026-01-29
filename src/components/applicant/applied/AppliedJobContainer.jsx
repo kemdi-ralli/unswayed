@@ -46,7 +46,8 @@ const AppliedJobContainer = ({ id }) => {
     resume: null,
   });
   const [jobsDetails, setJobsDetails] = useState({});
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { resumes } = useSelector((state) => state.getResume);
 
@@ -160,7 +161,7 @@ const AppliedJobContainer = ({ id }) => {
       );
       if (response?.data?.status === "success") {
         Toast("success", response?.data?.message);
-        router.push("/applicant/dashboard");
+        setShowSuccessModal(true);
       }
     } catch (err) {
       setErrors(err);
@@ -240,6 +241,8 @@ const AppliedJobContainer = ({ id }) => {
         isDisable={isDisable}
         agreeTerms={agreeTerms}
         setAgreeTerms={setAgreeTerms}
+        showSuccessModal={showSuccessModal}
+        setShowSuccessModal={setShowSuccessModal}
       />
     </Wizard>
   ) : (
@@ -285,6 +288,8 @@ const AppliedJobContainer = ({ id }) => {
         isDisable={isDisable}
         agreeTerms={agreeTerms}
         setAgreeTerms={setAgreeTerms}
+        showSuccessModal={showSuccessModal}
+        setShowSuccessModal={setShowSuccessModal}
       />
     </Wizard>
   );

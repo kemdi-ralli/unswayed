@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import renderMenu from "@/helper/MenuHelpers";
-import { Box, Button, IconButton, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { Box, Button, IconButton, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import DescriptionIcon from "@mui/icons-material/Description";
@@ -26,15 +26,27 @@ import { Toast } from "@/components/Toast/Toast";
 
 dayjs.extend(relativeTime);
 
+const PRELOADER_DELAY_MS = 300;
+
 const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
   const [anchorEls, setAnchorEls] = useState({});
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [currentResumeId, setCurrentResumeId] = useState(null);
   const [newResumeName, setNewResumeName] = useState("");
+  const [dialogContentReady, setDialogContentReady] = useState(false);
   const dispatch = useDispatch();
   const pathName = usePathname();
   const route = useRouter();
   const resumes = useSelector((state) => state?.getResume?.resumes);
+
+  useEffect(() => {
+    if (!renameDialogOpen) {
+      setDialogContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setDialogContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [renameDialogOpen]);
 
   const handleProfileMenuOpen = (event, id) => {
     setAnchorEls((prev) => ({ ...prev, [id]: event.currentTarget }));
@@ -410,6 +422,12 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
           Rename Resume
         </DialogTitle>
         <DialogContent>
+          {!dialogContentReady ? (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 160, py: 3 }}>
+              <CircularProgress size={40} sx={{ color: "#00305B" }} />
+            </Box>
+          ) : (
+            <>
           <Typography
             sx={{
               fontSize: "14px",
@@ -445,6 +463,8 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
               },
             }}
           />
+            </>
+          )}
         </DialogContent>
         <DialogActions sx={{ padding: "16px 24px" }}>
           <Button

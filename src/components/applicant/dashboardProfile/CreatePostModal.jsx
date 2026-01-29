@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Avatar,
   Box,
@@ -15,6 +15,8 @@ import {
   Radio,
   CircularProgress,
 } from "@mui/material";
+
+const PRELOADER_DELAY_MS = 300;
 import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -70,6 +72,17 @@ const CreatePostModal = ({
   isCreatePost,
   loading,
 }) => {
+  const [contentReady, setContentReady] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
+
   const handleClose = () => onClose();
 
   const handleOptionChange = (event) => {
@@ -133,7 +146,11 @@ const CreatePostModal = ({
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
-        {isReportModal && (
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 280 }}>
+            <CircularProgress size={48} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : isReportModal ? (
           <Box
             sx={{
               border: "1px solid #ddd",
@@ -233,9 +250,7 @@ const CreatePostModal = ({
             )}
             <RalliButton label="Submit" onClick={handeSubmitReport} />
           </Box>
-        )}
-
-        {isDelete && (
+        ) : isDelete ? (
           <Box sx={{ textAlign: "center", p: 3 }}>
             <Typography sx={{ mb: 2 }}>
               Are you sure you want to delete?
@@ -244,9 +259,7 @@ const CreatePostModal = ({
               Yes, Delete
             </Button>
           </Box>
-        )}
-
-        {(isEdit || isCreatePost) && !isReportModal && !isDelete && (
+        ) : (isEdit || isCreatePost) ? (
           <>
             <Box
               sx={{
@@ -507,7 +520,7 @@ const CreatePostModal = ({
               </Typography>
             )}
           </>
-        )}
+        ) : null}
       </Box>
     </Modal>
   );

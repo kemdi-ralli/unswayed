@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, TextField, Typography, Modal } from "@mui/material";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
+import { Toast } from "@/components/Toast/Toast";
 import { applicantOfferResponse } from "@/helper/ApplicationActionHelper";
 
 const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData = {} }) => {

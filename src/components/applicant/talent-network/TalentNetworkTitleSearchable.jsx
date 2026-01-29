@@ -72,23 +72,25 @@ const TalentNetworkTitleSearchable = ({
               color: "#222222",
               fontSize: "16px",
               lineHeight: "18px",
-              fontWeight: 400,
+              fontWeight: 600,
               "&::placeholder": {
-                  color: "#2f2f2fff",
-                  fontSize: "14px",
-                  opacity: 1,
+                color: "#111111",
+                fontSize: "14px",
+                fontWeight: 600,
+                opacity: 1,
               },
-          },
+            },
           }}
           inputProps={{
             sx: {
-                "&::placeholder": {
-                    color: "#2f2f2fff",
-                    fontSize: { xs: "12px", md: "14px" },
-                    opacity: 1,
-                },
+              "&::placeholder": {
+                color: "#111111",
+                fontSize: { xs: "12px", md: "14px" },
+                fontWeight: 600,
+                opacity: 1,
+              },
             },
-        }}
+          }}
         sx={{
             flex: 1,
             padding: "10px 15px",

@@ -88,12 +88,23 @@ const Page = () => {
         throw new Error("No credential found");
       }
 
-      const accessToken = result?._tokenResponse?.oauthIdToken;
+      const accessToken = result?.user?.accessToken ?? result?._tokenResponse?.oauthIdToken ?? credential?.accessToken ?? credential?.idToken;
+      if (!accessToken) {
+        Toast("error", "Could not get Google sign-in token");
+        return;
+      }
       await socialLogedIn(router, dispatch, "google", accessToken);
     } catch (error) {
       console.error("Login failed:", error);
-      console.error("Error Code:", error.code);
-      console.error("Error Message:", error.message);
+      const status = error?.response?.status;
+      const msg = error?.response?.data?.message ?? error?.message;
+      if (status === 422) {
+        Toast("error", msg ?? "Google sign-in was rejected. Please try again or use email.");
+      } else if (status === 500) {
+        Toast("error", msg ?? "Server error during sign-in. Please try again later or use email.");
+      } else {
+        Toast("error", msg ?? "Google sign-in failed");
+      }
     }
   };
   const handleAppleLogin = async () => {

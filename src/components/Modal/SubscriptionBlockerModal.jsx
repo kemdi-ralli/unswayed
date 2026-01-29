@@ -15,11 +15,23 @@ import { Check, X } from "lucide-react";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { useRouter } from "next/navigation";
 
+const PRELOADER_DELAY_MS = 300;
+
 const SubscriptionBlockerModal = ({ open, userType = "employer" }) => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState(null);
+  const [contentReady, setContentReady] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!open) {
+      setContentReady(false);
+      return;
+    }
+    const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [open]);
 
   // Static employer plans as fallback
   const staticEmployerPlans = [
@@ -212,6 +224,12 @@ const SubscriptionBlockerModal = ({ open, userType = "employer" }) => {
           },
         }}
       >
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 320 }}>
+            <CircularProgress size={48} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : (
+          <>
         {/* Header Section */}
         <Box sx={{ textAlign: "center", mb: 4 }}>
           <Box
@@ -489,6 +507,8 @@ const SubscriptionBlockerModal = ({ open, userType = "employer" }) => {
             solutions or questions about your subscription.
           </Typography>
         </Box>
+        </>
+        )}
       </Box>
     </Modal>
   );

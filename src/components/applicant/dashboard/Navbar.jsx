@@ -614,7 +614,19 @@ function Navbar({ data }) {
               );
             })}
           </Box>
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+            {userData?.user?.ucn && (
+              <Typography
+                sx={{
+                  fontSize: { xs: "12px", sm: "13px", md: "14px" },
+                  fontWeight: 600,
+                  color: "#00305B",
+                  mr: { xs: 0.5, sm: 1 },
+                }}
+              >
+                UCN: {userData.user.ucn}
+              </Typography>
+            )}
             <Box
               sx={{
                 flexGrow: 1,
@@ -669,6 +681,14 @@ function Navbar({ data }) {
                           color="error"
                           variant="dot"
                           invisible={!showNotificationDot}
+                          sx={{
+                            "& .MuiBadge-badge": {
+                              backgroundColor: "#d32f2f",
+                              minWidth: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                            },
+                          }}
                         >
                           <NotificationsIcon
                             sx={{ fontSize: 25, color: "#000" }}
