@@ -21,8 +21,14 @@ const nextConfig = {
   transpilePackages: ["mui-tel-input"],
 
   images: {
-    domains: [url, "unswayed.onrender.com"],
+    domains: [url, "unswayed.onrender.com", "res.cloudinary.com"],
     remotePatterns: [
+      // Cloudinary: post media and profile pictures (full URLs from API)
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "unswayed.onrender.com",
