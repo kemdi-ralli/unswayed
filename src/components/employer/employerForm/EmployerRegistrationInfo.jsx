@@ -14,6 +14,7 @@ import RalliButton from "@/components/button/RalliButton";
 import FormTitle from "@/components/applicant/dashboard/FormTitle";
 import Container from "@/components/common/Container";
 import TremsOfUse from "@/components/common/tremsAndConditionModal/TremsOfUse";
+import { checkAvailability } from "@/helper/checkAvailabilityHelper";
 
 const PRELOADER_DELAY_MS = 300;
 
@@ -114,6 +115,7 @@ const EmployerRegistrationInfo = ({
 
   const [validationErrors, setValidationErrors] = useState({});
   const [showUCNModal, setShowUCNModal] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const mergedErrors = { ...validationErrors, ...errors };
 
   // Automatically show UCN modal when component mounts
@@ -275,9 +277,43 @@ const EmployerRegistrationInfo = ({
 
   const handleNext = async () => {
     const isValid = await validateForm();
-    if (isValid) {
+    if (!isValid) return;
+
+    const email = formData.email?.trim();
+    const username = formData.username?.trim();
+    if (!email && !username) {
       nextStep(formData);
+      return;
     }
+
+    setIsCheckingAvailability(true);
+    try {
+      const result = await checkAvailability("employer", { email: email || undefined, username: username || undefined });
+      const newErrors = { ...validationErrors };
+      if (result.email && !result.email.available) {
+        newErrors.email = result.email.message || "This email is already registered.";
+      }
+      if (result.username && !result.username.available) {
+        newErrors.username = result.username.message || "This username is already taken.";
+      }
+      if (newErrors.email || newErrors.username) {
+        setValidationErrors(newErrors);
+        setIsCheckingAvailability(false);
+        return;
+      }
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next.email;
+        delete next.username;
+        return next;
+      });
+      nextStep(formData);
+    } catch (err) {
+      setValidationErrors((prev) => ({ ...prev, email: err.message || "Could not verify availability." }));
+      setIsCheckingAvailability(false);
+      return;
+    }
+    setIsCheckingAvailability(false);
   };
 
   return (
@@ -384,7 +420,7 @@ const EmployerRegistrationInfo = ({
           setAgreeTerms={setAgreeTerms}
         />
 
-        <RalliButton label="Next" onClick={handleNext} disabled={!agreeTerms} />
+        <RalliButton label={isCheckingAvailability ? "Checking..." : "Next"} onClick={handleNext} disabled={!agreeTerms || isCheckingAvailability} />
       </Box>
 
       {/* UCN Disclaimer Modal - Auto-opens on mount */}

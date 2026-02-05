@@ -26,10 +26,10 @@ import {
   employerBasicInfoValidationSchema,
 } from "@/schemas/basicInfo";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader } from "@googlemaps/js-api-loader";
 import * as Yup from "yup";
 import PhoneNumberField from "./PhoneNumberField";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { checkAvailability } from "@/helper/checkAvailabilityHelper";
 
 const BasicInfo = ({
   data,
@@ -48,6 +48,7 @@ const BasicInfo = ({
   const { nextStep, previousStep } = useWizard();
   const [validationErrors, setValidationErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const pathName = usePathname();
   const router = useRouter();
 
@@ -152,51 +153,85 @@ const BasicInfo = ({
   };
 
   useEffect(() => {
-    const loader = new Loader({
-      apiKey: GOOGLE_MAPS_API_KEY,
-      libraries: ["places"],
-    });
+    let cancelled = false;
+    import("@googlemaps/js-api-loader").then(({ Loader }) => {
+      if (cancelled) return;
+      const loader = new Loader({
+        apiKey: GOOGLE_MAPS_API_KEY,
+        libraries: ["places"],
+      });
+      loader.load().then(() => {
+        if (cancelled || !inputRef.current) return;
+        const autocomplete = new window.google.maps.places.Autocomplete(
+          inputRef.current,
+          { types: ["geocode"] }
+        );
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          const zip = extractZipCode(place.address_components);
+          const selectedAddress = place.formatted_address || "";
 
-    loader.load().then(() => {
-      if (!inputRef.current) return;
+          if (inputRef.current) {
+            inputRef.current.value = selectedAddress;
+          }
 
-      const autocomplete = new window.google.maps.places.Autocomplete(
-        inputRef.current,
-        { types: ["geocode"] }
-      );
+          onFieldChange("address", selectedAddress);
 
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        const zip = extractZipCode(place.address_components);
-        const selectedAddress = place.formatted_address || "";
+          setDetails({
+            address: selectedAddress,
+            components: place.address_components,
+            location: place.geometry?.location?.toJSON(),
+            zipCode: zip,
+          });
 
-        // Update the input field value with the selected address
-        if (inputRef.current) {
-          inputRef.current.value = selectedAddress;
-        }
-
-        // Update formData
-        onFieldChange("address", selectedAddress);
-        
-        setDetails({
-          address: selectedAddress,
-          components: place.address_components,
-          location: place.geometry?.location?.toJSON(),
-          zipCode: zip,
+          if (zip) {
+            onFieldChange("zip_code", zip);
+          }
         });
-
-        if (zip) {
-          onFieldChange("zip_code", zip);
-        }
       });
     });
+    return () => { cancelled = true; };
   }, []);
 
   const handleNext = async () => {
     const isValid = await validateForm();
-    if (isValid) {
+    if (!isValid) return;
+
+    const phone = formData.phone?.trim();
+    if (!phone) {
       nextStep();
+      return;
     }
+
+    const userType = pathName?.includes("/employer") ? "employer" : "applicant";
+    setIsCheckingAvailability(true);
+    try {
+      const result = await checkAvailability(userType, { phone });
+      if (result.phone && !result.phone.available) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          phone: result.phone.message || "This phone number is already registered.",
+        }));
+        setTouchedFields((prev) => ({ ...prev, phone: true }));
+        setIsCheckingAvailability(false);
+        return;
+      }
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next.phone;
+        return next;
+      });
+      nextStep();
+    } catch (err) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        phone: err.message || "Could not verify phone number.",
+      }));
+      setTouchedFields((prev) => ({ ...prev, phone: true }));
+      setIsCheckingAvailability(false);
+      return;
+    }
+    setIsCheckingAvailability(false);
   };
 
   const handleBack = () => {
@@ -541,7 +576,7 @@ const BasicInfo = ({
 
         {/* Buttons */}
         <Box sx={{ py: 2 }}>
-          <RalliButton label="Next" onClick={handleNext} />
+          <RalliButton label={isCheckingAvailability ? "Checking..." : "Next"} onClick={handleNext} disabled={isCheckingAvailability} />
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "center" }}>

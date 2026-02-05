@@ -26,8 +26,9 @@ const CookieConsent = dynamic(() => import("react-cookie-consent"), {
 export default function CustomLayout({ children }) {
   const pathname = usePathname();
   const { userData } = useSelector((state) => state?.auth);
-  const userType = userData?.user?.type;
   const token = Cookie.get("token");
+  const userTypeFromCookie = Cookie.get("userType");
+  const userType = userData?.user?.type ?? userTypeFromCookie;
   const isVerified = Cookie.get("isVerified") === "true";
 
   const [hasAcceptedCookies, setHasAcceptedCookies] = useState(
@@ -59,7 +60,7 @@ export default function CustomLayout({ children }) {
   useEffect(() => {
     if (!isAuthenticated) {
       setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 3000);
+      setTimeout(() => setIsLoading(false), 500);
     }
   }, [isAuthenticated]);
 

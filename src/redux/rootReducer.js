@@ -25,10 +25,11 @@ const rootReducer = combineReducers({
   notificationTye: notifyType
 });
 
+// Persist only small slices to keep rehydration fast (large slices like appliedJobs/applicantAttachedCv are refetched per page).
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["notificationTye","auth", "appliedJobs", "applicantAttachedCv", "getSetting"],
+  whitelist: ["auth", "getSetting", "notificationTye"],
 };
 
 export default persistReducer(persistConfig, rootReducer);

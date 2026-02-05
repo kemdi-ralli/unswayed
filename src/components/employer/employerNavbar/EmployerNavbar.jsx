@@ -389,7 +389,7 @@ function EmployerNavbar({ data }) {
 
   return (
     <AppBar
-      position="sticky"
+      position="relative"
       sx={{
         backgroundColor: "#e8faf0ff",
         boxShadow: "none",

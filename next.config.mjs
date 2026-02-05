@@ -1,6 +1,13 @@
 // next.config.mjs
+import { createRequire } from "node:module";
 import withPWA from "next-pwa";
 import runtimeCaching from "next-pwa/cache.js";
+
+const require = createRequire(import.meta.url);
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+  openAnalyzer: false,
+});
 
 const url = "10.10.1.2";
 const port = "8000";
@@ -61,5 +68,5 @@ const pwaOptions = {
   },
 };
 
-// Export the wrapped config
-export default withPWA(pwaOptions)(nextConfig);
+// Export: PWA wrap first, then optional bundle analyzer (ANALYZE=true npm run build)
+export default withBundleAnalyzer(withPWA(pwaOptions)(nextConfig));

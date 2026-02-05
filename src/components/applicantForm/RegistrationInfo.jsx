@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ApplicantSignUpSchema } from "@/schemas/applicantRegistrationSchema";
 import TremsOfUse from "../common/tremsAndConditionModal/TremsOfUse";
 import * as Yup from "yup";
+import { checkAvailability } from "@/helper/checkAvailabilityHelper";
 
 const PRELOADER_DELAY_MS = 300;
 
@@ -116,7 +117,8 @@ const RegistrationInfo = ({
   const [validationErrors, setValidationErrors] = useState({});
   const [touchedFields, setTouchedFields] = useState({});
   const [showUCNModal, setShowUCNModal] = useState(false);
-  
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+
   const mergedErrors = { ...validationErrors, ...errors };
 
   // Automatically show UCN modal when component mounts
@@ -262,9 +264,45 @@ const RegistrationInfo = ({
 
   const handleNext = async () => {
     const isValid = await validateForm();
-    if (isValid) {
+    if (!isValid) return;
+
+    const email = formData.email?.trim();
+    const username = formData.username?.trim();
+    if (!email && !username) {
       nextStep(formData);
+      return;
     }
+
+    setIsCheckingAvailability(true);
+    try {
+      const result = await checkAvailability("applicant", { email: email || undefined, username: username || undefined });
+      const newErrors = { ...validationErrors };
+      if (result.email && !result.email.available) {
+        newErrors.email = result.email.message || "This email is already registered.";
+      }
+      if (result.username && !result.username.available) {
+        newErrors.username = result.username.message || "This username is already taken.";
+      }
+      if (newErrors.email || newErrors.username) {
+        setValidationErrors(newErrors);
+        setTouchedFields((prev) => ({ ...prev, email: !!email, username: !!username }));
+        setIsCheckingAvailability(false);
+        return;
+      }
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next.email;
+        delete next.username;
+        return next;
+      });
+      nextStep(formData);
+    } catch (err) {
+      setValidationErrors((prev) => ({ ...prev, email: err.message || "Could not verify availability." }));
+      setTouchedFields((prev) => ({ ...prev, email: true, username: true }));
+      setIsCheckingAvailability(false);
+      return;
+    }
+    setIsCheckingAvailability(false);
   };
 
   // Check if field should show error (only if touched)
@@ -398,7 +436,7 @@ const RegistrationInfo = ({
           setAgreeTerms={setAgreeTerms}
         />
 
-        <RalliButton label="Next" onClick={handleNext} disabled={!agreeTerms} />
+        <RalliButton label={isCheckingAvailability ? "Checking..." : "Next"} onClick={handleNext} disabled={!agreeTerms || isCheckingAvailability} />
       </Box>
 
       {/* UCN Disclaimer Modal - Auto-opens on mount */}

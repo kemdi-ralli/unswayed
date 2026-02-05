@@ -1,59 +1,76 @@
 # Frontend load optimizations
 
-Summary of changes applied to make the app load faster, plus further options you can add.
+Summary of changes applied across the app. All items from the original “applied” and “further improvements” lists have been implemented.
 
 ## Applied changes
 
 ### 1. **Next.js webpack cache**
 - **File:** `next.config.mjs`
-- Removed `config.cache = false` so Next.js can use its default webpack cache.
-- **Effect:** Faster dev and production builds; same runtime bundle, but quicker iterations.
+- Removed `config.cache = false` so Next.js uses its default webpack cache.
+- **Effect:** Faster dev and production builds.
 
 ### 2. **Lighter fonts**
 - **File:** `src/app/theme.jsx`
-- Poppins limited to weights `400`, `500`, `600`, `700` (removed 100, 200, 300, 800, 900 and italic).
-- Added `display: 'swap'` so text shows immediately with a fallback font and swaps when Poppins loads.
-- **Effect:** Less font data and no blocking; better First Contentful Paint (FCP). If you need extra weights or italic, add them back selectively.
+- Poppins limited to weights `400`, `500`, `600`, `700`; added `display: 'swap'`.
+- **Effect:** Less font data, better FCP.
 
 ### 3. **Lazy-loaded landing sections**
 - **File:** `src/components/landingPage/LandingApp.jsx`
-- Hero and dashboard preview load with the main bundle; below-the-fold sections use `next/dynamic`:
-  - BentoSection, LargeTestimonial, PricingSection, TestimonialGridSection, FAQSection, CTASection, FooterSection.
-- **Effect:** Smaller initial JS; sections load as the user scrolls or when the main content is ready.
+- Below-the-fold sections (Bento, Testimonial, Pricing, FAQ, CTA, Footer) use `next/dynamic`.
+- **Effect:** Smaller initial JS.
 
 ### 4. **Dynamic layout chunks**
 - **File:** `src/components/rootLayout/CustomLayout.jsx`
-- EmployerNavbar, Navbar, and Footer are loaded with `next/dynamic`.
-- **Effect:** Nav and footer code split into separate chunks; only the ones needed for the current route load.
+- EmployerNavbar, Navbar, and Footer loaded with `next/dynamic`.
+- **Effect:** Nav/footer in separate chunks.
 
 ### 5. **Root loading UI**
 - **File:** `src/app/loading.js`
-- Simple loading spinner for route transitions.
-- **Effect:** Users see feedback immediately during navigation instead of a blank screen.
+- Spinner for route transitions.
+- **Effect:** Immediate feedback during navigation.
+
+### 6. **next/image everywhere**
+- **File:** `src/components/applicant/dashboardProfile/MyPosting.jsx`
+- Single remaining `<img>` replaced with `next/image` (fill + sizes); container has `position: "relative"` and `minHeight` for fill.
+- **Effect:** Optimized images and lazy loading for post media.
+
+### 7. **Route-level loading**
+- **Files:** `src/app/applicant/loading.js`, `src/app/employer/loading.js`
+- Segment-level loading spinners for applicant and employer routes.
+- **Effect:** Better perceived speed on those segments.
+
+### 8. **Deferred heavy libs**
+- **Firebase:** `src/app/applicant/login/page.jsx`, `src/app/employer/login/page.jsx`  
+  Firebase and `firebase/auth` are no longer top-level imports; they are dynamically imported inside `handleGoogleLogin` and `handleAppleLogin`. Firebase loads only when the user clicks Google or Apple sign-in.
+- **Google Maps:**  
+  - `src/components/common/AddressAutocomplete.jsx` – `@googlemaps/js-api-loader` is dynamically imported in `useEffect`.  
+  - `src/components/applicantForm/BasicInfo.jsx` – same pattern.  
+  - `src/hooks/useGoogleAutocomplete.js` – same pattern; cleanup with `cancelled` flag.  
+  Maps SDK loads only when a component that uses address autocomplete is mounted.
+- **Effect:** Firebase and Maps are not in the initial bundle; they load on demand.
+
+### 9. **PersistGate loading shell**
+- **File:** `src/ReduxProvider.js`
+- `loading={null}` replaced with `loading={<MinimalShell />}`. MinimalShell is a minimal full-screen spinner (no MUI) so it doesn’t depend on theme/layout.
+- **Effect:** Visible feedback while Redux rehydrates instead of a blank screen.
+
+### 10. **Bundle analyzer**
+- **File:** `next.config.mjs`  
+  Wrapped with `@next/bundle-analyzer`; enabled when `ANALYZE=true`.
+- **File:** `package.json`  
+  Script: `"analyze": "set ANALYZE=true && next build"` (Windows). On macOS/Linux use `ANALYZE=true next build` or `npm run build` with `ANALYZE=true` in the env.
+- **Effect:** Run `npm run analyze` to generate bundle reports and target large dependencies.
+
+### 11. **Prefetch**
+- Next.js `<Link>` prefetches by default. No code change; ensure main navigation uses `next/link` (already the case).
+
+### 12. **PWA**
+- `next-pwa` is already used with `runtimeCaching` from `next-pwa/cache.js`. No change; repeat visits benefit from existing cache.
 
 ---
 
-## Further improvements you can add
+## Verification
 
-- **Use `next/image` everywhere**  
-  Replace `<img>` with Next.js `<Image>` for automatic sizing, lazy loading, and modern formats (e.g. WebP) where you have many images.
-
-- **Route-level loading**
-  - Add `loading.js` under `src/app/applicant/` and `src/app/employer/` for segment-level loading UIs and better perceived speed.
-
-- **Defer heavy libs**
-  - Load Firebase, Stripe, or Maps only on routes that need them (e.g. `dynamic(() => import('@/lib/firebase'), { ssr: false })` or similar in the pages that use them).
-
-- **Reduce PersistGate delay**
-  - In `ReduxProvider.js`, you can use `loading={<MinimalShell />}` instead of `loading={null}` so the UI shows something while Redux rehydrates, if you prefer a short loading state over a blank flash.
-
-- **Analyze the bundle**
-  - Run `npx @next/bundle-analyzer` (or add it to the Next config) to see which packages dominate the bundle and target them with dynamic imports or lighter alternatives.
-
-- **Prefetch critical routes**
-  - Use `<Link prefetch>` (default in Next.js) for important links so their JS is fetched early.
-
-- **Service worker / PWA**
-  - You already use `next-pwa`; ensure runtime caching and precaching are tuned so repeat visits and key assets load from cache.
-
-Running `npm run build` and checking the “First Load JS” and “Route (app)” sizes in the build output will show the impact of these optimizations.
+- **Features:** Login (email + Google/Apple), address autocomplete, post media images, Redux persistence, and navigation should behave as before. Firebase and Maps load only when used.
+- **Build:** Run `npm run build`. Then run `npm run analyze` to inspect bundle sizes.
+- **Runtime:** Check “First Load JS” and route sizes in the build output to confirm impact of these optimizations.

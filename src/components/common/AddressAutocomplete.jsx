@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import { Loader } from "@googlemaps/js-api-loader";
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyBEREiN-vfh4N5pGUgAsY2nRYNQARP-oUI";
 
@@ -57,24 +56,29 @@ const AddressAutocomplete = ({
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Check if Google Maps is already loaded
+    let cancelled = false;
     if (window.google?.maps?.places) {
       setIsLoaded(true);
       initAutocomplete();
       return;
     }
 
-    const loader = new Loader({
-      apiKey: GOOGLE_MAPS_API_KEY,
-      libraries: ["places"],
+    import("@googlemaps/js-api-loader").then(({ Loader }) => {
+      if (cancelled) return;
+      const loader = new Loader({
+        apiKey: GOOGLE_MAPS_API_KEY,
+        libraries: ["places"],
+      });
+      loader.load().then(() => {
+        if (!cancelled) {
+          setIsLoaded(true);
+          initAutocomplete();
+        }
+      }).catch((err) => {
+        if (!cancelled) console.error("Error loading Google Maps:", err);
+      });
     });
-
-    loader.load().then(() => {
-      setIsLoaded(true);
-      initAutocomplete();
-    }).catch((error) => {
-      console.error("Error loading Google Maps:", error);
-    });
+    return () => { cancelled = true; };
   }, []);
 
   const initAutocomplete = () => {

@@ -16,6 +16,7 @@ import SendIcon from "@mui/icons-material/Send";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
+import Image from "next/image";
 import ModalRalli from "./ModalRalli";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -243,28 +244,29 @@ const MyPosting = ({
               ) : (
                 <Box
                   sx={{
+                    position: "relative",
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
                     width: "100%",
+                    minHeight: 200,
                     maxHeight: "450px",
                     overflow: "hidden",
                     borderRadius: "10px",
                     border: "1px solid gray",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                   onClick={() => router.push(`/feed/${encode(item?.id)}`)}
                 >
-                  <img
-                    src={item?.media}
-                    alt="media"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "450px",
-                      objectFit: "contain",
-                    }}
-                  />
+                  {item?.media && (
+                    <Image
+                      src={item.media}
+                      alt="Post media"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 450px"
+                      style={{ objectFit: "contain" }}
+                    />
+                  )}
                 </Box>
               ))}
           </Box>

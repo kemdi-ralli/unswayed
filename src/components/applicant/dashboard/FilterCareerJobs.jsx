@@ -26,8 +26,8 @@ const FilterCareerJobs = ({
 
   const jobSourceOptions = [
     { name: "All", id: "all" },
-    { name: "Internal (Unswayed)", id: "internal" },
-    { name: "External", id: "external" },
+    { name: "StepIn Now (Internal Job)", id: "internal" },
+    { name: "StepOut Now (External Job)", id: "external" },
   ];
 
   const setSkills = (_skills) => {

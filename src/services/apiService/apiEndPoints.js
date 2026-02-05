@@ -7,6 +7,9 @@ export const LOGOUT = "logout";
 // Applicant endpoints
 export const APPLICANT_LOGIN = "applicant/login";
 export const APPLICANT_REGISTRATION = "/applicant/register";
+export const APPLICANT_CHECK_EMAIL = "applicant/check-email";
+export const APPLICANT_CHECK_USERNAME = "applicant/check-username";
+export const APPLICANT_CHECK_PHONE = "applicant/check-phone";
 
 // USER ENDPOINT
 export const GET_PROFILE = "applicant/profile";
@@ -77,6 +80,9 @@ export const APPLICANT_EDUCATION = "/applicant/education";
 // Employer EndPoints
 export const EMPLOYER_REGISTRATION = "/employer/register";
 export const EMPLOYER_LOGIN = "employer/login";
+export const EMPLOYER_CHECK_EMAIL = "employer/check-email";
+export const EMPLOYER_CHECK_USERNAME = "employer/check-username";
+export const EMPLOYER_CHECK_PHONE = "employer/check-phone";
 export const EMPLOYER_GET_PROFILE = "employer/profile";
 export const EMPLOYER_GET_REVIEWS = "employer/reviews";
 export const EMPLOYER_CRUD_JOBS = "employer/jobs";

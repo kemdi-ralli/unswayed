@@ -17,12 +17,6 @@ import { APPLICANT_LOGIN } from "@/services/apiService/apiEndPoints";
 
 import Login from "@/components/login/Login";
 import { Toast } from "@/components/Toast/Toast";
-import { auth } from "@/lib/firebase";
-import {
-  GoogleAuthProvider,
-  OAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
 import { socialLogedIn } from "@/helper/socialLoginHelper";
 
 const Page = () => {
@@ -80,6 +74,8 @@ const Page = () => {
   });
   const handleGoogleLogin = async () => {
     try {
+      const { auth } = await import("@/lib/firebase");
+      const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth");
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -109,6 +105,8 @@ const Page = () => {
   };
   const handleAppleLogin = async () => {
     try {
+      const { auth } = await import("@/lib/firebase");
+      const { OAuthProvider, signInWithPopup } = await import("firebase/auth");
       const provider = new OAuthProvider("apple.com");
       const result = await signInWithPopup(auth, provider);
       const credential = OAuthProvider.credentialFromResult(result);
