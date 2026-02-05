@@ -1,15 +1,17 @@
+import dynamic from "next/dynamic"
 import { HeroSection } from "../LandingPageComponents/hero-section"
 import { DashboardPreview } from "../LandingPageComponents/dashboard-preview"
-import { SocialProof } from "../LandingPageComponents/social-proof"
-import { BentoSection } from "../LandingPageComponents/bento-section"
-import { LargeTestimonial } from "../LandingPageComponents/large-testimonial"
-import { PricingSection } from "../LandingPageComponents/pricing-section"
-import { TestimonialGridSection } from "../LandingPageComponents/testimonial-grid-section"
-import { FAQSection } from "../LandingPageComponents/faq-section"
-import { CTASection } from "../LandingPageComponents/cta-section"
-import { FooterSection } from "../LandingPageComponents/footer-section"
 import { AnimatedSection } from "../LandingPageComponents/animated-section"
 import { Box } from "@mui/material"
+
+// Below-the-fold sections: load on demand for faster initial paint
+const BentoSection = dynamic(() => import("../LandingPageComponents/bento-section").then((m) => m.BentoSection), { ssr: true })
+const LargeTestimonial = dynamic(() => import("../LandingPageComponents/large-testimonial").then((m) => m.LargeTestimonial), { ssr: true })
+const PricingSection = dynamic(() => import("../LandingPageComponents/pricing-section").then((m) => m.PricingSection), { ssr: true })
+const TestimonialGridSection = dynamic(() => import("../LandingPageComponents/testimonial-grid-section").then((m) => m.TestimonialGridSection), { ssr: true })
+const FAQSection = dynamic(() => import("../LandingPageComponents/faq-section").then((m) => m.FAQSection), { ssr: true })
+const CTASection = dynamic(() => import("../LandingPageComponents/cta-section").then((m) => m.CTASection), { ssr: true })
+const FooterSection = dynamic(() => import("../LandingPageComponents/footer-section").then((m) => m.FooterSection), { ssr: true })
 
 export default function LandingPage() {
   return (

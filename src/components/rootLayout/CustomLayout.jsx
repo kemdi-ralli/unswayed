@@ -7,12 +7,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { CircularProgress, Box, Button, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 
-import EmployerNavbar from "../employer/employerNavbar/EmployerNavbar";
-import Navbar from "../applicant/dashboard/Navbar";
 import { EMPLOYER_NAVBAR_DATA } from "@/constant/employer/navbar";
 import { NAVBAR_DATA } from "@/constant/applicant/navbar";
-import Footer from "../applicant/dashboard/Footer";
 import { FOOTER_DATA } from "@/constant/applicant/footer";
+
+const EmployerNavbar = dynamic(() => import("../employer/employerNavbar/EmployerNavbar"), { ssr: true });
+const Navbar = dynamic(() => import("../applicant/dashboard/Navbar"), { ssr: true });
+const Footer = dynamic(() => import("../applicant/dashboard/Footer"), { ssr: true });
 import Link from "next/link";
 import SubscriptionBlockerModal from "../Modal/SubscriptionBlockerModal";
 import DeactivatedAccountModal from "../Modal/DeactivatedAccountModal";

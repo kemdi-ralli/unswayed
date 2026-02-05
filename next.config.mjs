@@ -6,9 +6,8 @@ const url = "10.10.1.2";
 const port = "8000";
 
 const nextConfig = {
-  // Next.js webpack customizations belong here (NOT inside withPWA options).
+  // Re-enable webpack cache for faster rebuilds (was disabled with cache: false).
   webpack: (config) => {
-    config.cache = false;
     return config;
   },
 
