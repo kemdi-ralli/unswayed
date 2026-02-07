@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, TextField, Typography, Modal } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Modal,
+  CircularProgress,
+} from "@mui/material";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { Toast } from "@/components/Toast/Toast";
@@ -7,6 +14,7 @@ import { applicantOfferResponse } from "@/helper/ApplicationActionHelper";
 
 const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData = {} }) => {
   const [item, setItem] = useState({});
+  const [loading, setLoading] = useState(true);
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [declineLoading, setDeclineLoading] = useState(false);
 
@@ -39,6 +47,11 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
   };
 
   const getOfferDetails = async () => {
+    if (!historyData?.history_data?.offer_id) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     try {
       const response = await apiInstance.get(
         `application/${historyData?.history_data?.offer_id}/offer-detail`
@@ -49,13 +62,34 @@ const OfferLetterDetails = ({ requisitionNumber = '', userType = '', historyData
       }
     } catch (error) {
       Toast("error", error?.response?.data?.message);
-      return error?.response;
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     getOfferDetails();
   }, [historyData?.history_data?.offer_id]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 200,
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={48} sx={{ color: "#00305B" }} />
+        <Typography sx={{ fontSize: "16px", color: "#00305B", fontWeight: 500 }}>
+          Loading offer details...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>

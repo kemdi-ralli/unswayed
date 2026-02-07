@@ -66,12 +66,14 @@ const MarkAsNotifications = ({ data }) => {
         notification,
         ...prevNotification,
       ]);
+      // Show red dot on navbar bell when a new notification arrives
+      dispatch(setType({ isNotification: true }));
     });
 
     return () => {
       echo.leaveChannel(`ralli.notification.${userData.user.id}`);
     };
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
      dispatch(setType({ isNotification: false }));

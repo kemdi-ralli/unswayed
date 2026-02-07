@@ -377,15 +377,33 @@ function EmployerNavbar({ data }) {
     handleCloseProfileMenu();
   };
 
+  // NotifyUser on ralli.notify (e.g. legacy or generic notify)
   useEffect(() => {
-    const channel = echo.channel(`ralli.notify.${userData?.user?.id}`);
+    if (!userData?.user?.id) return;
+    const channel = echo.channel(`ralli.notify.${userData.user.id}`);
     channel.listen("NotifyUser", (event) => {
-      dispatch(setType(event));
+      const payload =
+        event?.type === "notification" || event?.isNotification === true
+          ? { isNotification: true }
+          : event;
+      dispatch(setType(payload));
     });
     return () => {
-      echo.leaveChannel(`ralli.notify.${userData?.user?.id}`);
+      echo.leaveChannel(`ralli.notify.${userData.user.id}`);
     };
-  }, []);
+  }, [dispatch, userData?.user?.id]);
+
+  // NotificationReceived on ralli.notification (e.g. new job / new notification)
+  useEffect(() => {
+    if (!userData?.user?.id) return;
+    const channel = echo.channel(`ralli.notification.${userData.user.id}`);
+    channel.listen("NotificationReceived", () => {
+      dispatch(setType({ isNotification: true }));
+    });
+    return () => {
+      echo.leaveChannel(`ralli.notification.${userData.user.id}`);
+    };
+  }, [dispatch, userData?.user?.id]);
 
   return (
     <AppBar
@@ -598,7 +616,7 @@ function EmployerNavbar({ data }) {
                       justifyContent: "center",
                       alignItems: "center",
                       alignContent: "center",
-                      overflow: "hidden",
+                      overflow: index === 1 ? "visible" : "hidden",
                     }}
                   >
                     <Button
@@ -629,6 +647,32 @@ function EmployerNavbar({ data }) {
                           color="error"
                           variant="dot"
                           invisible={!showNotificationDot}
+                          sx={{
+                            "@keyframes notificationPing": {
+                              "0%, 100%": {
+                                transform: "scale(1)",
+                                opacity: 1,
+                                boxShadow: "0 0 0 0 rgba(211, 47, 47, 0.6)",
+                              },
+                              "50%": {
+                                transform: "scale(1.4)",
+                                opacity: 1,
+                                boxShadow: "0 0 0 8px rgba(211, 47, 47, 0)",
+                              },
+                            },
+                            "& .MuiBadge-badge": {
+                              backgroundColor: "#d32f2f",
+                              minWidth: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              top: 2,
+                              right: 2,
+                              border: "2px solid #fff",
+                              animation: showNotificationDot
+                                ? "notificationPing 1.5s ease-out infinite"
+                                : "none",
+                            },
+                          }}
                         >
                           <NotificationsIcon
                             sx={{ fontSize: 25, color: "#000" }}
