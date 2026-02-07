@@ -75,7 +75,7 @@ const MyJobCard = ({
           flexDirection: { xs: "column", sm: "row" },
         }}
       >
-        <Box display="flex" alignItems="center">
+        
           <LocationOnRoundedIcon sx={{ width: "18px" }} />
           <Typography
             sx={{
@@ -89,7 +89,7 @@ const MyJobCard = ({
           >
             Location
           </Typography>
-        </Box>
+        
         <Typography
           sx={{
             fontSize: "15px",

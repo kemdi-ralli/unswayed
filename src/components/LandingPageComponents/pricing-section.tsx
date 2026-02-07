@@ -217,7 +217,6 @@ export function PricingSection() {
         "Unlimited job applications",
         "Resume creation and uploads",
         "Job alerts (customizable: daily or weekly)",
-        "Career resource library (articles, tips, and guidance)",
       ],
       user_type: "applicant",
       is_active: true,
