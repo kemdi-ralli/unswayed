@@ -122,7 +122,12 @@ const profileMenuItems = [
   },
   {
     name: "Feedback",
-    link: "/feedback",
+    link: "/feedbacks",
+    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  },
+  {
+    name: "Help and Support",
+    link: "/help-and-support",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {

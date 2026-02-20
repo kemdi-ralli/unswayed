@@ -100,7 +100,7 @@ export function Header() {
               }}
               onClick={() => router.push('/applicant/login') }
             >
-              Try for Free
+              Get Started
             </Button>
 
           {/* Mobile Menu */}
@@ -162,7 +162,7 @@ export function Header() {
                     }}
                     onClick={() => router.push('/applicant/login') }
                   >
-                    Try for Free
+                    Get Started
                   </Button>
           
               </Box>

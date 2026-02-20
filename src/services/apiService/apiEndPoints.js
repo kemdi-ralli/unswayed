@@ -106,3 +106,6 @@ export const blogDetail = (id) => `blogs/${id}`;
 export const blogComments = (id) => `blogs/${id}/comments`;
 export const blogCommentUpdate = (id) => `blogs/comments/${id}`;
 export const blogCommentDelete = (id) => `blogs/comments/${id}`;
+
+export const GET_FEEDBACK = "feedback";
+export const CREATE_FEEDBACK = "feedback";
