@@ -30,67 +30,67 @@ const UCNDisclaimerModal = ({ open, onClose }) => {
   }, [open]);
 
   return (
-  <Modal open={open} onClose={onClose}>
-    <Box
-      sx={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: { xs: "90%", sm: "500px" },
-        maxHeight: "80vh",
-        overflow: "auto",
-        bgcolor: "background.paper",
-        boxShadow: 24,
-        borderRadius: "12px",
-        p: 4,
-      }}
-    >
-      {!contentReady ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-          <CircularProgress size={40} sx={{ color: "#00305B" }} />
-        </Box>
-      ) : (
-        <>
+    <Modal open={open} onClose={onClose}>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "90%", sm: "500px" },
+          maxHeight: "80vh",
+          overflow: "auto",
+          bgcolor: "background.paper",
+          boxShadow: 24,
+          borderRadius: "12px",
+          p: 4,
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#00305B" }}>
-          Unique Candidate Number (UCN)
-        </Typography>
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
+        {!contentReady ? (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
+            <CircularProgress size={40} sx={{ color: "#00305B" }} />
+          </Box>
+        ) : (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 700, color: "#00305B" }}>
+                Unique Candidate Number (UCN)
+              </Typography>
+              <IconButton onClick={onClose} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            <Typography
+              variant="body1"
+              sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
+            >
+              <strong>Note:</strong> A Unique Candidate Number (UCN) is automatically assigned when an applicant submits their application through StepIn Now. For these applications, employers may not collect, request, or use any information that could introduce bias into the hiring process. UNSWAYED is committed to merit-based hiring, and all hiring decisions under this process must be based solely on an applicant's skills, qualifications, and job-related experience.
+            </Typography>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={onClose}
+              sx={{
+                mt: 2,
+                backgroundColor: "#00305B",
+                "&:hover": { backgroundColor: "#002347" },
+              }}
+            >
+              I Understand
+            </Button>
+          </>
+        )}
       </Box>
-
-      <Typography
-        variant="body1"
-        sx={{ mb: 2, lineHeight: 1.8, color: "#333" }}
-      >
-        <strong>Note:</strong> A Unique Candidate Number (UCN) is automatically assigned when an applicant submits their application through StepIn Now. For these applications, employers may not collect, request, or use any information that could introduce bias into the hiring process. UNSWAYED is committed to merit-based hiring, and all hiring decisions under this process must be based solely on an applicant's skills, qualifications, and job-related experience.
-      </Typography>
-
-      <Button
-        fullWidth
-        variant="contained"
-        onClick={onClose}
-        sx={{
-          mt: 2,
-          backgroundColor: "#00305B",
-          "&:hover": { backgroundColor: "#002347" },
-        }}
-      >
-        I Understand
-      </Button>
-        </>
-      )}
-    </Box>
-  </Modal>
+    </Modal>
   );
 };
 
@@ -132,7 +132,7 @@ const RegistrationInfo = ({
       // Create a partial schema for single field validation
       const fieldSchema = Yup.reach(ApplicantSignUpSchema, fieldName);
       await fieldSchema.validate(value);
-      
+
       // Clear error for this field if valid
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
@@ -256,7 +256,7 @@ const RegistrationInfo = ({
         allTouched[item.name] = true;
       });
       setTouchedFields(allTouched);
-      
+
       setValidationErrors(newErrors);
       return false;
     }
@@ -326,15 +326,15 @@ const RegistrationInfo = ({
           <Button onClick={handleBack} sx={{ minWidth: 0, p: 0 }}>
             <ArrowCircleLeftRoundedIcon sx={{ color: "#00305B", fontSize: 32 }} />
           </Button>
-          <Image 
-            src={data?.logo} 
-            width={70} 
-            height={70} 
-            alt="logo" 
+          <Image
+            src={data?.logo}
+            width={70}
+            height={70}
+            alt="logo"
             style={{
-              border: "1px solid #fff", 
+              border: "1px solid #fff",
               borderRadius: 40
-            }} 
+            }}
           />
         </Box>
 
@@ -364,7 +364,7 @@ const RegistrationInfo = ({
                 component="input"
                 type={
                   item.name.toLowerCase().includes("password") &&
-                  !showPassword[passwordFieldKey(item.name)]
+                    !showPassword[passwordFieldKey(item.name)]
                     ? "password"
                     : "text"
                 }
@@ -376,8 +376,8 @@ const RegistrationInfo = ({
                   px: "18px",
                   py: "22px",
                   borderRadius: "10px",
-                  boxShadow: shouldShowError(item.name) 
-                    ? "0px 0px 3px 2px #ff000040" 
+                  boxShadow: shouldShowError(item.name)
+                    ? "0px 0px 3px 2px #ff000040"
                     : "0px 0px 3px #00000040",
                   width: "100%",
                   border: shouldShowError(item.name) ? "1px solid #ff0000" : "none",
@@ -414,10 +414,10 @@ const RegistrationInfo = ({
 
             {/* Error message directly below the field */}
             {shouldShowError(item.name) && (
-              <Typography 
-                sx={{ 
-                  color: "red", 
-                  fontSize: "12px", 
+              <Typography
+                sx={{
+                  color: "red",
+                  fontSize: "12px",
                   mt: "5px",
                   display: "flex",
                   alignItems: "center",
@@ -434,6 +434,7 @@ const RegistrationInfo = ({
           error={validationErrors.terms}
           agreeTerms={agreeTerms}
           setAgreeTerms={setAgreeTerms}
+          variant="applicant"
         />
 
         <RalliButton label={isCheckingAvailability ? "Checking..." : "Next"} onClick={handleNext} disabled={!agreeTerms || isCheckingAvailability} />

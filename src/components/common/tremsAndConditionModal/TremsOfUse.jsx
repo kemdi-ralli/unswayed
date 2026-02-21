@@ -8,6 +8,7 @@ const TremsOfUse = ({
   agreeTerms,
   setAgreeTerms,
   error,
+  variant,
 }) => {
   const [openTermsModal, setOpenTermsModal] = useState(false);
 
@@ -103,6 +104,7 @@ const TremsOfUse = ({
         handleAgree={handleAgree}
         open={openTermsModal}
         onClose={handleCloseTermsModal}
+        variant={variant}
       />
     </>
   );

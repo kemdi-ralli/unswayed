@@ -9,20 +9,42 @@ import PaymentIcon from '@mui/icons-material/Payment'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import BusinessIcon from '@mui/icons-material/Business'
 import ContactSupportIcon from '@mui/icons-material/ContactSupport'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import { Header } from "../LandingPageComponents/header"
 import { FooterSection } from "../LandingPageComponents/footer-section"
 import { Toast } from "@/components/Toast/Toast"
+import { useRouter } from "next/navigation"
+import { keyframes } from "@mui/system"
+
+const pulseGlow = keyframes`
+  0%   { box-shadow: 0 0 8px rgba(24,158,51,0.4), 0 0 20px rgba(24,158,51,0.15); }
+  50%  { box-shadow: 0 0 20px rgba(24,158,51,0.7), 0 0 50px rgba(24,158,51,0.3); }
+  100% { box-shadow: 0 0 8px rgba(24,158,51,0.4), 0 0 20px rgba(24,158,51,0.15); }
+`
+
+const shimmer = keyframes`
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+`
+
+const sparkleRotate = keyframes`
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(15deg) scale(1.2); }
+  50%  { transform: rotate(0deg) scale(1); }
+  75%  { transform: rotate(-15deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1); }
+`
 
 export default function HelpSupportPage() {
-    const [searchQuery, setSearchQuery] = useState("")
+    const router = useRouter()
     const [ticketForm, setTicketForm] = useState({ name: "", email: "", subject: "", message: "" })
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const handleTicketChange = (e) => {
+    const handleTicketChange = (e: any) => {
         setTicketForm({ ...ticketForm, [e.target.name]: e.target.value })
     }
 
-    const handleSubmitTicket = async (e) => {
+    const handleSubmitTicket = async (e: any) => {
         e.preventDefault()
         if (!ticketForm.name || !ticketForm.email || !ticketForm.subject || !ticketForm.message) {
             Toast("error", "Please fill in all fields.")
@@ -71,30 +93,60 @@ export default function HelpSupportPage() {
                     How can we help you?
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 300, mb: 5, opacity: 0.9, maxWidth: "600px", mx: "auto" }}>
-                    Search our knowledge base or get in touch with our clinical support team.
+                    Get instant answers from our AI assistant or browse our support resources below.
                 </Typography>
 
                 <Box sx={{ maxWidth: "600px", mx: "auto", position: "relative" }}>
-                    <TextField
-                        fullWidth
-                        placeholder="Search for articles, questions, or topics..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        variant="outlined"
+                    <Button
+                        onClick={() => router.push("/chatbot")}
+                        variant="contained"
                         sx={{
-                            bgcolor: "white",
-                            borderRadius: 2,
-                            "& fieldset": { border: "none" },
-                            "& input": { py: 2, px: 3, fontSize: "1.1rem" }
+                            width: "100%",
+                            py: 2,
+                            px: 4,
+                            fontSize: { xs: "1.1rem", md: "1.3rem" },
+                            fontWeight: 700,
+                            letterSpacing: "0.5px",
+                            borderRadius: "14px",
+                            textTransform: "none",
+                            background: "linear-gradient(135deg, #189e33 0%, #15c93a 40%, #189e33 100%)",
+                            backgroundSize: "200% 200%",
+                            color: "#fff",
+                            animation: `${pulseGlow} 2.5s ease-in-out infinite`,
+                            transition: "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1.5,
+                            "&:hover": {
+                                background: "linear-gradient(135deg, #15c93a 0%, #189e33 50%, #0ddb45 100%)",
+                                backgroundSize: "200% 200%",
+                                transform: "translateY(-3px) scale(1.02)",
+                                boxShadow: "0 8px 30px rgba(24,158,51,0.5), 0 0 60px rgba(24,158,51,0.2)",
+                            },
+                            "&:active": {
+                                transform: "translateY(0px) scale(0.98)",
+                            },
                         }}
-                        InputProps={{
-                            endAdornment: (
-                                <Button variant="contained" sx={{ bgcolor: "#189e33", color: "white", height: "100%", borderRadius: "0 8px 8px 0", px: 3, "&:hover": { bgcolor: "#138029" } }}>
-                                    <SearchIcon />
-                                </Button>
-                            )
-                        }}
-                    />
+                    >
+                        <AutoAwesomeIcon sx={{ fontSize: 28, animation: `${sparkleRotate} 3s ease-in-out infinite` }} />
+                        <Box
+                            component="span"
+                            sx={{
+                                background: "linear-gradient(90deg, #fff 0%, #fff 40%, #a0ffb8 50%, #fff 60%, #fff 100%)",
+                                backgroundSize: "200% auto",
+                                backgroundClip: "text",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                                animation: `${shimmer} 3s linear infinite`,
+                            }}
+                        >
+                            Ask Lexi AI
+                        </Box>
+                    </Button>
+                    <Typography sx={{ mt: 2, fontSize: "0.85rem", opacity: 0.6, fontWeight: 300 }}>
+                        Powered by AI &mdash; instant help, anytime
+                    </Typography>
                 </Box>
             </Box>
 

@@ -25,6 +25,7 @@ import ConfirmModal from "@/components/Modal/ConfirmModal";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { EMPLOYER_CRUD_JOBS } from "@/services/apiService/apiEndPoints";
 import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 
 const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
   const { userData } = useSelector((state) => state.auth);
@@ -258,6 +259,9 @@ const JobsCardDetails = ({ data, ApplyNow, OnSave }) => {
           <Box sx={styles.detailRow}><HomeIcon sx={styles.icon} /><Typography><strong>Address:</strong> {data.address}</Typography></Box>
         )}
         <Box sx={styles.detailRow}><AccessTimeIcon sx={styles.icon} /><Typography><strong>Deadline:</strong> {displayDeadline}</Typography></Box>
+        {data?.interview_rounds && (
+          <Box sx={styles.detailRow}><FormatListNumberedIcon sx={styles.icon} /><Typography><strong>Interview Rounds:</strong> {data.interview_rounds}</Typography></Box>
+        )}
         <Box sx={styles.detailRow}><MonetizationOnIcon sx={styles.icon} /><Typography>
           <strong>Salary:</strong> {displaySalaryCurrency} {addCommaToString(displaySalary)}
           {displaySalaryMax && ` - ${addCommaToString(displaySalaryMax)}`}
