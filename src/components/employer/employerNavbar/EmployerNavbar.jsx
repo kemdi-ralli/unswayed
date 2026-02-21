@@ -120,7 +120,7 @@ const profileMenuItems = [
   },
   {
     name: "Help and Support",
-    link: "/help-and-support",
+    link: "/help-support",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {
@@ -368,8 +368,8 @@ function EmployerNavbar({ data }) {
     } catch (error) {
       setError(
         error?.response?.data?.message ||
-          error.message ||
-          "Something went wrong"
+        error.message ||
+        "Something went wrong"
       );
       Toast("error", error?.response?.data?.message || "Failed to logout");
     } finally {
@@ -759,31 +759,31 @@ function EmployerNavbar({ data }) {
                         item.name === "Sign Out"
                           ? handleSignOut
                           : item.name === "Unswayed Overview"
-                          ? () => {
+                            ? () => {
                               handleCloseProfileMenu();
                               handleOpenOverview();
                             }
-                          : item.name === "Master Body Language"
-                          ? () => {
-                              handleCloseProfileMenu();
-                              handleOpenBodyLanguage();
-                            }
-                          : item.name === "Interview Preparation"
-                          ? () => {
-                              handleCloseProfileMenu();
-                              handleOpenPreparation();
-                            }
-                          : item.name === "Virtual Interview"
-                          ? () => {
-                              handleCloseProfileMenu();
-                              handleOpenVirtual();
-                            }
-                          : item.name === "Star Method Interview"
-                          ? () => {
-                              handleCloseProfileMenu();
-                              handleOpenStar();
-                            }
-                          : () => handleMenuItemClick(item.link)
+                            : item.name === "Master Body Language"
+                              ? () => {
+                                handleCloseProfileMenu();
+                                handleOpenBodyLanguage();
+                              }
+                              : item.name === "Interview Preparation"
+                                ? () => {
+                                  handleCloseProfileMenu();
+                                  handleOpenPreparation();
+                                }
+                                : item.name === "Virtual Interview"
+                                  ? () => {
+                                    handleCloseProfileMenu();
+                                    handleOpenVirtual();
+                                  }
+                                  : item.name === "Star Method Interview"
+                                    ? () => {
+                                      handleCloseProfileMenu();
+                                      handleOpenStar();
+                                    }
+                                    : () => handleMenuItemClick(item.link)
                       }
                       sx={{
                         minWidth: { md: "400px" },
@@ -826,7 +826,7 @@ function EmployerNavbar({ data }) {
         onPrev={handlePrev}
         title="Unswayed Overview"
       />
-      
+
       <ZoomableSlideshow
         open={openBodyLanguageModal}
         onClose={handleCloseBodyLanguage}
@@ -836,7 +836,7 @@ function EmployerNavbar({ data }) {
         onPrev={handlePrevLang}
         title="Master Body Language"
       />
-      
+
       <ZoomableSlideshow
         open={openPreparationModal}
         onClose={handleClosePreparation}
@@ -846,7 +846,7 @@ function EmployerNavbar({ data }) {
         onPrev={handlePrevPreparation}
         title="Interview Preparation"
       />
-      
+
       <ZoomableSlideshow
         open={openVirtualModal}
         onClose={handleCloseVirtual}
@@ -856,7 +856,7 @@ function EmployerNavbar({ data }) {
         onPrev={handlePrevVirtual}
         title="Virtual Interview"
       />
-      
+
       <ZoomableSlideshow
         open={openStarModal}
         onClose={handleCloseStar}

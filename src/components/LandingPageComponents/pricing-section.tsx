@@ -366,7 +366,7 @@ export function PricingSection() {
   // Get button text based on plan state
   const getButtonText = (plan: SubscriptionPlan): string => {
     if (isCurrentPlan(plan.name)) return "Current Plan";
-    if (parseFloat(plan.price) === 0) return "Get Started Free";
+    if (parseFloat(plan.price) === 0) return "Get Started for Free";
     if (!isAuthenticated) return "Sign Up to Subscribe";
     if (currentSubscription?.is_on_trial) return "Upgrade Now";
     return plan.name.includes("Tier 3") ? "Contact Enterprise Sales" : "Subscribe";
@@ -625,15 +625,15 @@ export function PricingSection() {
                   backgroundColor: isCurrent
                     ? "#9ca3af"
                     : popular
-                    ? "#189e33ff"
-                    : "transparent",
+                      ? "#189e33ff"
+                      : "transparent",
                   color: popular || isCurrent ? "#fff" : "#189e33ff",
                   "&:hover": {
                     backgroundColor: isCurrent
                       ? "#9ca3af"
                       : popular
-                      ? "#147c2cff"
-                      : "#189e33ff",
+                        ? "#147c2cff"
+                        : "#189e33ff",
                     color: "#fff",
                   },
                   "&:disabled": {

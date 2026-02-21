@@ -50,14 +50,27 @@ const EmployerJobCardDetails = ({ data, isLoadingDetails }) => {
             ) : (
               <Typography
                 sx={{
-                    fontSize: { xs: "12px", sm: "14px", md: "15px" },
-                    fontWeight: 300,
-                    lineHeight: "18px",
+                  fontSize: { xs: "12px", sm: "14px", md: "15px" },
+                  fontWeight: 300,
+                  lineHeight: "18px",
                   color: "#333333",
                   py: 1,
                 }}
               >
                 {data?.jobsPra}
+              </Typography>
+            )}
+            {data?.interview_rounds && (
+              <Typography
+                sx={{
+                  fontSize: { xs: "12px", sm: "14px", md: "15px" },
+                  fontWeight: 300,
+                  lineHeight: "18px",
+                  color: "#333333",
+                  py: 1,
+                }}
+              >
+                <b>Interview Rounds:</b> {data.interview_rounds}
               </Typography>
             )}
             <Box

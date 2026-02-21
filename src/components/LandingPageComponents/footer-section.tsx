@@ -39,7 +39,7 @@ export function FooterSection() {
                 letterSpacing: "-0.5px",
               }}
             >
-              Ralli Technologies
+              RALLi Technologies
             </Typography>
 
             <Typography
@@ -105,7 +105,7 @@ export function FooterSection() {
                     "&:hover": { opacity: 1, pl: 0.5 },
                   }}
                 >
-                  
+
                   <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>{item.label}</Typography>
                 </MuiLink>
               ))}
@@ -146,7 +146,7 @@ export function FooterSection() {
                   }}
                 >
                   <Typography sx={{ opacity: 0.8, fontSize: "16px" }}>{link.label}</Typography>
-                  
+
                 </MuiLink>
               ))}
             </Box>
