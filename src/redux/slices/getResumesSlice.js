@@ -7,6 +7,7 @@ import {
   APPLICANT_REPLACE_RESUME,
   APPLICANT_RENAME_RESUME,
   APPLICANT_UPDATE_RESUME_TITLE,
+  APPLICANT_AFFINDA_UPLOAD,
 } from "@/services/apiService/apiEndPoints";
 
 export const getResumes = createAsyncThunk("resumes/getResumes", async () => {
@@ -80,6 +81,24 @@ export const renameResume = createAsyncThunk(
   }
 );
 
+export const affindaUploadResume = createAsyncThunk(
+  "resumes/affindaUploadResume",
+  async (file, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await apiInstance.post(APPLICANT_AFFINDA_UPLOAD, formData);
+
+      return response.data.data?.resume;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error processing resume with AI"
+      );
+    }
+  }
+);
+
 const resumeSlice = createSlice({
   name: "resumes",
   initialState: {
@@ -114,6 +133,17 @@ const resumeSlice = createSlice({
         state.resumes = [action.payload, ...state.resumes];
       })      
       .addCase(attachResume.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(affindaUploadResume.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(affindaUploadResume.fulfilled, (state, action) => {
+        state.loading = false;
+        state.resumes = [action.payload, ...state.resumes];
+      })      
+      .addCase(affindaUploadResume.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

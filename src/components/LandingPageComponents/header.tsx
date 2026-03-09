@@ -48,11 +48,11 @@ export function Header() {
               style={{ objectFit: "contain" }}
             />
             <Typography sx={{ fontSize: "1.25rem", fontWeight: 600, color: "#189e33ff" }}>
-            Unswayed
-          </Typography>
+              Unswayed
+            </Typography>
           </Box>
 
-          
+
 
           <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 1 }}>
             {navItems.map((item) => (
@@ -82,26 +82,26 @@ export function Header() {
         {/* Right: CTA + Mobile Menu */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* Desktop CTA */}
-          
-            <Button
-              variant="contained"
-              sx={{
-                display: { xs: "none", md: "inline-flex" },
-                backgroundColor: "hsl(var(--secondary))",
-                color: "hsl(var(--secondary-foreground))",
-                px: 3,
-                py: 1,
-                borderRadius: "999px",
-                fontWeight: 500,
-                boxShadow: 1,
-                "&:hover": {
-                  backgroundColor: "hsl(var(--secondary) / 0.9)",
-                },
-              }}
-              onClick={() => router.push('/applicant/login') }
-            >
-              Get Started
-            </Button>
+
+          <Button
+            variant="contained"
+            sx={{
+              display: { xs: "none", md: "inline-flex" },
+              backgroundColor: "hsl(var(--secondary))",
+              color: "hsl(var(--secondary-foreground))",
+              px: 3,
+              py: 1,
+              borderRadius: "999px",
+              fontWeight: 500,
+              boxShadow: 1,
+              "&:hover": {
+                backgroundColor: "hsl(var(--secondary) / 0.9)",
+              },
+            }}
+            onClick={() => router.push('/applicant/login')}
+          >
+            Sign In
+          </Button>
 
           {/* Mobile Menu */}
           <Sheet>
@@ -146,25 +146,25 @@ export function Header() {
                 ))}
 
 
-                  <Button
-                    variant="contained"
-                    sx={{
-                      mt: 2,
-                      backgroundColor: "hsl(var(--secondary))",
-                      color: "hsl(var(--secondary-foreground))",
-                      px: 3,
-                      py: 1,
-                      borderRadius: "999px",
-                      fontWeight: 500,
-                      "&:hover": {
-                        backgroundColor: "hsl(var(--secondary) / 0.9)",
-                      },
-                    }}
-                    onClick={() => router.push('/applicant/login') }
-                  >
-                    Get Started
-                  </Button>
-          
+                <Button
+                  variant="contained"
+                  sx={{
+                    mt: 2,
+                    backgroundColor: "hsl(var(--secondary))",
+                    color: "hsl(var(--secondary-foreground))",
+                    px: 3,
+                    py: 1,
+                    borderRadius: "999px",
+                    fontWeight: 500,
+                    "&:hover": {
+                      backgroundColor: "hsl(var(--secondary) / 0.9)",
+                    },
+                  }}
+                  onClick={() => router.push('/applicant/login')}
+                >
+                  Get Started
+                </Button>
+
               </Box>
             </SheetContent>
           </Sheet>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   ADD_A_CERTIFICATIONS,
   ADD_A_RECENT,
@@ -18,6 +18,7 @@ import apiInstance from "@/services/apiService/apiServiceInstance";
 import {
   APPLICANT_BUILD_RESUME,
   APPLICANT_REBUILD_RESUME,
+  APPLICANT_EXTRACT_AUTO_COMPLETE,
 } from "@/services/apiService/apiEndPoints";
 import { Toast } from "@/components/Toast/Toast";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,8 @@ const RalliResumeContainer = ({ id }) => {
     projects: [{}],
     skills: [],
   });
+  const [isExtracting, setIsExtracting] = useState(false);
+  const extractFileInputRef = useRef(null);
 
   const [totalExperience] = useState([
     { id: 1, name: "1 year" },
@@ -176,6 +179,43 @@ const RalliResumeContainer = ({ id }) => {
     }
   };
 
+  const handleAutoFillClick = () => {
+    extractFileInputRef.current.click();
+  };
+
+  const handleAutoFillFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsExtracting(true);
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const response = await apiInstance.post(APPLICANT_EXTRACT_AUTO_COMPLETE, formData);
+      if (response?.data?.status === "success") {
+        const extractedData = response.data.data.resume_data;
+        
+        setWizardData((prev) => ({
+          ...prev,
+          educationDetails: extractedData.education?.length ? extractedData.education : prev.educationDetails,
+          recentJobs: extractedData.experiences?.length ? extractedData.experiences : prev.recentJobs,
+          certifications: extractedData.certifications?.length ? extractedData.certifications : prev.certifications,
+          projects: extractedData.projects?.length ? extractedData.projects : prev.projects,
+          skills: extractedData.skills?.length ? extractedData.skills : prev.skills,
+        }));
+        
+        Toast("success", "Resume data extracted successfully! Please review the fields.");
+      }
+    } catch (error) {
+      console.error("Error extracting resume data:", error);
+      Toast("error", error?.response?.data?.message || "Failed to extract resume data");
+    } finally {
+      setIsExtracting(false);
+      event.target.value = "";
+    }
+  };
+
   useEffect(() => {
     if (getEditResumes?.meta_data) {
       setWizardData({
@@ -230,7 +270,51 @@ const RalliResumeContainer = ({ id }) => {
   }, [getEditResumes]);
 
   return (
-    <Wizard>
+    <Box>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2, px: 2 }}>
+        <Backdrop
+          sx={{
+            color: "#fff",
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+          }}
+          open={isExtracting}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <CircularProgress size={60} sx={{ color: "#00305B" }} />
+            <Typography sx={{ mt: 2, color: "#00305B", fontWeight: 600, fontSize: "18px" }}>
+              Extracting Resume Data...
+            </Typography>
+          </Box>
+        </Backdrop>
+
+        <Button
+          variant="outlined"
+          onClick={handleAutoFillClick}
+          disabled={isExtracting}
+          sx={{
+            borderColor: "#00305B",
+            color: "#00305B",
+            textTransform: "none",
+            fontWeight: 600,
+            borderRadius: "8px",
+            "&:hover": {
+              backgroundColor: "#f5f5f5",
+              borderColor: "#00305B",
+            },
+          }}
+        >
+          {isExtracting ? "Extracting Data..." : "✨ Auto-fill from Resume"}
+        </Button>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx,.txt"
+          style={{ display: "none" }}
+          ref={extractFileInputRef}
+          onChange={handleAutoFillFileChange}
+        />
+      </Box>
+      <Wizard>
       <EducationRalliInfo
         data={EDU_INFO_BY_RALLI}
         onNext={(data) => handleDataUpdate("educationDetails", data)}
@@ -261,7 +345,9 @@ const RalliResumeContainer = ({ id }) => {
         isEditing={isEditing}
         loading={isSubmitting}
       />
+
     </Wizard>
+    </Box>
   );
 };
 
