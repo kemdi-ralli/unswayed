@@ -329,10 +329,9 @@ const PostingSection = ({
                   sx={{
                     width: "100%",
                     maxHeight: "550px",
-                    objectFit: "contain",
+                    objectFit: "cover",
                     borderRadius: "10px",
                     display: "block",
-                    margin: "auto",
                     border: "1px solid gray",
                     cursor: 'pointer'
                   }}

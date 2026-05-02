@@ -4,17 +4,24 @@ import { APPLICANT_SOCIAL_LOGIN, EMPLOYER_SOCIAL_LOGIN } from "@/services/apiSer
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import Cookie from "js-cookie";
 
+const EMAIL_IN_USE_BACKEND = "The email already in use.";
+
+function toastSocialError(error) {
+  const raw = error?.response?.data?.message;
+  const msg =
+    raw === EMAIL_IN_USE_BACKEND
+      ? "An account with this email already exists. Please log in with your email and password."
+      : raw || error?.message || "Request failed. Please try again.";
+  Toast("error", msg);
+}
+
 export const socialLogedIn = async (router, dispatch, provider, accessToken) => {
   try {
-    const formData = new FormData();
-    formData.append("provider", provider);
-    formData.append("accessToken", accessToken);
-
-    const response = await apiInstance.post(APPLICANT_SOCIAL_LOGIN, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await apiInstance.post(APPLICANT_SOCIAL_LOGIN, {
+      provider,
+      accessToken,
     });
+
     const socialData = response?.data?.data;
 
     dispatch(login(socialData));
@@ -24,34 +31,27 @@ export const socialLogedIn = async (router, dispatch, provider, accessToken) => 
     Cookie.set("userType", socialData?.user?.type);
     if (socialData?.is_completed === false) {
       router.push("/applicant/profile/edit-profile");
-    }else {
+    } else {
       router.push("/applicant/career-areas");
     }
     if (response.status === 200 || response.status === 201) {
-      Toast('success', response?.data?.message)
+      Toast("success", response?.data?.message);
     }
   } catch (error) {
     console.error("Error:", error);
-    console.log("r:",  error?.response?.data?.message);
-    Toast('error', error?.response?.data?.message)
-
+    toastSocialError(error);
     throw error;
   }
 };
+
 export const employerSocialLogedIn = async (router, dispatch, provider, accessToken) => {
   try {
-    const formData = new FormData();
-    formData.append("provider", provider);
-    formData.append("accessToken", accessToken);
-
-    const response = await apiInstance.post(EMPLOYER_SOCIAL_LOGIN, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await apiInstance.post(EMPLOYER_SOCIAL_LOGIN, {
+      provider,
+      accessToken,
     });
 
     const socialData = response?.data?.data;
-    console.log(socialData, "socialData");
 
     dispatch(login(socialData));
 
@@ -60,15 +60,15 @@ export const employerSocialLogedIn = async (router, dispatch, provider, accessTo
     Cookie.set("userType", socialData?.user?.type);
     if (socialData?.is_completed === false) {
       router.push("/employer/profile/edit-profile");
-    }else {
+    } else {
       router.push("/employer/home");
     }
     if (response.status === 200 || response.status === 201) {
-      Toast('success', response?.data?.message)
+      Toast("success", response?.data?.message);
     }
   } catch (error) {
     console.error("Error:", error);
-    Toast('error', error?.response?.data?.message)
+    toastSocialError(error);
     throw error;
   }
 };

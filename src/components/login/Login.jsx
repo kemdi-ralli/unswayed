@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -12,14 +13,21 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Image from "next/image";
 import Link from "next/link";
 
+import Cookie from "js-cookie";
 import ModalRalli from "../applicant/dashboardProfile/ModalRalli";
 import SocialLogin from "../socialLogin/SocialLogin";
 
-const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
+const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin, handleLinkedInLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isForgetPasswordModalOpen, setIsForgetPasswordModalOpen] =
     useState(false);
-  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(true);
+  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+
+  useEffect(() => {
+    if (data?.loginType === "Employer Login" && !Cookie.get("employer_disclaimer_seen")) {
+      setIsDisclaimerOpen(true);
+    }
+  }, [data?.loginType]);
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -80,6 +88,14 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
               img={"/assets/images/google.png"}
               title={"Continue With Google"}
             />
+
+            {handleLinkedInLogin && (
+              <SocialLogin
+                handleGoogleLogin={handleLinkedInLogin}
+                img={"/assets/images/linkedin.svg"}
+                title={"Continue With LinkedIn"}
+              />
+            )}
 
             {/* DISCLAIMER TRIGGER — EMPLOYER ONLY */}
             {/* {data?.loginType === "Employer Login" && (
@@ -355,8 +371,11 @@ const Login = ({ data, formik, handleGoogleLogin, handleAppleLogin }) => {
             <Typography>• Social media pages only</Typography>
             <Typography>• Personal utility bills</Typography>
 
-            <Button fullWidth sx={{ mt: 3 }} onClick={() => setIsDisclaimerOpen(false)}>
-              Close
+            <Button fullWidth sx={{ mt: 3, backgroundColor: "#189e33ff", color: "#fff", "&:hover": { backgroundColor: "#147a28" } }} onClick={() => {
+              Cookie.set("employer_disclaimer_seen", "true", { expires: 365 });
+              setIsDisclaimerOpen(false);
+            }}>
+              Understand
             </Button>
           </Box>
         </Modal>

@@ -284,6 +284,7 @@ const ApplicantForm = () => {
     const finalDataToSubmit = {
       ...basicInfo,
       ...registrationInfo,
+      email: basicInfo.email ? basicInfo.email.toLowerCase().trim() : basicInfo.email,
       educations: formattedEducationData,
       skills: Array.isArray(educationInfo.skills)
         ? educationInfo.skills

@@ -233,7 +233,7 @@ export const ADD_A_CERTIFICATIONS = {
 };
 export const PROJECT_WORKED = {
   pages: "Build Your Resume (4 of 5)",
-  title: "What Projects Have You Worked On?",
+  title: "What Project(s) Have You Worked On?",
 
   form: [
     {

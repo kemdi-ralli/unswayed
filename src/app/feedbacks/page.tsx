@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Box,
   Card,
@@ -12,11 +12,21 @@ import {
   Avatar,
   Divider,
   CircularProgress,
-  Stack
+  Stack,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { GET_FEEDBACK, CREATE_FEEDBACK } from "@/services/apiService/apiEndPoints";
+import { Toast } from "@/components/Toast/Toast";
+
+type FeedbackUser = {
+  id?: number;
+  name?: string;
+  photo?: string | null;
+};
 
 type Feedback = {
   id: number;
@@ -24,17 +34,59 @@ type Feedback = {
   message: string;
   rating: number;
   created_at: string;
-  user?: {
-    name?: string;
-    avatar?: string;
-  };
+  is_anonymous?: boolean;
+  user?: FeedbackUser;
 };
+
+function feedbackIsAnonymous(item: Feedback): boolean {
+  if (item.is_anonymous === true) return true;
+  const u = item.user;
+  if (!u) return false;
+  if (u.id != null) return false;
+  return u.name === "Anonymous User";
+}
+
+function FeedbackCardHeader({ item }: { item: Feedback }) {
+  const anon = feedbackIsAnonymous(item);
+  const photo = item.user?.photo;
+
+  let avatar: ReactNode;
+  if (anon) {
+    avatar = (
+      <Avatar sx={{ mr: 2, bgcolor: "#9e9e9e", width: 40, height: 40 }}>
+        <PersonOutlineIcon sx={{ color: "#fff" }} />
+      </Avatar>
+    );
+  } else if (photo) {
+    avatar = <Avatar src={photo} sx={{ mr: 2, width: 40, height: 40 }} alt="" />;
+  } else {
+    const initial = item.user?.name?.trim()?.[0] ?? "?";
+    avatar = (
+      <Avatar sx={{ mr: 2, width: 40, height: 40, bgcolor: "#00305B" }}>{initial}</Avatar>
+    );
+  }
+
+  const displayName = anon ? "Anonymous User" : item.user?.name || "User";
+
+  return (
+    <Box display="flex" alignItems="center" mb={1}>
+      {avatar}
+      <Box>
+        <Typography fontWeight="bold">{displayName}</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {new Date(item.created_at).toLocaleString()}
+        </Typography>
+      </Box>
+    </Box>
+  );
+}
 
 export default function FeedbackPage() {
   const [form, setForm] = useState({
     subject: "",
     message: "",
-    rating: 0
+    rating: 0,
+    is_anonymous: false,
   });
 
   const [feedback, setFeedback] = useState<Feedback[]>([]);
@@ -58,17 +110,25 @@ export default function FeedbackPage() {
 
   const submit = async () => {
     if (!form.rating) {
-      alert("Please select a star rating");
+      Toast("error", "Please select a star rating");
       return;
     }
 
     setPosting(true);
 
     try {
-      await apiInstance.post(CREATE_FEEDBACK, form);
-      setForm({ subject: "", message: "", rating: 0 });
+      await apiInstance.post(CREATE_FEEDBACK, {
+        subject: form.subject,
+        message: form.message,
+        rating: form.rating,
+        is_anonymous: form.is_anonymous,
+      });
+      setForm({ subject: "", message: "", rating: 0, is_anonymous: false });
       await loadFeedback();
-    } catch (e) {
+      Toast("success", "Thanks for your feedback");
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      Toast("error", err?.response?.data?.message ?? "Failed to submit feedback");
       console.error("Failed to submit feedback", e);
     } finally {
       setPosting(false);
@@ -77,7 +137,6 @@ export default function FeedbackPage() {
 
   return (
     <Box maxWidth={900} mx="auto" mt={5} px={2}>
-      {/* Submit */}
       <Card sx={{ mb: 4, p: 3 }}>
         <Typography variant="h4" mb={1}>
           How was your experience?
@@ -114,17 +173,28 @@ export default function FeedbackPage() {
           sx={{ mb: 2 }}
         />
 
-        <Button
-          variant="contained"
-          size="large"
-          disabled={posting || !form.rating}
-          onClick={submit}
-        >
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.is_anonymous}
+              onChange={(_, checked) => setForm({ ...form, is_anonymous: checked })}
+              color="primary"
+            />
+          }
+          label="Send feedback anonymously"
+          sx={{ display: "block", mb: 1 }}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {form.is_anonymous
+            ? "Your name and profile photo will not be shown publicly."
+            : "Your name and profile photo will be visible with your feedback."}
+        </Typography>
+
+        <Button variant="contained" size="large" disabled={posting || !form.rating} onClick={submit}>
           {posting ? <CircularProgress size={22} /> : "Submit feedback"}
         </Button>
       </Card>
 
-      {/* Feed */}
       <Typography variant="h5" mb={2}>
         Community Feedback
       </Typography>
@@ -135,20 +205,7 @@ export default function FeedbackPage() {
         {feedback.map((item) => (
           <Card key={item.id}>
             <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <Avatar sx={{ mr: 2 }}>
-                  {item.user?.name?.[0] || "A"}
-                </Avatar>
-
-                <Box>
-                  <Typography fontWeight="bold">
-                    {item.user?.name || "Anonymous"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(item.created_at).toLocaleString()}
-                  </Typography>
-                </Box>
-              </Box>
+              <FeedbackCardHeader item={item} />
 
               <Box display="flex" alignItems="center" mb={1}>
                 <Rating value={item.rating} readOnly size="small" />
@@ -157,9 +214,7 @@ export default function FeedbackPage() {
                 </Typography>
               </Box>
 
-              <Typography color="text.secondary">
-                {item.message}
-              </Typography>
+              <Typography color="text.secondary">{item.message}</Typography>
 
               <Divider sx={{ mt: 2 }} />
             </CardContent>

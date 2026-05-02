@@ -5,9 +5,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Box,
   Typography,
   TextField,
@@ -15,57 +12,39 @@ import {
 } from "@mui/material";
 
 const PRELOADER_DELAY_MS = 300;
+const MIN_LEN = 10;
+const MAX_LEN = 1000;
 
-const RejectionReasonModal = ({
-  open,
-  onClose,
-  reasons,
-  onReasonSelect,
-}) => {
-  const [selectedReason, setSelectedReason] = useState("");
-  const [otherReason, setOtherReason] = useState("");
+const RejectionReasonModal = ({ open, onClose, onReasonSelect }) => {
+  const [reason, setReason] = useState("");
   const [contentReady, setContentReady] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setContentReady(false);
+      setReason("");
       return;
     }
     const t = setTimeout(() => setContentReady(true), PRELOADER_DELAY_MS);
     return () => clearTimeout(t);
   }, [open]);
 
-  const handleReasonChange = (event) => {
-    setSelectedReason(event.target.value);
-    setOtherReason("");
-  };
-
-  const handleOtherReasonChange = (event) => {
-    setOtherReason(event.target.value);
-  };
-
   const handleConfirm = () => {
-    if (!selectedReason) {
+    const trimmed = reason.trim();
+    if (trimmed.length < MIN_LEN || trimmed.length > MAX_LEN) {
       return;
     }
-
-    const finalReason =
-      selectedReason === "Other" ? otherReason : selectedReason;
-
-    onReasonSelect(finalReason);
-    setSelectedReason("");
-    setOtherReason("");
+    onReasonSelect(trimmed);
+    setReason("");
   };
 
   const handleClose = () => {
-    setSelectedReason("");
-    setOtherReason("");
+    setReason("");
     onClose();
   };
 
-  const isOtherSelected = selectedReason === "Other";
-  const isConfirmDisabled =
-    !selectedReason || (isOtherSelected && !otherReason.trim());
+  const len = reason.trim().length;
+  const confirmDisabled = len < MIN_LEN || len > MAX_LEN;
 
   return (
     <Dialog
@@ -87,7 +66,7 @@ const RejectionReasonModal = ({
           py: 3,
         }}
       >
-        Reason for Rejection
+        Reject Candidate
       </DialogTitle>
 
       <DialogContent>
@@ -96,87 +75,38 @@ const RejectionReasonModal = ({
             <CircularProgress size={40} sx={{ color: "#00305B" }} />
           </Box>
         ) : (
-        <Box sx={{ pt: 1 }}>
-          <Typography
-            sx={{
-              fontSize: "14px",
-              fontWeight: 400,
-              color: "#555555",
-              mb: 2,
-            }}
-          >
-            Please select the reason for rejecting this candidate:
-          </Typography>
-
-          <RadioGroup
-            value={selectedReason}
-            onChange={handleReasonChange}
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 1.5,
-            }}
-          >
-            {reasons.map((reason, index) => (
-              <Box key={index}>
-                <FormControlLabel
-                  value={reason}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#00305B",
-                        "&.Mui-checked": {
-                          color: "#189e33ff",
-                        },
-                      }}
-                    />
-                  }
-                  label={
-                    <Typography
-                      sx={{
-                        fontSize: "14px",
-                        fontWeight: 400,
-                        color: "#222222",
-                      }}
-                    >
-                      {reason}
-                    </Typography>
-                  }
-                />
-              </Box>
-            ))}
-          </RadioGroup>
-
-          {isOtherSelected && (
-            <Box sx={{ mt: 2, ml: 4 }}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                placeholder="Please specify the reason..."
-                value={otherReason}
-                onChange={handleOtherReasonChange}
-                variant="outlined"
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    backgroundColor: "#f5f5f5",
-                    "&:hover fieldset": {
-                      borderColor: "#00305B",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#189e33ff",
-                    },
-                  },
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#e0e0e0",
-                  },
-                }}
-              />
-            </Box>
-          )}
-        </Box>
+          <Box sx={{ pt: 1 }}>
+            <Typography
+              sx={{
+                fontSize: "14px",
+                fontWeight: 400,
+                color: "#555555",
+                mb: 2,
+              }}
+            >
+              Please provide a reason for rejecting this application. This will be shared with the candidate.
+            </Typography>
+            <TextField
+              fullWidth
+              required
+              multiline
+              minRows={4}
+              label="Reason for Rejection"
+              placeholder="Please provide a brief reason for rejecting this application..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value.slice(0, MAX_LEN))}
+              error={len > 0 && len < MIN_LEN}
+              helperText={`${len} / ${MAX_LEN} characters (minimum ${MIN_LEN})`}
+              variant="outlined"
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  backgroundColor: "#f5f5f5",
+                },
+              }}
+            />
+          </Box>
         )}
       </DialogContent>
 
@@ -207,7 +137,7 @@ const RejectionReasonModal = ({
         </Button>
         <Button
           onClick={handleConfirm}
-          disabled={isConfirmDisabled}
+          disabled={confirmDisabled}
           sx={{
             backgroundColor: "#189e33ff",
             color: "white",
@@ -225,7 +155,7 @@ const RejectionReasonModal = ({
             },
           }}
         >
-          Confirm
+          Continue
         </Button>
       </DialogActions>
     </Dialog>

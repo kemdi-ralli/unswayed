@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Box } from "@mui/material";
 import { APPLICANT_LOGIN_DATA } from "@/constant/login";
 
@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux";
 import { login } from "@/redux/slices/authSlice";
 
 import Cookie from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { APPLICANT_LOGIN } from "@/services/apiService/apiEndPoints";
@@ -18,10 +18,17 @@ import { APPLICANT_LOGIN } from "@/services/apiService/apiEndPoints";
 import Login from "@/components/login/Login";
 import { Toast } from "@/components/Toast/Toast";
 import { socialLogedIn } from "@/helper/socialLoginHelper";
+import { initiateLinkedInLogin } from "@/helper/linkedinLogin";
 
 const Page = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) Toast("error", decodeURIComponent(error));
+  }, [searchParams]);
 
   const formik = useFormik({
     initialValues: {
@@ -38,7 +45,7 @@ const Page = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: values.email,
+            email: values.email.toLowerCase().trim(),
             password: values.password,
           }),
         });
@@ -81,28 +88,28 @@ const Page = () => {
       const credential = GoogleAuthProvider.credentialFromResult(result);
 
       if (!credential) {
-        throw new Error("No credential found");
+        Toast("error", "No credential found");
+        return;
       }
 
-      const accessToken = result?.user?.accessToken ?? result?._tokenResponse?.oauthIdToken ?? credential?.accessToken ?? credential?.idToken;
-      if (!accessToken) {
+      const idToken = credential.idToken ?? result?._tokenResponse?.oauthIdToken;
+      if (!idToken) {
         Toast("error", "Could not get Google sign-in token");
         return;
       }
-      await socialLogedIn(router, dispatch, "google", accessToken);
+      await socialLogedIn(router, dispatch, "google", idToken);
     } catch (error) {
       console.error("Login failed:", error);
-      const status = error?.response?.status;
-      const msg = error?.response?.data?.message ?? error?.message;
-      if (status === 422) {
-        Toast("error", msg ?? "Google sign-in was rejected. Please try again or use email.");
-      } else if (status === 500) {
-        Toast("error", msg ?? "Server error during sign-in. Please try again later or use email.");
-      } else {
-        Toast("error", msg ?? "Google sign-in failed");
+      if (error?.response) {
+        return;
       }
+      Toast("error", error?.message || "Google sign-in failed");
     }
   };
+  const handleLinkedInLogin = () => {
+    initiateLinkedInLogin("applicant");
+  };
+
   const handleAppleLogin = async () => {
     try {
       const { auth } = await import("@/lib/firebase");
@@ -146,6 +153,7 @@ const Page = () => {
         formik={formik}
         handleGoogleLogin={handleGoogleLogin}
         handleAppleLogin={handleAppleLogin}
+        handleLinkedInLogin={handleLinkedInLogin}
       />
     </Box>
   );

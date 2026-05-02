@@ -18,6 +18,8 @@ import {
   TablePagination,
   CircularProgress,
   Stack,
+  Button,
+  Link,
 } from "@mui/material";
 import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
 import { useRouter } from "next/navigation";
@@ -95,6 +97,15 @@ const DashboardAppliedJobs = () => {
   const handleRowClick = (id) => {
     var encodeId = encode(id);
     router.push(`/applicant/dashboard/application/${encodeId}`);
+  };
+
+  const shouldShowMeetingLink = (application) => {
+    const link = application?.meeting_link && String(application.meeting_link).trim();
+    if (!link) return false;
+    const st = (application?.status || "").toLowerCase();
+    if (st === "interview_invite" || st === "interview_accept") return true;
+    const iv = String(application?.is_interview || "").toLowerCase();
+    return iv === "yes" || iv === "y";
   };
 
   const getMyApplications = async (appType = "unarchived") => {
@@ -237,6 +248,15 @@ const DashboardAppliedJobs = () => {
                   color: "#222222",
                 }}
               >
+                Meeting
+              </StyledTableCell>
+              <StyledTableCell
+                sx={{
+                  fontSize: { xs: "12px", sm: "14px", md: "16px" },
+                  fontWeight: 400,
+                  color: "#222222",
+                }}
+              >
                 Received Job Offer?
               </StyledTableCell>
               <StyledTableCell
@@ -253,7 +273,7 @@ const DashboardAppliedJobs = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5} align="center">
+                <TableCell colSpan={6} align="center">
                   <Stack alignItems="center" py={2}>
                     <CircularProgress />
                     <Typography variant="body2" sx={{ mt: 1 }}>
@@ -275,7 +295,18 @@ const DashboardAppliedJobs = () => {
                       color: "#222222",
                     }}
                   >
-                    {application?.job_title}
+                    <Typography>{application?.job_title}</Typography>
+                    {application?.status === "archive" &&
+                      application?.rejection_reason &&
+                      String(application.rejection_reason).trim() !== "" && (
+                        <Typography
+                          variant="caption"
+                          display="block"
+                          sx={{ color: "#c62828", mt: 0.5, maxWidth: 280 }}
+                        >
+                          Rejection: {application.rejection_reason}
+                        </Typography>
+                      )}
                   </StyledTableCell>
                   <StyledTableCell
                     sx={{
@@ -294,6 +325,30 @@ const DashboardAppliedJobs = () => {
                     }}
                   >
                     {application?.is_interview?.toUpperCase()}
+                  </StyledTableCell>
+                  <StyledTableCell
+                    sx={{
+                      fontSize: { xs: "12px", sm: "14px", md: "16px" },
+                      fontWeight: 400,
+                      color: "#222222",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {shouldShowMeetingLink(application) ? (
+                      <Button
+                        component={Link}
+                        href={application.meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="contained"
+                        size="small"
+                        sx={{ backgroundColor: "#189e33", fontSize: "12px" }}
+                      >
+                        Join Meeting
+                      </Button>
+                    ) : (
+                      "—"
+                    )}
                   </StyledTableCell>
                   <StyledTableCell
                     sx={{

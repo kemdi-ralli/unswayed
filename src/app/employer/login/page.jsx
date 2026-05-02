@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import { EMPLOYER_LOGIN_DATA } from "@/constant/login";
 
@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux";
 import { login } from "@/redux/slices/authSlice";
 
 import Cookie from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { EMPLOYER_LOGIN } from "@/services/apiService/apiEndPoints";
@@ -18,11 +18,18 @@ import { EMPLOYER_LOGIN } from "@/services/apiService/apiEndPoints";
 import Login from "@/components/login/Login";
 import { Toast } from "@/components/Toast/Toast";
 import { employerSocialLogedIn } from "@/helper/socialLoginHelper";
+import { initiateLinkedInLogin } from "@/helper/linkedinLogin";
 
 const Page = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) Toast("error", decodeURIComponent(error));
+  }, [searchParams]);
 
   const formik = useFormik({
     initialValues: {
@@ -40,7 +47,7 @@ const Page = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            email: values.email,
+            email: values.email.toLowerCase().trim(),
             password: values.password,
           }),
         });
@@ -75,6 +82,10 @@ const Page = () => {
       }
     },
   });
+
+  const handleLinkedInLogin = () => {
+    initiateLinkedInLogin("employer");
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -131,13 +142,18 @@ const Page = () => {
         return;
       }
 
-      const accessToken = result?._tokenResponse?.oauthIdToken;
-      await employerSocialLogedIn(router, dispatch, "google", accessToken);
+      const idToken = credential.idToken ?? result?._tokenResponse?.oauthIdToken;
+      if (!idToken) {
+        Toast("error", "Could not get Google sign-in token");
+        return;
+      }
+      await employerSocialLogedIn(router, dispatch, "google", idToken);
     } catch (error) {
       console.error("Login failed:", error);
-      console.error("Error Code:", error.code);
-      console.error("Error Message:", error.message);
-      Toast("error", error.message || "Login failed");
+      if (error?.response) {
+        return;
+      }
+      Toast("error", error?.message || "Google sign-in failed");
     } finally {
       setLoading(false);
     }
@@ -158,7 +174,7 @@ const Page = () => {
         alignItems: "center",
       }}
     >
-      <Login data={EMPLOYER_LOGIN_DATA} formik={formik} handleGoogleLogin={handleGoogleLogin} loading={loading} />
+      <Login data={EMPLOYER_LOGIN_DATA} formik={formik} handleGoogleLogin={handleGoogleLogin} handleLinkedInLogin={handleLinkedInLogin} loading={loading} />
     </Box>
   );
 };

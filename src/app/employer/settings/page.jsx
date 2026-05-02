@@ -6,6 +6,7 @@ import Container from "@/components/common/Container";
 import BackButtonWithTitle from "@/components/applicant/dashboard/BackButtonWithTitle";
 import { EMPLOYER_GET_PROFILE } from "@/services/apiService/apiEndPoints";
 import apiInstance from "@/services/apiService/apiServiceInstance";
+import GoogleCalendarConnection from "@/components/employer/settings/GoogleCalendarConnection";
 
 const ProfileSettings = lazy(() => import("@/components/applicant/settings/ProfileSettings"));
 
@@ -47,6 +48,7 @@ const Page = () => {
               </Box>
             }
           >
+            <GoogleCalendarConnection />
             <ProfileSettings data={EMPLOYER_PROFILE_SETTINGS} profile={profile} />
           </Suspense>
         )}

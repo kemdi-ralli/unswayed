@@ -202,6 +202,7 @@ const Page = () => {
       ...formData.basicInfo,
       ...formData.educationInfo,
       ...formData.registrationInfo,
+      email: formData.basicInfo.email ? formData.basicInfo.email.toLowerCase().trim() : formData.basicInfo.email,
     };
 
     try {

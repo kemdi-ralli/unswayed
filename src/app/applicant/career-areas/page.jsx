@@ -21,7 +21,45 @@ import { encode } from "@/helper/GeneralHelpers";
 import FormTitle from "@/components/applicant/dashboard/FormTitle";
 import { setAppliedData } from "@/redux/slices/applicantAppliedSpecificJob";
 import { useDispatch } from "react-redux";
+import { setFilters, resetFilters } from "@/redux/slices/filterPreferencesSlice";
+import { getFilterPreferences, saveFilterPreferences, clearFilterPreferences } from "@/services/filterPreferencesApi";
 import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
+
+// Map local dropdownStates keys → server filter_data keys
+const toServerFilterData = (local) => {
+  const d = {};
+  if (local.country) d.country = local.country;
+  if (Array.isArray(local.state) && local.state.length > 0) d.state = local.state;
+  if (local.city) d.city = Array.isArray(local.city) ? local.city : [local.city];
+  if (Array.isArray(local.job_category) && local.job_category.length > 0) d.jobCategory = local.job_category;
+  if (local.job_location) d.jobLocation = local.job_location;
+  if (local.job_type) d.jobType = local.job_type;
+  if (local.job_shift) d.jobShift = local.job_shift;
+  if (local.salary) d.minimumSalary = String(local.salary);
+  if (local.salary_max) d.maximumSalary = String(local.salary_max);
+  if (local.experience_level) d.experienceLevel = local.experience_level;
+  if (Array.isArray(local.skills) && local.skills.length > 0) d.skills = local.skills;
+  if (local.job_kind && local.job_kind !== "all") d.isRalli = local.job_kind;
+  if (local.currencyLabel) d.currencyLabel = local.currencyLabel;
+  return d;
+};
+
+// Map server filter_data keys → local dropdownStates keys
+const fromServerFilterData = (server) => ({
+  country: server.country || "",
+  state: server.state || [],
+  city: Array.isArray(server.city) ? (server.city[0] || "") : (server.city || ""),
+  job_category: server.jobCategory || [],
+  job_location: server.jobLocation || "",
+  job_type: server.jobType || "",
+  job_shift: server.jobShift || "",
+  experience_level: server.experienceLevel || "",
+  skills: server.skills || [],
+  salary: server.minimumSalary || "",
+  salary_max: server.maximumSalary || "",
+  job_kind: server.isRalli || "all",
+  currencyLabel: server.currencyLabel || "",
+});
 
 const SearchBar = lazy(() => import("@/components/applicant/dashboard/SearchBar"));
 const Container = lazy(() => import("@/components/common/Container"));
@@ -61,8 +99,11 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
     skills: [],
     salary: "",
     salary_max: "",
-    job_kind: "all", // all, internal, external
+    job_kind: "all",
+    currencyLabel: "",
   });
+
+  const [filterPrefsLoaded, setFilterPrefsLoaded] = useState(false);
 
   // Pagination state:
   const [backendPage, setBackendPage] = useState(1);
@@ -230,22 +271,38 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
     }
   };
 
-  // ---------- initial master data ----------
+  // ---------- initial master data + saved filter preferences ----------
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setJobCategories(await getJobCategories());
-        setJobLocations(await getJobLocations());
-        setJobShifts(await getJobShifts());
-        setJobTypes(await getJobTypes());
-        setCountries(await getCountries());
-      } catch (error) {
-        console.error("Error fetching master data:", error?.response?.data || error);
-        setErrors(error?.response?.data?.message || error?.message || "Failed to load data");
-        Toast("error", error?.response?.data?.message || "Failed to load master data");
+    const init = async () => {
+      // Load master data and saved preferences in parallel
+      const [savedPrefs] = await Promise.allSettled([
+        getFilterPreferences(),
+        (async () => {
+          try {
+            setJobCategories(await getJobCategories());
+            setJobLocations(await getJobLocations());
+            setJobShifts(await getJobShifts());
+            setJobTypes(await getJobTypes());
+            setCountries(await getCountries());
+          } catch (error) {
+            console.error("Error fetching master data:", error?.response?.data || error);
+            setErrors(error?.response?.data?.message || error?.message || "Failed to load data");
+            Toast("error", error?.response?.data?.message || "Failed to load master data");
+          }
+        })(),
+      ]);
+
+      // Hydrate filters if preferences were saved
+      if (savedPrefs.status === "fulfilled" && savedPrefs.value) {
+        const hydrated = fromServerFilterData(savedPrefs.value);
+        setDropdownStates((prev) => ({ ...prev, ...hydrated }));
+        dispatch(setFilters(hydrated));
       }
+
+      setFilterPrefsLoaded(true);
     };
-    fetchData();
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ---------- STATES (US + NON-US) ----------
@@ -350,11 +407,13 @@ setIsLoadingCities(false);
 }, [dropdownStates?.state]);
 
 
-  // ---------- initial load ----------
+  // ---------- initial load — wait for preferences to hydrate first ----------
   useEffect(() => {
-    fetchAndAppendJobs({ reset: true, searchQuery: "" });
+    if (filterPrefsLoaded) {
+      fetchAndAppendJobs({ reset: true, searchQuery: "" });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filterPrefsLoaded]);
 
   // ---------- Apply filters (reset listing) ----------
   const applyFilters = async (e, q = null) => {
@@ -362,10 +421,13 @@ setIsLoadingCities(false);
     setBackendPage(1);
     await fetchAndAppendJobs({ reset: true, searchQuery: q === null ? search : q });
     Toast("success", "Filters applied");
+    // Fire-and-forget: persist to server for cross-device sync
+    saveFilterPreferences(toServerFilterData(dropdownStates)).catch(() => {});
+    dispatch(setFilters(dropdownStates));
   };
 
   const handleClearFilters = async () => {
-    setDropdownStates({
+    const cleared = {
       country: "",
       state: [],
       city: "",
@@ -378,11 +440,16 @@ setIsLoadingCities(false);
       salary: "",
       salary_max: "",
       job_kind: "all",
-    });
+      currencyLabel: "",
+    };
+    setDropdownStates(cleared);
+    dispatch(resetFilters());
     setSearch("");
     setBackendPage(1);
     await fetchAndAppendJobs({ reset: true, searchQuery: "" });
     Toast("info", "Filters cleared");
+    // Fire-and-forget: clear from server
+    clearFilterPreferences().catch(() => {});
   };
 
   // ---------- Save / Apply / Card handlers ----------

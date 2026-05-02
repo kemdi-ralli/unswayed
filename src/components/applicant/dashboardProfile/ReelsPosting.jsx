@@ -323,6 +323,7 @@ const ReelsPosting = ({
                       border: "1px solid gray",
                       cursor: "pointer",
                       maxHeight: "450px",
+                      objectFit: "cover",
                     }}
                   />
                 </Box>

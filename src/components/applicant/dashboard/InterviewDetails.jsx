@@ -1,62 +1,62 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { 
-  Box, Button, Typography, Dialog, DialogTitle, DialogContent, 
-  TextField, DialogActions, RadioGroup, FormControlLabel, Radio, CircularProgress 
+import {
+  Box,
+  Button,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions,
+  CircularProgress,
 } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import IconButton from "@mui/material/IconButton";
 import RalliButton from "@/components/button/RalliButton";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { Toast } from "@/components/Toast/Toast";
 import { applicantInterviewResponse } from "@/helper/ApplicationActionHelper";
 
 const PRELOADER_DELAY_MS = 300;
+const MIN_DECLINE_LEN = 10;
+const MAX_DECLINE_LEN = 1000;
 
-const DECLINE_REASONS = [
-  "Scheduling conflict",
-  "No longer interested in the position",
-  "Accepted another offer",
-  "Location/Commute issues",
-  "Other"
-];
-
-const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData = {} }) => {
+const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData = {} }) => {
   const [item, setItem] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [acceptLoading, setAcceptLoading] = useState(false);
   const [declineLoading, setDeclineLoading] = useState(false);
-  const [selectedDeclineReason, setSelectedDeclineReason] = useState(""); // Track radio selection
+
+  const [openDeclinePopup, setOpenDeclinePopup] = useState(false);
+  const [declineReasonText, setDeclineReasonText] = useState("");
+  const [declineDialogContentReady, setDeclineDialogContentReady] = useState(false);
 
   const onDecline = async () => {
-    if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
-      const finalReason = selectedDeclineReason === "Other" ? declineReason : selectedDeclineReason;
-      
-      if (!finalReason.trim()) {
-        Toast("error", "Please provide a reason before declining.");
-        return;
-      }
+    const trimmed = declineReasonText.trim();
+    if (trimmed.length < MIN_DECLINE_LEN || trimmed.length > MAX_DECLINE_LEN) {
+      Toast("error", `Reason must be between ${MIN_DECLINE_LEN} and ${MAX_DECLINE_LEN} characters.`);
+      return;
+    }
 
+    if (userType !== "employer" && historyData?.type === "interview_invite" && item?.status === "pending") {
       setDeclineLoading(true);
       try {
         const response = await applicantInterviewResponse(item?.id, {
-          type: 'decline',
-          reason: finalReason,
+          type: "decline",
+          reason: trimmed,
         });
-        if (response?.data?.status === 'success') {
+        if (response?.data?.status === "success") {
           window.location.href = window.location.href;
         }
       } catch (error) {
-        Toast("error", "Something went wrong while declining.");
+        Toast("error", error?.response?.data?.message ?? "Something went wrong while declining.");
       } finally {
         setDeclineLoading(false);
         setOpenDeclinePopup(false);
       }
     }
   };
-
-  // decline popup state
-  const [openDeclinePopup, setOpenDeclinePopup] = useState(false);
-  const [declineReason, setDeclineReason] = useState("");
-  const [declineDialogContentReady, setDeclineDialogContentReady] = useState(false);
 
   useEffect(() => {
     if (!openDeclinePopup) {
@@ -68,57 +68,33 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
   }, [openDeclinePopup]);
 
   const handleSelect = (date) => {
-    if (userType !== 'employer' && item?.status === 'pending') {
+    if (userType !== "employer" && item?.status === "pending") {
       setSelectedDate(date);
     }
   };
 
   const onAccept = async () => {
-    if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
+    if (userType !== "employer" && historyData?.type === "interview_invite" && item?.status === "pending") {
       if (!selectedDate) {
-        alert("Please Select Any Date for Interview");
+        Toast("error", "Please select a date for the interview.");
         return;
       }
       setAcceptLoading(true);
       try {
         const response = await applicantInterviewResponse(item?.id, {
-          type: 'accept',
+          type: "accept",
           selected_date: selectedDate,
         });
-        if (response?.data?.status === 'success') {
+        if (response?.data?.status === "success") {
           window.location.href = window.location.href;
         }
       } catch (error) {
-        Toast("error", "Something went wrong while accepting.");
+        Toast("error", error?.response?.data?.message ?? "Something went wrong while accepting.");
       } finally {
         setAcceptLoading(false);
       }
     }
   };
-
-  // const onDecline = async () => {
-  //   if (userType !== 'employer' && historyData?.type === 'interview_invite' && item?.status === 'pending') {
-  //     if (!declineReason.trim()) {
-  //       Toast("error", "Please provide a reason before declining.");
-  //       return;
-  //     }
-  //     setDeclineLoading(true);
-  //     try {
-  //       const formData = new FormData();
-  //       formData.append("type", 'decline');
-  //       formData.append("reason", declineReason); // attach reason
-  //       const response = await applicantInterviewResponse(item?.id, formData);
-  //       if (response?.data?.status === 'success') {
-  //         window.location.href = window.location.href;
-  //       }
-  //     } catch (error) {
-  //       Toast("error", "Something went wrong while declining.");
-  //     } finally {
-  //       setDeclineLoading(false);
-  //       setOpenDeclinePopup(false);
-  //     }
-  //   }
-  // };
 
   const getInterviewDetails = async () => {
     try {
@@ -140,12 +116,25 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
     }
   }, [historyData?.history_data?.interview_id]);
 
+  const meetingLink = item?.meeting_link && String(item.meeting_link).trim() !== "" ? item.meeting_link.trim() : null;
+
+  const copyMeeting = async () => {
+    if (!meetingLink) return;
+    try {
+      await navigator.clipboard.writeText(meetingLink);
+      Toast("success", "Link copied");
+    } catch {
+      Toast("error", "Could not copy link");
+    }
+  };
+
+  const showDeclineReason =
+    item?.status === "decline" && item?.reason && String(item.reason).trim() !== "";
+
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography sx={{ fontWeight: 600, fontSize: "30px", color: "#00305B" }}>
-          Interview
-        </Typography>
+        <Typography sx={{ fontWeight: 600, fontSize: "30px", color: "#00305B" }}>Interview</Typography>
         <Typography
           sx={{
             fontWeight: 600,
@@ -154,15 +143,13 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
             textDecoration: "underline",
           }}
         >
-          {userType === 'employer' ? `UCN : ${item?.ucn}` : `REQ : ${requisitionNumber}`}
+          {userType === "employer" ? `UCN : ${item?.ucn}` : `REQ : ${requisitionNumber}`}
         </Typography>
       </Box>
 
-      <Typography sx={{ fontWeight: 400, fontSize: "20px", color: "#111111", py: 2 }}>
-        {item?.description ?? ""}
-      </Typography>
+      <Typography sx={{ fontWeight: 400, fontSize: "20px", color: "#111111", py: 2 }}>{item?.description ?? ""}</Typography>
 
-      {(historyData?.type === 'interview_invite' || historyData?.type === 'interview_accept') && (
+      {(historyData?.type === "interview_invite" || historyData?.type === "interview_accept") &&
         item?.dates?.map((date, index) => (
           <Box
             key={index}
@@ -177,8 +164,8 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
               fontSize: "16px",
               fontWeight: 300,
               lineHeight: "18px",
-              color: (selectedDate === date) ? "#FFFFFF" : "#222222",
-              backgroundColor: (selectedDate === date) ? "#00305B" : "#FFFFFF",
+              color: selectedDate === date ? "#FFFFFF" : "#222222",
+              backgroundColor: selectedDate === date ? "#00305B" : "#FFFFFF",
               textAlign: "center",
               mx: "auto",
               mb: 2,
@@ -188,50 +175,85 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
           >
             {date}
           </Box>
-        ))
+        ))}
+
+      {meetingLink && userType !== "employer" && (
+        <Box sx={{ py: 2 }}>
+          <Button
+            variant="contained"
+            size="large"
+            href={meetingLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{
+              backgroundColor: "#189e33",
+              fontWeight: 700,
+              px: 4,
+              py: 1.5,
+              "&:hover": { backgroundColor: "#147a28" },
+            }}
+          >
+            Join Meeting
+          </Button>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1, flexWrap: "wrap" }}>
+            <Typography sx={{ fontSize: "14px", color: "#333", wordBreak: "break-all" }}>{meetingLink}</Typography>
+            <IconButton size="small" aria-label="Copy meeting link" onClick={copyMeeting}>
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
       )}
 
-      <Box sx={{ py: 2, display: "flex", justifyContent: "space-between" }}>
+      {meetingLink && userType === "employer" && (
+        <Box sx={{ py: 2 }}>
+          <Typography sx={{ fontWeight: 600, mb: 0.5 }}>Meeting link</Typography>
+          <Typography sx={{ fontSize: "14px", color: "#333", wordBreak: "break-all" }}>{meetingLink}</Typography>
+        </Box>
+      )}
+
+      <Box sx={{ py: 2, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2 }}>
         <Typography sx={{ fontWeight: 400, fontSize: "16px", color: "#111111", py: 2 }}>
-          Date: {new Date(item?.created_at)?.toDateString() + " " ?? ""}{new Date(item?.created_at)?.toLocaleTimeString() ?? ""}
+          Date: {new Date(item?.created_at)?.toDateString() + " " ?? ""}
+          {new Date(item?.created_at)?.toLocaleTimeString() ?? ""}
         </Typography>
-        <Button
-          sx={{
-            border: "1px solid #ffff",
-            fontSize: "14px",
-            color: "#ffff",
-            backgroundColor: item?.status === 'accept' ? 'green' : 'red',
-          }}
-        >
-          STATUS: {item?.status?.toUpperCase() || ""}
-        </Button>
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+          <Button
+            sx={{
+              border: "1px solid #ffff",
+              fontSize: "14px",
+              color: "#ffff",
+              backgroundColor: item?.status === "accept" ? "green" : "red",
+            }}
+          >
+            STATUS: {item?.status?.toUpperCase() || ""}
+          </Button>
+          {showDeclineReason && (
+            <Box
+              sx={{
+                maxWidth: 420,
+                p: 1.5,
+                borderRadius: "8px",
+                backgroundColor: "#fff3e0",
+                border: "1px solid #ffb74d",
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, fontSize: "13px", color: "#e65100" }}>Decline Reason:</Typography>
+              <Typography sx={{ fontSize: "14px", color: "#333", mt: 0.5 }}>{item.reason}</Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
-      {(userType !== 'employer' && item?.status === 'pending') && (
+      {userType !== "employer" && item?.status === "pending" && (
         <>
           <Box sx={{ py: 2 }}>
-            <RalliButton
-              label="Accept"
-              bg="#00305B"
-              onClick={onAccept}
-              loading={acceptLoading}
-            />
+            <RalliButton label="Accept" bg="#00305B" onClick={onAccept} loading={acceptLoading} />
           </Box>
-          <RalliButton
-            label="Decline"
-            onClick={() => setOpenDeclinePopup(true)} // open popup
-            loading={declineLoading}
-          />
+          <RalliButton label="Decline" onClick={() => setOpenDeclinePopup(true)} loading={declineLoading} />
         </>
       )}
 
-      {/* Decline Reason Popup */}
-      <Dialog 
-        open={openDeclinePopup} 
-        onClose={() => setOpenDeclinePopup(false)}
-        maxWidth="sm"
-        fullWidth
-      >
+      <Dialog open={openDeclinePopup} onClose={() => setOpenDeclinePopup(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700, color: "#00305B" }}>Decline Interview</DialogTitle>
         <DialogContent>
           {!declineDialogContentReady ? (
@@ -239,37 +261,19 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
               <CircularProgress size={40} sx={{ color: "#00305B" }} />
             </Box>
           ) : (
-            <>
-          <Typography sx={{ fontSize: "14px", mb: 2, color: "#555" }}>
-            Please select a reason for declining this interview invite:
-          </Typography>
-          
-          <RadioGroup
-            value={selectedDeclineReason}
-            onChange={(e) => setSelectedDeclineReason(e.target.value)}
-          >
-            {DECLINE_REASONS.map((reason) => (
-              <FormControlLabel 
-                key={reason} 
-                value={reason} 
-                control={<Radio sx={{ color: "#00305B" }} />} 
-                label={reason} 
-              />
-            ))}
-          </RadioGroup>
-
-          {selectedDeclineReason === "Other" && (
             <TextField
-              label="Specify Reason"
-              multiline
-              rows={3}
               fullWidth
-              sx={{ mt: 2 }}
-              value={declineReason}
-              onChange={(e) => setDeclineReason(e.target.value)}
+              required
+              multiline
+              minRows={4}
+              label="Reason for Declining"
+              placeholder="Please provide a reason for declining this interview invite..."
+              value={declineReasonText}
+              onChange={(e) => setDeclineReasonText(e.target.value.slice(0, MAX_DECLINE_LEN))}
+              error={declineReasonText.trim().length > 0 && declineReasonText.trim().length < MIN_DECLINE_LEN}
+              helperText={`${declineReasonText.trim().length} / ${MAX_DECLINE_LEN} (min ${MIN_DECLINE_LEN})`}
+              sx={{ mt: 1 }}
             />
-          )}
-            </>
           )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -278,7 +282,11 @@ const InterviewDetails = ({ requisitionNumber = '', userType = '', historyData =
             onClick={onDecline}
             variant="contained"
             color="error"
-            disabled={declineLoading || !selectedDeclineReason || (selectedDeclineReason === "Other" && !declineReason.trim())}
+            disabled={
+              declineLoading ||
+              declineReasonText.trim().length < MIN_DECLINE_LEN ||
+              declineReasonText.trim().length > MAX_DECLINE_LEN
+            }
           >
             {declineLoading ? "Declining..." : "Confirm Decline"}
           </Button>

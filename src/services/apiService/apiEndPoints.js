@@ -98,6 +98,11 @@ export const UPDATE_EMPLOYER_PROFILE_PIC = "/employer/change-profile-pic";
 export const NOT_INTERESTED = "/post/mark-not-interesting" 
 export const REPORT_POST = "/post/report-post" 
 export const EMPLOYER_SOCIAL_LOGIN = "/employer/social-login";
+export const EMPLOYER_GOOGLE_STATUS = "/employer/google/status";
+export const EMPLOYER_GOOGLE_AUTH_URL = "/employer/google/auth-url";
+export const EMPLOYER_GOOGLE_CALLBACK = "/employer/google/callback";
+export const EMPLOYER_GOOGLE_DISCONNECT = "/employer/google/disconnect";
+export const EMPLOYER_GOOGLE_GENERATE_MEET_LINK = "/employer/google/generate-meet-link";
 export const DEACTIVATE_ACCOUNT = "/settings/deactivate-account";
 export const REACTIVATE_ACCOUNT = "/settings/reactivate-account";
 
@@ -111,3 +116,5 @@ export const blogCommentDelete = (id) => `blogs/comments/${id}`;
 
 export const GET_FEEDBACK = "feedback";
 export const CREATE_FEEDBACK = "feedback";
+
+export const FILTER_PREFERENCES = "/applicant/filter-preferences";

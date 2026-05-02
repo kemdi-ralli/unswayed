@@ -39,15 +39,6 @@ const ApplicationDetail = ({ applicationId = null }) => {
 
   const menuId = "primary-search-account-menu";
 
-  const rejectionReasons = [
-    "Underqualified: Not having the minimum skills, education, or experience required for the position.",
-    "Overqualified: Having more experience than the role requires can make an employer question if the candidate will be engaged or if they will leave for a better opportunity.",
-    "Insufficient experience: Not having enough experience to back up claims or perform the job effectively.",
-    "Cannot meet applicant salary requirements",
-    "Not eligible to work in U.S.",
-    "Other",
-  ];
-
   const fetchApplicationDetail = async () => {
     const response = await apiInstance.get(
       `${GET_APPLICATION_DETAIL}/${applicationId}`
@@ -239,6 +230,26 @@ const ApplicationDetail = ({ applicationId = null }) => {
         >
           {applicationDetail?.job?.description ?? ""}
         </Typography>
+        {applicationDetail?.status === "archive" &&
+          applicationDetail?.rejection_reason &&
+          String(applicationDetail.rejection_reason).trim() !== "" && (
+            <Box
+              sx={{
+                mb: 2,
+                p: 2,
+                borderRadius: "10px",
+                backgroundColor: "#fff8e1",
+                border: "1px solid #ffcc80",
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, color: "#e65100", mb: 0.5 }}>
+                Rejection Reason
+              </Typography>
+              <Typography sx={{ fontSize: "15px", color: "#333" }}>
+                {applicationDetail.rejection_reason}
+              </Typography>
+            </Box>
+          )}
         <Box
           sx={{
             display: "flex",
@@ -489,7 +500,6 @@ const ApplicationDetail = ({ applicationId = null }) => {
           <RejectionReasonModal
             open={isRejectionReasonModalOpen}
             onClose={handleCloseRejectionReasonModal}
-            reasons={rejectionReasons}
             onReasonSelect={handleRejectWithReason}
           />
         </>

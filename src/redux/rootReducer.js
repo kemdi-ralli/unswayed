@@ -11,6 +11,7 @@ import NotificationSlice from "./slices/NotificationSettingSlice";
 import editMode from "./slices/editSlice";
 import deactivateMessage from "./slices/deactivateMessageSlice"
 import notifyType from "./slices/NotificationSlice"
+import filterPreferencesReducer from "./slices/filterPreferencesSlice"
 
 const rootReducer = combineReducers({
   form: applicantFormReducer,
@@ -22,7 +23,8 @@ const rootReducer = combineReducers({
   getSetting: NotificationSlice,
   getEdit: editMode,
   deactivateAccount: deactivateMessage,
-  notificationTye: notifyType
+  notificationTye: notifyType,
+  filterPreferences: filterPreferencesReducer,
 });
 
 // Persist only small slices to keep rehydration fast (large slices like appliedJobs/applicantAttachedCv are refetched per page).
