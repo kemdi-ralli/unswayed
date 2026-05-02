@@ -14,6 +14,15 @@ const ApplicantJobDetails = ({
   hasMore = false, // parent indicates if more data is available
 }) => {
   const today = new Date().toISOString().split("T")[0];
+  const isAppliedJob = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "string") {
+      const v = value.trim().toLowerCase();
+      return v === "1" || v === "true" || v === "yes" || v === "applied";
+    }
+    return false;
+  };
 
   const isOpen = (job) => {
     if (!job) return false;
@@ -28,7 +37,7 @@ const ApplicantJobDetails = ({
   };
 
   const visibleJobs = Array.isArray(data)
-    ? data.filter((job) => !job?.is_applied && isOpen(job))
+    ? data.filter((job) => !isAppliedJob(job?.is_applied) && isOpen(job))
     : [];
 
   return (
