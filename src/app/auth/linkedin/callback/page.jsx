@@ -87,7 +87,7 @@ export default function LinkedInCallback() {
         if (!data?.is_completed) {
           router.replace(`/${userType}/profile/edit-profile`);
         } else if (userType === "employer") {
-          router.replace("/employer/home");
+          router.replace("/employer/my-posts");
         } else {
           router.replace("/applicant/career-areas");
         }

@@ -69,7 +69,7 @@ const Page = () => {
           router.push(
             userType === "applicant"
               ? "/applicant/career-areas"
-              : "/employer/home"
+              : "/employer/my-posts"
           );
         }
       }

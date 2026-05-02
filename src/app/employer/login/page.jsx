@@ -63,7 +63,7 @@ const Page = () => {
         const loginData = responseData?.data;
 
         if (loginData?.is_verified) {
-          router.push("/employer/home");
+          router.push("/employer/my-posts");
         } else {
           router.push("/employer/form/emailVerification");
         }

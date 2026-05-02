@@ -61,7 +61,7 @@ export const employerSocialLogedIn = async (router, dispatch, provider, accessTo
     if (socialData?.is_completed === false) {
       router.push("/employer/profile/edit-profile");
     } else {
-      router.push("/employer/home");
+      router.push("/employer/my-posts");
     }
     if (response.status === 200 || response.status === 201) {
       Toast("success", response?.data?.message);

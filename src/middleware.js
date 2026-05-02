@@ -40,7 +40,7 @@ export function middleware(req) {
 
     if (tokenCookie && userVerified === "true") {
       if (userType !== "applicant") {
-        return NextResponse.redirect(new URL("/employer/home", req.url));
+        return NextResponse.redirect(new URL("/employer/my-posts", req.url));
       }
       if (
         pathname === "/applicant/login" ||
@@ -105,7 +105,7 @@ export function middleware(req) {
         pathname === "/employer/login" ||
         pathname === "/employer/form/emailVerification"
       ) {
-        return NextResponse.redirect(new URL("/employer/home", req.url));
+        return NextResponse.redirect(new URL("/employer/my-posts", req.url));
       }
       return NextResponse.next();
     }
@@ -115,7 +115,7 @@ export function middleware(req) {
         pathname === "/employer/login" ||
         pathname === "/employer/form/emailVerification"
       ) {
-        return NextResponse.redirect(new URL("/employer/home", req.url));
+        return NextResponse.redirect(new URL("/employer/my-posts", req.url));
       }
       return NextResponse.next();
     }
