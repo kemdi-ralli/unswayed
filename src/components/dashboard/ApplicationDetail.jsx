@@ -78,6 +78,9 @@ const ApplicationDetail = ({ applicationId = null }) => {
   const hasOfferDeclined = applicationDetail?.histories?.some(
     (h) => h?.type === "offer_decline"
   );
+  const hasInterviewAccepted = applicationDetail?.histories?.some(
+    (h) => h?.type === "interview_accept"
+  );
   const menuItems = [
     {
       label: "Candidate Is Not A Match",
@@ -95,14 +98,14 @@ const ApplicationDetail = ({ applicationId = null }) => {
         handleMenuClose();
       },
     },
-    {
+    ...(hasInterviewAccepted ? [{
       label: hasOfferDeclined ? "Counteroffer Letter" : "Offer Letter",
       icon: <EmailIcon />,
       onClick: () => {
         handleApplicationAction(hasOfferDeclined ? "CounterOfferLetter" : "OfferLetter");
         handleMenuClose();
       },
-    },
+    }] : []),
   ];
 
   const pathName = usePathname();

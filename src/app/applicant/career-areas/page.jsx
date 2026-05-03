@@ -103,7 +103,6 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
     currencyLabel: "",
   });
 
-  const [filterPrefsLoaded, setFilterPrefsLoaded] = useState(false);
 
   // Pagination state:
   const [backendPage, setBackendPage] = useState(1);
@@ -299,7 +298,6 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
         dispatch(setFilters(hydrated));
       }
 
-      setFilterPrefsLoaded(true);
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -407,13 +405,11 @@ setIsLoadingCities(false);
 }, [dropdownStates?.state]);
 
 
-  // ---------- initial load — wait for preferences to hydrate first ----------
+  // ---------- initial load — fire immediately on mount ----------
   useEffect(() => {
-    if (filterPrefsLoaded) {
-      fetchAndAppendJobs({ reset: true, searchQuery: "" });
-    }
+    fetchAndAppendJobs({ reset: true, searchQuery: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterPrefsLoaded]);
+  }, []);
 
   // ---------- Apply filters (reset listing) ----------
   const applyFilters = async (e, q = null) => {
@@ -607,8 +603,6 @@ setIsLoadingCities(false);
               OnSave={handleJobSaved}
               onPressCard={handleCard}
               OnApply={handleEasyApply}
-              onLoadMore={loadMore}
-              hasMore={hasMore}
             />
           </Container>
         </Suspense>

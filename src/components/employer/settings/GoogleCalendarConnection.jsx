@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Box,
   Typography,
@@ -21,6 +22,8 @@ const GoogleCalendarConnection = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [expiresAt, setExpiresAt] = useState(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const fetchStatus = useCallback(async () => {
     setLoading(true);
@@ -42,12 +45,29 @@ const GoogleCalendarConnection = () => {
     fetchStatus();
   }, [fetchStatus]);
 
+  useEffect(() => {
+    const connected = searchParams.get("google_connected");
+    const error = searchParams.get("google_error");
+    if (connected === "true") {
+      Toast("success", "Google Calendar connected successfully!");
+      fetchStatus();
+      router.replace("/employer/settings");
+    } else if (error === "true") {
+      Toast("error", "Failed to connect Google Calendar. Please try again.");
+      router.replace("/employer/settings");
+    }
+  }, [searchParams, fetchStatus, router]);
+
   const connect = async () => {
     setActionLoading(true);
     try {
-      const res = await apiInstance.get(EMPLOYER_GOOGLE_AUTH_URL);
+      const redirectUri = `${window.location.origin}/employer/settings/google-callback`;
+      const res = await apiInstance.get(EMPLOYER_GOOGLE_AUTH_URL, {
+        params: { redirect_uri: redirectUri },
+      });
       const url = res?.data?.data?.auth_url;
       if (url) {
+        sessionStorage.setItem("google_oauth_redirect_uri", redirectUri);
         window.location.href = url;
         return;
       }

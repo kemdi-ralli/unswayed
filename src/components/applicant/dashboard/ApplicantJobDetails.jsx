@@ -1,6 +1,6 @@
 // /mnt/data/ApplicantJobDetails.jsx
 import React from "react";
-import { Box, Grid, Skeleton, Typography, Button } from "@mui/material";
+import { Box, Grid, Skeleton, Typography } from "@mui/material";
 import JobsCard from "./JobsCard";
 import dayjs from "dayjs";
 
@@ -10,8 +10,6 @@ const ApplicantJobDetails = ({
   onPressCard = () => {},
   OnApply = () => {},
   OnSave = () => {},
-  onLoadMore = null, // function provided by parent to fetch next page
-  hasMore = false, // parent indicates if more data is available
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const isAppliedJob = (value) => {
@@ -76,18 +74,6 @@ const ApplicantJobDetails = ({
         )}
       </Grid>
 
-      {/* Load More button (only if parent passed onLoadMore and hasMore true) */}
-      {!isLoading && typeof onLoadMore === "function" && hasMore && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <Button
-            variant="contained"
-            sx={{ background: "#00305B" }}
-            onClick={onLoadMore}
-          >
-            Load More
-          </Button>
-        </Box>
-      )}
     </Box>
   );
 };

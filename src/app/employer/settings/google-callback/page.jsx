@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Container from "@/components/common/Container";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { EMPLOYER_GOOGLE_CALLBACK } from "@/services/apiService/apiEndPoints";
-import { Toast } from "@/components/Toast/Toast";
 
 const Page = () => {
   const router = useRouter();
@@ -17,14 +16,12 @@ const Page = () => {
     const oauthError = searchParams.get("error");
 
     if (oauthError) {
-      Toast("error", "Google authorization was cancelled or failed.");
-      router.replace("/employer/settings");
+      router.replace("/employer/settings?google_error=true");
       return;
     }
 
     if (!code) {
-      Toast("error", "Missing authorization code.");
-      router.replace("/employer/settings");
+      router.replace("/employer/settings?google_error=true");
       return;
     }
 
@@ -36,19 +33,22 @@ const Page = () => {
     sessionStorage.setItem(dedupeKey, "1");
 
     (async () => {
+      const redirectUri = sessionStorage.getItem("google_oauth_redirect_uri");
+      sessionStorage.removeItem("google_oauth_redirect_uri");
       try {
-        const res = await apiInstance.post(EMPLOYER_GOOGLE_CALLBACK, { code });
+        const res = await apiInstance.post(EMPLOYER_GOOGLE_CALLBACK, {
+          code,
+          redirect_uri: redirectUri,
+        });
         if (res?.data?.status === "success") {
-          Toast("success", "Google account connected");
+          router.replace("/employer/settings?google_connected=true");
         } else {
           sessionStorage.removeItem(dedupeKey);
-          Toast("error", res?.data?.message ?? "Could not complete Google connection.");
+          router.replace("/employer/settings?google_error=true");
         }
       } catch (e) {
         sessionStorage.removeItem(dedupeKey);
-        Toast("error", e?.response?.data?.message ?? "Could not complete Google connection.");
-      } finally {
-        router.replace("/employer/settings");
+        router.replace("/employer/settings?google_error=true");
       }
     })();
   }, [searchParams, router]);
