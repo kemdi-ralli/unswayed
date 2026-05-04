@@ -40,7 +40,7 @@ const ProfileSettings = ({ data, profile }) => {
         setSubscriptionInfo({
           plan: profile?.subscription_plan || "Freemium",
           is_subscribed: profile?.is_subscribed || false,
-          is_on_trial: profile?.subscription_plan === "30-days trial",
+          is_on_trial: profile?.subscription_plan === "30-Day Trial",
           days_remaining: 0,
           has_active_subscription: profile?.is_subscribed || false,
         });
@@ -55,7 +55,7 @@ const ProfileSettings = ({ data, profile }) => {
   // Get subscription color based on plan
   const getSubscriptionColor = (plan) => {
     if (plan === "Freemium") return { bg: "#f3f4f6", text: "#6b7280" };
-    if (plan === "30-days trial") return { bg: "#fef3c7", text: "#d97706" };
+    if (plan === "30-Day Trial") return { bg: "#fef3c7", text: "#d97706" };
     if (plan === "Pro Plan" || plan?.includes("Pro")) return { bg: "#dbeafe", text: "#2563eb" };
     if (plan?.includes("Tier")) return { bg: "#dcfce7", text: "#16a34a" };
     if (plan === "Expired") return { bg: "#fee2e2", text: "#dc2626" };
@@ -71,7 +71,7 @@ const ProfileSettings = ({ data, profile }) => {
     return (
       subscriptionInfo.is_subscribed &&
       subscriptionInfo.plan !== "Freemium" &&
-      subscriptionInfo.plan !== "30-days trial" &&
+      subscriptionInfo.plan !== "30-Day Trial" &&
       subscriptionInfo.plan !== "Expired"
     );
   };

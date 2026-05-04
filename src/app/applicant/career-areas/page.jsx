@@ -26,39 +26,44 @@ import { getFilterPreferences, saveFilterPreferences, clearFilterPreferences } f
 import { countryToCurrency } from "@/constant/applicant/countryCurrency/countryCurrency";
 
 // Map local dropdownStates keys → server filter_data keys
-const toServerFilterData = (local) => {
+const toServerFilterData = (local, searchQuery = "") => {
   const d = {};
-  if (local.country) d.country = local.country;
-  if (Array.isArray(local.state) && local.state.length > 0) d.state = local.state;
-  if (local.city) d.city = Array.isArray(local.city) ? local.city : [local.city];
-  if (Array.isArray(local.job_category) && local.job_category.length > 0) d.jobCategory = local.job_category;
-  if (local.job_location) d.jobLocation = local.job_location;
-  if (local.job_type) d.jobType = local.job_type;
-  if (local.job_shift) d.jobShift = local.job_shift;
-  if (local.salary) d.minimumSalary = String(local.salary);
-  if (local.salary_max) d.maximumSalary = String(local.salary_max);
-  if (local.experience_level) d.experienceLevel = local.experience_level;
-  if (Array.isArray(local.skills) && local.skills.length > 0) d.skills = local.skills;
-  if (local.job_kind && local.job_kind !== "all") d.isRalli = local.job_kind;
-  if (local.currencyLabel) d.currencyLabel = local.currencyLabel;
+  // String fields — omit key entirely if empty
+  const sq = String(searchQuery || "").trim();
+  if (sq) d.search = sq;
+  if (local.experience_level) d.experience_level = local.experience_level;
+  if (local.job_kind && local.job_kind !== "all") d.job_kind = local.job_kind;
+  if (local.salary) d.salary_min = String(local.salary);
+  if (local.salary_max) d.salary_max = String(local.salary_max);
+  if (local.currencyLabel) d.salary_currency = local.currencyLabel;
+  // Array fields — always include, even empty []
+  d.job_category = Array.isArray(local.job_category) ? local.job_category : [];
+  d.skills = Array.isArray(local.skills) ? local.skills : [];
+  d.state = Array.isArray(local.state) ? local.state : [];
+  // Single-value local fields that the server stores as arrays
+  d.country = local.country ? [local.country] : [];
+  d.city = local.city ? [local.city] : [];
+  d.job_type = local.job_type ? [local.job_type] : [];
+  d.job_location = local.job_location ? [local.job_location] : [];
+  d.job_shift = local.job_shift ? [local.job_shift] : [];
   return d;
 };
 
 // Map server filter_data keys → local dropdownStates keys
 const fromServerFilterData = (server) => ({
-  country: server.country || "",
-  state: server.state || [],
-  city: Array.isArray(server.city) ? (server.city[0] || "") : (server.city || ""),
-  job_category: server.jobCategory || [],
-  job_location: server.jobLocation || "",
-  job_type: server.jobType || "",
-  job_shift: server.jobShift || "",
-  experience_level: server.experienceLevel || "",
-  skills: server.skills || [],
-  salary: server.minimumSalary || "",
-  salary_max: server.maximumSalary || "",
-  job_kind: server.isRalli || "all",
-  currencyLabel: server.currencyLabel || "",
+  country: Array.isArray(server.country) ? (server.country[0] ?? "") : (server.country || ""),
+  state: Array.isArray(server.state) ? server.state : [],
+  city: Array.isArray(server.city) ? (server.city[0] ?? "") : (server.city || ""),
+  job_category: Array.isArray(server.job_category) ? server.job_category : [],
+  job_location: Array.isArray(server.job_location) ? (server.job_location[0] ?? "") : (server.job_location || ""),
+  job_type: Array.isArray(server.job_type) ? (server.job_type[0] ?? "") : (server.job_type || ""),
+  job_shift: Array.isArray(server.job_shift) ? (server.job_shift[0] ?? "") : (server.job_shift || ""),
+  experience_level: server.experience_level || "",
+  skills: Array.isArray(server.skills) ? server.skills : [],
+  salary: server.salary_min || "",
+  salary_max: server.salary_max || "",
+  job_kind: server.job_kind || "all",
+  currencyLabel: server.salary_currency || "",
 });
 
 const SearchBar = lazy(() => import("@/components/applicant/dashboard/SearchBar"));
@@ -72,7 +77,7 @@ const Page = () => {
   const [jobs, setJobs] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [errors, setErrors] = useState(null);
-  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
 
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -115,8 +120,10 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
   const handleCloseModal = () => setModalOpen(false);
 
   // ---------- fetch jobs from backend only ----------
-  const fetchAndAppendJobs = async ({ reset = false, searchQuery = null } = {}) => {
+  const fetchAndAppendJobs = async ({ reset = false, searchQuery = null, filtersOverride = null } = {}) => {
     const query = searchQuery !== null ? searchQuery : search;
+    // filtersOverride lets init() pass just-loaded prefs without waiting for state to flush
+    const activeFilters = filtersOverride !== null ? filtersOverride : dropdownStates;
     let targetBackendPage = backendPage;
 
     if (reset) {
@@ -136,53 +143,53 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
       if (query != null && String(query).trim() !== "") {
         params.search = String(query).trim();
       }
-      if (dropdownStates.job_kind && dropdownStates.job_kind !== "all") {
-        params.job_kind = dropdownStates.job_kind;
+      if (activeFilters.job_kind && activeFilters.job_kind !== "all") {
+        params.job_kind = activeFilters.job_kind;
       }
-      if (dropdownStates.salary) {
-        params.salary_min = dropdownStates.salary;
+      if (activeFilters.salary) {
+        params.salary_min = activeFilters.salary;
       }
-      if (dropdownStates.salary_max) {
-        params.salary_max = dropdownStates.salary_max;
+      if (activeFilters.salary_max) {
+        params.salary_max = activeFilters.salary_max;
       }
-      if (dropdownStates.country && countries.length > 0) {
-        const selectedCountry = countries.find((c) => c.id === dropdownStates.country);
+      if (activeFilters.country && countries.length > 0) {
+        const selectedCountry = countries.find((c) => c.id === activeFilters.country);
         if (selectedCountry) {
           params.salary_currency = countryToCurrency[selectedCountry.name] || "USD";
         }
       }
-      if (dropdownStates.country) {
-        params.country = dropdownStates.country;
+      if (activeFilters.country) {
+        params.country = activeFilters.country;
       }
-      if (Array.isArray(dropdownStates.state) && dropdownStates.state.length > 0) {
-        params.state = dropdownStates.state;
+      if (Array.isArray(activeFilters.state) && activeFilters.state.length > 0) {
+        params.state = activeFilters.state;
       }
-      if (dropdownStates.city) {
-        params.city = Array.isArray(dropdownStates.city) ? dropdownStates.city : [dropdownStates.city];
+      if (activeFilters.city) {
+        params.city = Array.isArray(activeFilters.city) ? activeFilters.city : [activeFilters.city];
       }
-      if (Array.isArray(dropdownStates.job_category) && dropdownStates.job_category.length > 0) {
-        params.job_category = dropdownStates.job_category.join(",");
+      if (Array.isArray(activeFilters.job_category) && activeFilters.job_category.length > 0) {
+        params.job_category = activeFilters.job_category.join(",");
       }
-      if (dropdownStates.job_location) {
-        params.job_location = dropdownStates.job_location;
+      if (activeFilters.job_location) {
+        params.job_location = activeFilters.job_location;
       }
-      if (dropdownStates.job_type) {
-        params.job_type = dropdownStates.job_type;
+      if (activeFilters.job_type) {
+        params.job_type = activeFilters.job_type;
       }
-      if (dropdownStates.job_shift) {
-        params.job_shift = dropdownStates.job_shift;
+      if (activeFilters.job_shift) {
+        params.job_shift = activeFilters.job_shift;
       }
-      if (dropdownStates.experience_level) {
-        params.experience_level = dropdownStates.experience_level;
+      if (activeFilters.experience_level) {
+        params.experience_level = activeFilters.experience_level;
       }
-      if (Array.isArray(dropdownStates.skills) && dropdownStates.skills.length > 0) {
-        params.skills = dropdownStates.skills.join(",");
+      if (Array.isArray(activeFilters.skills) && activeFilters.skills.length > 0) {
+        params.skills = activeFilters.skills.join(",");
       }
 
       let backendJobs = [];
       let pagination = null;
       const includeExternal =
-        !dropdownStates.job_kind || dropdownStates.job_kind === "all" || dropdownStates.job_kind === "external";
+        !activeFilters.job_kind || activeFilters.job_kind === "all" || activeFilters.job_kind === "external";
 
       try {
         const resp = await apiInstance.get(CAREER_JOBS, { params });
@@ -291,13 +298,19 @@ const [isLoadingCities, setIsLoadingCities] = useState(false);
         })(),
       ]);
 
-      // Hydrate filters if preferences were saved
       if (savedPrefs.status === "fulfilled" && savedPrefs.value) {
+        // Hydrate filter controls with saved state
         const hydrated = fromServerFilterData(savedPrefs.value);
+        const savedSearch = savedPrefs.value.search || "";
         setDropdownStates((prev) => ({ ...prev, ...hydrated }));
+        if (savedSearch) setSearch(savedSearch);
         dispatch(setFilters(hydrated));
+        // Fire initial job query with saved filters — bypass stale closure via filtersOverride
+        fetchAndAppendJobs({ reset: true, searchQuery: savedSearch, filtersOverride: hydrated });
+      } else {
+        // No saved preferences — load default (unfiltered) results
+        fetchAndAppendJobs({ reset: true, searchQuery: "" });
       }
-
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -405,20 +418,15 @@ setIsLoadingCities(false);
 }, [dropdownStates?.state]);
 
 
-  // ---------- initial load — fire immediately on mount ----------
-  useEffect(() => {
-    fetchAndAppendJobs({ reset: true, searchQuery: "" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ---------- Apply filters (reset listing) ----------
   const applyFilters = async (e, q = null) => {
-    setSearch(q === null ? search : q);
+    const activeSearch = q === null ? search : q;
+    setSearch(activeSearch);
     setBackendPage(1);
-    await fetchAndAppendJobs({ reset: true, searchQuery: q === null ? search : q });
+    await fetchAndAppendJobs({ reset: true, searchQuery: activeSearch });
     Toast("success", "Filters applied");
-    // Fire-and-forget: persist to server for cross-device sync
-    saveFilterPreferences(toServerFilterData(dropdownStates)).catch(() => {});
+    // Fire-and-forget: persist to server — include search so it restores cross-device
+    saveFilterPreferences(toServerFilterData(dropdownStates, activeSearch)).catch(() => {});
     dispatch(setFilters(dropdownStates));
   };
 

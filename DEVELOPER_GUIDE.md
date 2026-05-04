@@ -68,7 +68,7 @@ Response:
 {
   "status": "success",
   "data": {
-    "plan": "30-days trial",
+    "plan": "30-Day Trial",
     "is_on_trial": true,
     "days_remaining": 0,
     "has_active_subscription": false,

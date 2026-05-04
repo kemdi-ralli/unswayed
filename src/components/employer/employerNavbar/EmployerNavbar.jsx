@@ -106,6 +106,11 @@ const profileMenuItems = [
     link: "/employer/settings",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
+  {
+    name: "Billing & Subscriptions",
+    link: "/billing",
+    icon: <PanoramaFishEyeIcon sx={iconStyle} />,
+  },
   { divider: true },
   { heading: "Help Center", icon: <HelpCenterIcon /> },
   {

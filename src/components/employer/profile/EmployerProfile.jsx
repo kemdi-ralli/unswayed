@@ -52,8 +52,8 @@ const EmployerProfile = ({
 
   // === NEW: Get subscription info from data or userData ===
   const getSubscriptionDisplay = () => {
-    const subscriptionPlan = data?.subscription_plan || userData?.user?.subscription_plan || "30-days trial";
-    const isOnTrial = data?.subscription?.is_on_trial || subscriptionPlan === "30-days trial";
+    const subscriptionPlan = data?.subscription_plan || userData?.user?.subscription_plan || "30-Day Trial";
+    const isOnTrial = data?.subscription?.is_on_trial || subscriptionPlan === "30-Day Trial";
     const daysRemaining = data?.subscription?.days_remaining || 0;
     
     // Calculate days remaining for trial if not provided
@@ -75,7 +75,7 @@ const EmployerProfile = ({
 
   // === NEW: Get color based on subscription type ===
   const getSubscriptionColor = (plan) => {
-    if (plan === "30-days trial") return { bg: "#fef3c7", text: "#d97706" };
+    if (plan === "30-Day Trial") return { bg: "#fef3c7", text: "#d97706" };
     if (plan === "Tier 1") return { bg: "#dbeafe", text: "#2563eb" };
     if (plan === "Tier 2") return { bg: "#dcfce7", text: "#16a34a" };
     if (plan === "Tier 3") return { bg: "#f3e8ff", text: "#9333ea" };
@@ -206,7 +206,7 @@ const EmployerProfile = ({
             </Typography>
           )}
           
-          {(subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
+          {(subscriptionInfo.plan === "30-Day Trial" || subscriptionInfo.plan === "Expired") && (
             <Button
               variant="contained"
               onClick={() => route.push("/billing")}

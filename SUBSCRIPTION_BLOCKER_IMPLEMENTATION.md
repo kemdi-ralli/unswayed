@@ -76,7 +76,7 @@ const subscriptionExpired = !subscriptionInfo?.has_active_subscription && !subsc
 {
   "status": "success",
   "data": {
-    "plan": "30-days trial",
+    "plan": "30-Day Trial",
     "is_subscribed": false,
     "is_on_trial": true,
     "trial_ends_at": "2026-02-18T00:00:00Z",

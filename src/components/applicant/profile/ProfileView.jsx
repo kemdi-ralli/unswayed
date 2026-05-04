@@ -186,7 +186,7 @@ const ProfileView = ({
   // === NEW: Get color based on subscription type ===
   const getSubscriptionColor = (plan) => {
     if (plan === "Freemium") return { bg: "#f3f4f6", text: "#6b7280" };
-    if (plan === "30-days trial") return { bg: "#fef3c7", text: "#d97706" };
+    if (plan === "30-Day Trial") return { bg: "#fef3c7", text: "#d97706" };
     if (plan === "Pro Plan" || plan?.includes("Pro")) return { bg: "#dbeafe", text: "#2563eb" };
     if (plan?.includes("Tier")) return { bg: "#dcfce7", text: "#16a34a" };
     if (plan === "Expired") return { bg: "#fee2e2", text: "#dc2626" };
@@ -526,7 +526,7 @@ const ProfileView = ({
           </Box>
 
           {/* === NEW: Upgrade button for own profile === */}
-          {(subscriptionInfo.plan === "Freemium" || subscriptionInfo.plan === "30-days trial" || subscriptionInfo.plan === "Expired") && (
+          {(subscriptionInfo.plan === "Freemium" || subscriptionInfo.plan === "30-Day Trial" || subscriptionInfo.plan === "Expired") && (
             <Box sx={{ mb: 2 }}>
               <Button
                 variant="contained"
