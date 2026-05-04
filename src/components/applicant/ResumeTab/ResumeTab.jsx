@@ -10,7 +10,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ResumeInput from "@/components/applicant/ResumeTab/ResumeInput";
+import AffindaGenerateModal from "@/components/applicant/ResumeTab/AffindaGenerateModal";
 import {
   attachResume,
   deleteResume,
@@ -34,6 +36,7 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
   const [currentResumeId, setCurrentResumeId] = useState(null);
   const [newResumeName, setNewResumeName] = useState("");
   const [dialogContentReady, setDialogContentReady] = useState(false);
+  const [affindaModalOpen, setAffindaModalOpen] = useState(false);
   const dispatch = useDispatch();
   const pathName = usePathname();
   const route = useRouter();
@@ -160,14 +163,10 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
         label: "Download",
         icon: <DownloadIcon />,
         onClick: () => {
-          const fileUrl = el.resume;
+          // Prefer pdf_url (present on Affinda-generated & build resumes); fall back to resume URL
+          const fileUrl = el.pdf_url || el.resume;
           if (fileUrl) {
-            const link = document.createElement("a");
-            link.href = fileUrl;
-            link.download = el.title || "resume.pdf";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            window.open(fileUrl, "_blank", "noopener,noreferrer");
           } else {
             console.error("Resume URL not available for ID:", el.id);
           }
@@ -346,6 +345,29 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
                   />
                 </Box>
                 <Box sx={{ px: { xs: 1, sm: 2 }, pt: "10px" }}>
+                  {/* Unswayed Build badge — shown for all build-type resumes */}
+                  {el.type === "build" && (
+                    <Box
+                      sx={{
+                        background: el?.id === resumeId ? "rgba(255,255,255,0.2)" : "#d1e7dd",
+                        px: 0.8,
+                        py: 0.3,
+                        width: "fit-content",
+                        borderRadius: "8px",
+                        mb: 0.5,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: { xs: "9px", sm: "11px" },
+                          fontWeight: 500,
+                          color: el?.id === resumeId ? "#fff" : "#0f5132",
+                        }}
+                      >
+                        Unswayed Build
+                      </Typography>
+                    </Box>
+                  )}
                   <Typography
                     sx={{
                       fontSize: { xs: "9px", sm: "15px", md: "18px" },
@@ -392,6 +414,83 @@ const ResumeTab = ({ data, resumeId, selectedResume, appliedJobId }) => {
               })}
             </Box>
           ))}
+
+          {/* ── Upload & Auto-Generate Resume trigger card ── */}
+          <Box
+            sx={{
+              maxWidth: "570px",
+              boxShadow: "0px 1px 5px #00000040",
+              borderRadius: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              my: 2,
+              p: 2,
+              cursor: "pointer",
+              "&:hover": { backgroundColor: "#f9fafb" },
+            }}
+            onClick={() => setAffindaModalOpen(true)}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box
+                sx={{
+                  width: { xs: 30, sm: 40, md: 53.09 },
+                  height: { xs: 40, sm: 50, md: 65.23 },
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CloudUploadIcon sx={{ fontSize: { xs: 28, sm: 38, md: 48 }, color: "#00305B" }} />
+              </Box>
+              <Box sx={{ px: { xs: 1, sm: 2 }, pt: "10px" }}>
+                <Box
+                  sx={{
+                    background: "#d1e7dd",
+                    px: 0.8,
+                    py: 0.3,
+                    width: "fit-content",
+                    borderRadius: "12px",
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: { xs: "9px", sm: "11px" },
+                      fontWeight: 500,
+                      color: "#0f5132",
+                    }}
+                  >
+                    AI Powered
+                  </Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "9px", sm: "15px", md: "18px" },
+                    fontWeight: 700,
+                    color: "#111111",
+                  }}
+                >
+                  Upload &amp; Auto-Generate Resume
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: { xs: "9px", sm: "13px", md: "14px" },
+                    fontWeight: 300,
+                    color: "#555",
+                  }}
+                >
+                  Upload your existing resume and we will auto-format it.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* ── Affinda Generate Modal ── */}
+          <AffindaGenerateModal
+            open={affindaModalOpen}
+            onClose={() => setAffindaModalOpen(false)}
+          />
         </>
       )}
 

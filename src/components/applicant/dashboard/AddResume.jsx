@@ -226,7 +226,7 @@ const AddResume = ({ nextStep, onNext, resumes, selectedResume, resumeId, id }) 
                   py: 0,
                 }}
               >
-                We Will Guide You Through It, There Are Only A Few Steps
+                We Will Guide You Through It. There Are Only A Few Steps.
               </Typography>
             </Box>
           </Box>
