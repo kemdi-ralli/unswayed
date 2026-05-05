@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Avatar, Box, Button, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -12,7 +12,16 @@ import RalliDropdown from "../applied/RalliDropdown";
 import { useSelector } from "react-redux";
 import BackButtonWithTitle from "../dashboard/BackButtonWithTitle";
 import { useRouter } from "next/navigation";
-import AddressAutocomplete from "@/components/common/AddressAutocomplete";
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyBEREiN-vfh4N5pGUgAsY2nRYNQARP-oUI";
+
+const extractZipCode = (addressComponents) => {
+  if (!addressComponents) return "";
+  const zipComponent = addressComponents.find((c) =>
+    c.types.includes("postal_code")
+  );
+  return zipComponent ? zipComponent.long_name : "";
+};
 
 const EditProfile = ({
   profileDetails,
@@ -33,9 +42,56 @@ const EditProfile = ({
   data,
   onAddressSelect,
 }) => {
-  const router = useRouter()
+  const router = useRouter();
+  const addressInputRef = useRef(null);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
     useState(false);
+
+  // Wire up Google Places Autocomplete on the address field
+  useEffect(() => {
+    let cancelled = false;
+    import("@googlemaps/js-api-loader")
+      .then(({ Loader }) => {
+        const loader = new Loader({
+          apiKey: GOOGLE_MAPS_API_KEY,
+          libraries: ["places"],
+        });
+        loader.load().then(() => {
+          if (cancelled || !addressInputRef.current) return;
+          const autocomplete = new window.google.maps.places.Autocomplete(
+            addressInputRef.current,
+            { types: ["geocode"] }
+          );
+          autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            const zip = extractZipCode(place.address_components);
+            const selectedAddress = place.formatted_address || "";
+            if (addressInputRef.current) {
+              addressInputRef.current.value = selectedAddress;
+            }
+            handleFieldChange("address", selectedAddress);
+            if (zip) handleFieldChange("zip_code", zip);
+          });
+        });
+      })
+      .catch((err) =>
+        console.error("Google Maps loader failed:", err)
+      );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the uncontrolled address input in sync when profile data loads async
+  useEffect(() => {
+    const addressItem = profileDetails?.contactDetails?.find(
+      (item) => item.name === "address"
+    );
+    if (addressInputRef.current && addressItem?.value != null) {
+      addressInputRef.current.value = addressItem.value;
+    }
+  }, [profileDetails]);
   const handleChangePassword = () => {
     router.push("/applicant/settings/change-password");
   };
@@ -525,21 +581,32 @@ const EditProfile = ({
                 {item?.title}
                 {item?.required && <span style={{ color: "red" }}>*</span>}
               </Typography>
-              <AddressAutocomplete
-                value={item?.value || ""}
-                onChange={(value) => handleFieldChange(item.name, value)}
-                onAddressSelect={(addressDetails) => {
-                  handleFieldChange(item.name, addressDetails.address);
-                  if (addressDetails.zipCode) {
-                    handleFieldChange("zip_code", addressDetails.zipCode);
-                  }
-                  if (onAddressSelect) {
-                    onAddressSelect(addressDetails);
-                  }
+              <Box
+                component="input"
+                ref={addressInputRef}
+                defaultValue={item?.value || ""}
+                placeholder={item?.placeholder || "Start typing your address…"}
+                onChange={(e) => handleFieldChange("address", e.target.value)}
+                sx={{
+                  width: "100%",
+                  boxShadow: "0px 0px 3px 0.4px #00000040",
+                  border: "none",
+                  outline: "none",
+                  padding: "18px 20px",
+                  borderRadius: "10px",
+                  fontSize: "16px",
+                  fontWeight: 300,
+                  lineHeight: "18px",
+                  color: "#222222",
+                  my: 1,
+                  boxSizing: "border-box",
                 }}
-                placeholder={item?.placeholder || "Enter your address"}
-                error={formikErrors[item.name]}
               />
+              {formikErrors[item.name] && (
+                <Typography color="error" sx={{ fontSize: "12px", mt: "5px" }}>
+                  {formikErrors[item.name]}
+                </Typography>
+              )}
             </Box>
           );
         }

@@ -88,6 +88,11 @@ export const EDIT_PROFILE_DETAILS = {
       required: true,
     },
     {
+      title: "Address",
+      name: "address",
+      placeholder: "4017 Summer Street, New York, NY",
+    },
+    {
       title: "Zip Code",
       name: "zip_code",
       placeholder: "123456",
@@ -98,11 +103,6 @@ export const EDIT_PROFILE_DETAILS = {
       name: "ethnicity",
       placeholder: "ethnicity",
       required: true,
-    },
-    {
-      title: "Location",
-      name: "address",
-      placeholder: "4017 summer street",
     },
     {
       title: "Skills",

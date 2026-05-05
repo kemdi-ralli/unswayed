@@ -16,6 +16,7 @@ const Navbar = dynamic(() => import("../applicant/dashboard/Navbar"), { ssr: tru
 const Footer = dynamic(() => import("../applicant/dashboard/Footer"), { ssr: true });
 import Link from "next/link";
 import SubscriptionBlockerModal from "../Modal/SubscriptionBlockerModal";
+import SubscriptionWarningModal from "../Modal/SubscriptionWarningModal";
 import DeactivatedAccountModal from "../Modal/DeactivatedAccountModal";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 
@@ -36,6 +37,8 @@ export default function CustomLayout({ children }) {
   );
 
   const [showSubscriptionBlocker, setShowSubscriptionBlocker] = useState(false);
+  const [showSubscriptionWarning, setShowSubscriptionWarning] = useState(false);
+  const [subscriptionDaysRemaining, setSubscriptionDaysRemaining] = useState(null);
   const [subscriptionChecked, setSubscriptionChecked] = useState(false);
   const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
   const [deactivatedAt, setDeactivatedAt] = useState(null);
@@ -129,19 +132,32 @@ export default function CustomLayout({ children }) {
         if (response?.data?.status === "success") {
           const subscriptionInfo = response.data.data;
           
-          // Check if trial has expired (days_remaining <= 0 and still on trial)
+          const daysRemaining = subscriptionInfo?.days_remaining ?? null;
+
+          // Trial expired: explicitly on trial AND days exhausted
           const trialExpired =
-            subscriptionInfo?.is_on_trial &&
-            subscriptionInfo?.days_remaining <= 0;
+            subscriptionInfo?.is_on_trial === true &&
+            typeof daysRemaining === "number" &&
+            daysRemaining <= 0;
 
-          // Check if subscription has expired
+          // Subscription expired: NOT on an active sub AND NOT on trial
+          // Use strict === false to avoid false-positive when API returns null
           const subscriptionExpired =
-            !subscriptionInfo?.has_active_subscription &&
-            !subscriptionInfo?.is_on_trial;
+            subscriptionInfo?.has_active_subscription === false &&
+            subscriptionInfo?.is_on_trial === false;
 
-          // Show blocker if trial or subscription expired
+          // 3-day warning: trial still active but expiring soon
+          const trialExpiringSoon =
+            subscriptionInfo?.is_on_trial === true &&
+            typeof daysRemaining === "number" &&
+            daysRemaining > 0 &&
+            daysRemaining <= 3;
+
           if (trialExpired || subscriptionExpired) {
             setShowSubscriptionBlocker(true);
+          } else if (trialExpiringSoon) {
+            setSubscriptionDaysRemaining(daysRemaining);
+            setShowSubscriptionWarning(true);
           }
         }
       } catch (error) {
@@ -157,11 +173,8 @@ export default function CustomLayout({ children }) {
             userSubscription?.days_remaining <= 0;
 
           const subscriptionExpired =
-            !userSubscription?.has_active_subscription &&
-            !userSubscription?.is_on_trial &&
-            userPlan !== "Tier 1" &&
-            userPlan !== "Tier 2" &&
-            userPlan !== "Tier 3";
+            userSubscription?.has_active_subscription === false &&
+            userSubscription?.is_on_trial === false;
 
           if (trialExpired || subscriptionExpired) {
             setShowSubscriptionBlocker(true);
@@ -216,6 +229,15 @@ export default function CustomLayout({ children }) {
       {/* Subscription Blocker Modal for Employers (Only if NOT deactivated) */}
       {!showDeactivatedModal && showSubscriptionBlocker && userType === "employer" && (
         <SubscriptionBlockerModal open={showSubscriptionBlocker} userType={userType} />
+      )}
+
+      {/* Subscription Warning Modal — trial expiring within 3 days (dismissible) */}
+      {!showDeactivatedModal && !showSubscriptionBlocker && showSubscriptionWarning && userType === "employer" && (
+        <SubscriptionWarningModal
+          open={showSubscriptionWarning}
+          daysRemaining={subscriptionDaysRemaining}
+          onClose={() => setShowSubscriptionWarning(false)}
+        />
       )}
 
       {!hiddenNavbarRoutes.includes(pathname) &&

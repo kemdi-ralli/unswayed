@@ -501,11 +501,34 @@ const SubscriptionBlockerModal = ({ open, userType = "employer" }) => {
             sx={{
               fontSize: "13px",
               color: "#4b5563",
+              mb: 3,
             }}
           >
             <strong>Need Help?</strong> Contact our sales team for custom enterprise
             solutions or questions about your subscription.
           </Typography>
+
+          {/* Go to Home — lets employer navigate away without subscribing */}
+          <Button
+            variant="outlined"
+            onClick={() => router.push("/")}
+            sx={{
+              borderColor: "#d1d5db",
+              color: "#6b7280",
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: "14px",
+              px: 4,
+              py: 1,
+              borderRadius: "10px",
+              "&:hover": {
+                borderColor: "#9ca3af",
+                backgroundColor: "#f3f4f6",
+              },
+            }}
+          >
+            Go to Home Page
+          </Button>
         </Box>
         </>
         )}
