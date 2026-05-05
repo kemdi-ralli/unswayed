@@ -22,6 +22,22 @@ const PRELOADER_DELAY_MS = 300;
 const MIN_DECLINE_LEN = 10;
 const MAX_DECLINE_LEN = 1000;
 
+const INTERVIEW_DECLINE_REASONS = [
+  "Already accepted another job offer",
+  "Salary range shared is too low",
+  "Role does not align with career goals",
+  "Lack of interest in the company or position",
+  "Scheduling conflicts or time constraints",
+  "Job location is inconvenient",
+  "Remote work not offered",
+  "Negative reviews or reputation concerns about the company",
+  "Application process is too lengthy or complex",
+  "Poor initial communication from the employer",
+  "Role requirements are unclear or unrealistic",
+  "Personal reasons or change in circumstances",
+  "Other",
+];
+
 const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData = {} }) => {
   const [item, setItem] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
@@ -30,6 +46,7 @@ const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData =
 
   const [openDeclinePopup, setOpenDeclinePopup] = useState(false);
   const [declineReasonText, setDeclineReasonText] = useState("");
+  const [selectedDeclinePreset, setSelectedDeclinePreset] = useState(null);
   const [declineDialogContentReady, setDeclineDialogContentReady] = useState(false);
 
   const onDecline = async () => {
@@ -61,11 +78,22 @@ const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData =
   useEffect(() => {
     if (!openDeclinePopup) {
       setDeclineDialogContentReady(false);
+      setDeclineReasonText("");
+      setSelectedDeclinePreset(null);
       return;
     }
     const t = setTimeout(() => setDeclineDialogContentReady(true), PRELOADER_DELAY_MS);
     return () => clearTimeout(t);
   }, [openDeclinePopup]);
+
+  const handleDeclinePresetSelect = (preset) => {
+    setSelectedDeclinePreset(preset);
+    if (preset !== "Other") {
+      setDeclineReasonText(preset);
+    } else {
+      setDeclineReasonText("");
+    }
+  };
 
   const handleSelect = (date) => {
     if (userType !== "employer" && item?.status === "pending") {
@@ -253,31 +281,125 @@ const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData =
         </>
       )}
 
-      <Dialog open={openDeclinePopup} onClose={() => setOpenDeclinePopup(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, color: "#00305B" }}>Decline Interview</DialogTitle>
+      <Dialog
+        open={openDeclinePopup}
+        onClose={() => setOpenDeclinePopup(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: "12px" } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: "#00305B", py: 3 }}>
+          Decline Interview
+        </DialogTitle>
         <DialogContent>
           {!declineDialogContentReady ? (
-            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200, py: 3 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: 200,
+                py: 3,
+              }}
+            >
               <CircularProgress size={40} sx={{ color: "#00305B" }} />
             </Box>
           ) : (
-            <TextField
-              fullWidth
-              required
-              multiline
-              minRows={4}
-              label="Reason for Declining"
-              placeholder="Please provide a reason for declining this interview invite..."
-              value={declineReasonText}
-              onChange={(e) => setDeclineReasonText(e.target.value.slice(0, MAX_DECLINE_LEN))}
-              error={declineReasonText.trim().length > 0 && declineReasonText.trim().length < MIN_DECLINE_LEN}
-              helperText={`${declineReasonText.trim().length} / ${MAX_DECLINE_LEN} (min ${MIN_DECLINE_LEN})`}
-              sx={{ mt: 1 }}
-            />
+            <Box sx={{ pt: 1 }}>
+              <Typography
+                sx={{ fontSize: "14px", color: "#555555", mb: 2 }}
+              >
+                Please select a reason for declining this interview invite.
+              </Typography>
+
+              {/* ── Preset reason chips ── */}
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+                {INTERVIEW_DECLINE_REASONS.map((preset) => {
+                  const isSelected = selectedDeclinePreset === preset;
+                  const isOther = preset === "Other";
+                  return (
+                    <Box
+                      key={preset}
+                      onClick={() => handleDeclinePresetSelect(preset)}
+                      sx={{
+                        px: 1.5,
+                        py: 0.75,
+                        borderRadius: "20px",
+                        border: `1.5px solid ${
+                          isSelected
+                            ? isOther
+                              ? "#e65100"
+                              : "#00305B"
+                            : "#d0d0d0"
+                        }`,
+                        backgroundColor: isSelected
+                          ? isOther
+                            ? "#fff3e0"
+                            : "#00305B"
+                          : "#f5f5f5",
+                        color: isSelected
+                          ? isOther
+                            ? "#e65100"
+                            : "#ffffff"
+                          : "#555555",
+                        fontSize: "13px",
+                        fontWeight: isSelected ? 600 : 400,
+                        cursor: "pointer",
+                        userSelect: "none",
+                        transition: "all 0.15s ease",
+                        "&:hover": {
+                          borderColor: isOther ? "#e65100" : "#00305B",
+                          backgroundColor: isSelected ? undefined : "#eef3f8",
+                          color: isSelected ? undefined : "#00305B",
+                        },
+                      }}
+                    >
+                      {preset}
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              {/* ── Free-text field — only when "Other" is selected ── */}
+              {selectedDeclinePreset === "Other" && (
+                <TextField
+                  fullWidth
+                  required
+                  multiline
+                  minRows={4}
+                  label="Reason for Declining"
+                  placeholder="Please provide a reason for declining this interview invite..."
+                  value={declineReasonText}
+                  onChange={(e) =>
+                    setDeclineReasonText(e.target.value.slice(0, MAX_DECLINE_LEN))
+                  }
+                  error={
+                    declineReasonText.trim().length > 0 &&
+                    declineReasonText.trim().length < MIN_DECLINE_LEN
+                  }
+                  helperText={`${declineReasonText.trim().length} / ${MAX_DECLINE_LEN} (min ${MIN_DECLINE_LEN})`}
+                  sx={{ mt: 1 }}
+                />
+              )}
+            </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setOpenDeclinePopup(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 3, gap: 1 }}>
+          <Button
+            onClick={() => setOpenDeclinePopup(false)}
+            sx={{
+              color: "#00305B",
+              fontWeight: 600,
+              fontSize: "14px",
+              textTransform: "none",
+              border: "1px solid #00305B",
+              borderRadius: "6px",
+              px: 3,
+              "&:hover": { backgroundColor: "#f0f0f0" },
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={onDecline}
             variant="contained"
@@ -287,6 +409,13 @@ const InterviewDetails = ({ requisitionNumber = "", userType = "", historyData =
               declineReasonText.trim().length < MIN_DECLINE_LEN ||
               declineReasonText.trim().length > MAX_DECLINE_LEN
             }
+            sx={{
+              fontWeight: 600,
+              fontSize: "14px",
+              textTransform: "none",
+              borderRadius: "6px",
+              px: 3,
+            }}
           >
             {declineLoading ? "Declining..." : "Confirm Decline"}
           </Button>
