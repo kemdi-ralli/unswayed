@@ -415,7 +415,7 @@ const ProfileView = ({
               </Box>
               <UserDetail label="Degree" value={el?.degree} isAddEdu={true} />
               <UserDetail
-                label="Field of Study"
+                label="Field Of Study"
                 value={el?.field_of_study}
                 isAddEdu={true}
               />
