@@ -98,7 +98,7 @@ export default function HelpSupportPage() {
 
                 <Box sx={{ maxWidth: "600px", mx: "auto", position: "relative" }}>
                     <Button
-                        onClick={() => router.push("/chatbot")}
+                        onClick={() => router.push("/assistant")}
                         variant="contained"
                         sx={{
                             width: "100%",

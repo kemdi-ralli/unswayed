@@ -1,17 +1,8 @@
-import React from 'react'
-import { Box } from '@mui/material'
-import Chatboot from '@/components/chatboot/Chatboot'
+/**
+ * /chatbot — Legacy route. Redirects to /assistant (Lexi AI).
+ */
+import { redirect } from "next/navigation";
 
-const Page = () => {
-    return (
-        <Box sx={{
-            px: "25px",
-            maxWidth: "1260px",
-            margin: "25px auto",
-        }}>
-            <Chatboot />
-        </Box>
-    )
+export default function ChatbotPage() {
+  redirect("/assistant");
 }
-
-export default Page

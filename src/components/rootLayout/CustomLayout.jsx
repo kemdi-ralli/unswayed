@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import Cookie from "js-cookie";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,10 +19,27 @@ import SubscriptionBlockerModal from "../Modal/SubscriptionBlockerModal";
 import SubscriptionWarningModal from "../Modal/SubscriptionWarningModal";
 import DeactivatedAccountModal from "../Modal/DeactivatedAccountModal";
 import apiInstance from "@/services/apiService/apiServiceInstance";
+import { LexiProvider, useLexi } from "@/components/Lexi/LexiContext";
+import LexiWidget from "@/components/Lexi/LexiWidget";
 
 const CookieConsent = dynamic(() => import("react-cookie-consent"), {
   ssr: false,
 });
+
+// Inner helper: clears Lexi session whenever auth token disappears (logout)
+function LexiLogoutEffect({ token }) {
+  const { clearSessionOnLogout } = useLexi();
+  const prevTokenRef = useRef(token);
+
+  useEffect(() => {
+    if (prevTokenRef.current && !token) {
+      clearSessionOnLogout();
+    }
+    prevTokenRef.current = token;
+  }, [token, clearSessionOnLogout]);
+
+  return null;
+}
 
 export default function CustomLayout({ children }) {
   const pathname = usePathname();
@@ -210,6 +227,8 @@ export default function CustomLayout({ children }) {
   }
 
   return (
+    <LexiProvider>
+      <LexiLogoutEffect token={token} />
     <Box
       sx={{
         display: "flex",
@@ -251,6 +270,11 @@ export default function CustomLayout({ children }) {
 
       {!hiddenNavbarRoutes.includes(pathname) && (
         <Footer data={FOOTER_DATA} />
+      )}
+
+      {/* Lexi AI widget — visible on all authenticated pages */}
+      {isAuthenticated && !hiddenNavbarRoutes.includes(pathname) && (
+        <LexiWidget />
       )}
 
       {!hasAcceptedCookies && (
@@ -323,6 +347,7 @@ export default function CustomLayout({ children }) {
         </Box>
       )}
     </Box>
+    </LexiProvider>
   );
 }
 

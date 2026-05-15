@@ -115,7 +115,7 @@ const profileMenuItems = [
   { heading: "Help Center", icon: <HelpCenterIcon /> },
   {
     name: "Lexi AI",
-    link: "/chatbot",
+    link: "/assistant",
     icon: <PanoramaFishEyeIcon sx={iconStyle} />,
   },
   {

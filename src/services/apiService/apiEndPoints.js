@@ -119,3 +119,7 @@ export const GET_FEEDBACK = "feedback";
 export const CREATE_FEEDBACK = "feedback";
 
 export const FILTER_PREFERENCES = "/applicant/filter-preferences";
+
+// Lexi AI assistant
+export const LEXI_SEND = "/ai/assistant";
+export const LEXI_RESET = "/ai/assistant/reset";

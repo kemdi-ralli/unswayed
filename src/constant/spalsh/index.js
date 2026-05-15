@@ -14,7 +14,7 @@ export const SPLASH_SCREEN_DATA = {
   helpCenter: [
     {
       label: "Lexi AI",
-      link: "/chatbot",
+      link: "/assistant",
     },
     {
       label: "Feedback",
