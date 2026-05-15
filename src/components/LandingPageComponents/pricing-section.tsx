@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
+import Tooltip from "@mui/material/Tooltip";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import Cookie from "js-cookie";
 import apiInstance from "@/services/apiService/apiServiceInstance";
 import { keyframes } from "@mui/system";
 
@@ -311,7 +313,11 @@ export function PricingSection() {
   const router = useRouter();
   const { userData } = useSelector((state: AuthState) => state.auth);
   const user = userData?.user;
-  const isAuthenticated = !!user;
+  // Both Redux state AND a live token cookie must be present.
+  // If Redux holds stale data but the token is gone (expired/logged out),
+  // treat the user as unauthenticated to prevent 401s and wrong redirects.
+  const token = Cookie.get("token");
+  const isAuthenticated = !!user && !!token;
 
   // Lock the tab to the user's own type when authenticated
   useEffect(() => {
@@ -331,8 +337,12 @@ export function PricingSection() {
           setPlans(response.data.data.plans || []);
           setCurrentSubscription(response.data.data.current_subscription || null);
         }
-      } catch (err) {
-        console.error("Error fetching plans:", err);
+      } catch (err: any) {
+        // 401 is expected when the session token is stale — swallow it silently
+        // and fall back to static plans. Log everything else for debugging.
+        if (err?.response?.status !== 401) {
+          console.error("Error fetching plans:", err);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -392,9 +402,12 @@ export function PricingSection() {
           ? STATIC_APPLICANT_PLANS
           : STATIC_EMPLOYER_PLANS;
 
-    return source.filter(
-      (p) => parseFloat(p.price) === 0 || p.billing_period === billingPeriod
-    );
+    // Filter strictly by billing_period for ALL plans including free ones.
+    // Freemium is billing_period:"monthly" so it only appears on the monthly tab —
+    // which is correct (there is no yearly Freemium).
+    // This also prevents duplicate Freemium cards when the API returns
+    // multiple zero-price records (e.g. a monthly + yearly seed row).
+    return source.filter((p) => p.billing_period === billingPeriod);
   };
 
   const displayPlans = getDisplayPlans();
@@ -652,38 +665,117 @@ export function PricingSection() {
       )}
 
       {/* ── Applicant / Employer toggle ── */}
-      <Box display="flex" gap={1} bgcolor="#f1f5f9" p={0.5} borderRadius="10px" mb={2}>
-        <Button
-          onClick={() => setIsApplicant(true)}
-          variant={isApplicant ? "contained" : "text"}
-          sx={{
-            borderRadius: "8px",
-            fontWeight: 600,
-            fontSize: "14px",
-            px: 3,
-            backgroundColor: isApplicant ? "#00305B" : "transparent",
-            color: isApplicant ? "#fff" : "#475569",
-            textTransform: "none",
-          }}
-        >
-          Applicant Plans
-        </Button>
-        <Button
-          onClick={() => setIsApplicant(false)}
-          variant={!isApplicant ? "contained" : "text"}
-          sx={{
-            borderRadius: "8px",
-            fontWeight: 600,
-            fontSize: "14px",
-            px: 3,
-            backgroundColor: !isApplicant ? "#00305B" : "transparent",
-            color: !isApplicant ? "#fff" : "#475569",
-            textTransform: "none",
-          }}
-        >
-          Employer Plans
-        </Button>
-      </Box>
+      {/* When authenticated, the tab that doesn't belong to the user's account
+          type is locked: hover shows a tooltip, clicks are blocked, and a lock
+          icon makes the freeze visually explicit. Unauthenticated visitors can
+          browse both tabs freely. */}
+      {(() => {
+        // true when an authenticated user cannot access this tab
+        const applicantTabLocked = isAuthenticated && user?.type === "employer";
+        const employerTabLocked  = isAuthenticated && user?.type === "applicant";
+
+        const LOCKED_APPLICANT_TIP =
+          "Your account is registered as an Employer. Create a job seeker account to access applicant plans.";
+        const LOCKED_EMPLOYER_TIP =
+          "Your account is registered as a Job Seeker. Create an employer account to access employer plans.";
+
+        const tabSx = (active: boolean, locked: boolean) => ({
+          borderRadius: "8px",
+          fontWeight: 600,
+          fontSize: "14px",
+          px: 2.5,
+          textTransform: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 0.75,
+          backgroundColor: active ? "#00305B" : "transparent",
+          color: active ? "#fff" : locked ? "#b0bec5" : "#475569",
+          // Prevent MUI's :hover from changing anything while locked
+          "&:hover": locked
+            ? { backgroundColor: "transparent", color: "#b0bec5" }
+            : undefined,
+        });
+
+        const renderTab = (
+          label: string,
+          active: boolean,
+          locked: boolean,
+          tooltipMsg: string,
+          onClick: () => void,
+        ) => (
+          <Tooltip
+            title={
+              locked ? (
+                <Box sx={{ textAlign: "center", fontSize: "12px", lineHeight: 1.5 }}>
+                  🔒 {tooltipMsg}
+                </Box>
+              ) : ""
+            }
+            placement="top"
+            arrow
+            disableHoverListener={!locked}
+            disableFocusListener={!locked}
+            disableTouchListener={!locked}
+          >
+            {/* span wrapper keeps Tooltip reachable even when the button blocks events */}
+            <Box
+              component="span"
+              sx={{
+                display: "inline-flex",
+                cursor: locked ? "not-allowed" : "default",
+              }}
+            >
+              <Button
+                onClick={locked ? undefined : onClick}
+                variant={active ? "contained" : "text"}
+                sx={{
+                  ...tabSx(active, locked),
+                  // Block all pointer events on the button itself when locked;
+                  // the parent span keeps hover alive for the Tooltip.
+                  pointerEvents: locked ? "none" : "auto",
+                  opacity: locked ? 0.5 : 1,
+                  transition: "opacity 0.2s",
+                }}
+              >
+                {locked && (
+                  <Lock
+                    size={13}
+                    strokeWidth={2.5}
+                    style={{ flexShrink: 0, marginRight: 2 }}
+                  />
+                )}
+                {label}
+              </Button>
+            </Box>
+          </Tooltip>
+        );
+
+        return (
+          <Box
+            display="flex"
+            gap={1}
+            bgcolor="#f1f5f9"
+            p={0.5}
+            borderRadius="10px"
+            mb={2}
+          >
+            {renderTab(
+              "Applicant Plans",
+              isApplicant,
+              applicantTabLocked,
+              LOCKED_APPLICANT_TIP,
+              () => setIsApplicant(true),
+            )}
+            {renderTab(
+              "Employer Plans",
+              !isApplicant,
+              employerTabLocked,
+              LOCKED_EMPLOYER_TIP,
+              () => setIsApplicant(false),
+            )}
+          </Box>
+        );
+      })()}
 
       {/* ── Monthly / Yearly billing toggle ── */}
       <Box
